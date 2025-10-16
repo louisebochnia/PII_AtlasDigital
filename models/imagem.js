@@ -5,8 +5,16 @@ const ImagemSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    descricao: {
+    topico: {
         type: String, 
+        required: true
+    },
+    anotacao: {
+        type: String, 
+        required: true
+    },
+    links: {
+        type: Array,
         required: true
     }
 });
