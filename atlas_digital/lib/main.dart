@@ -1,6 +1,6 @@
 import 'package:atlas_digital/src/componentes/painelAdm.dart';
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import 'temas.dart';
 import 'app_shell.dart';
 
 void main(){
