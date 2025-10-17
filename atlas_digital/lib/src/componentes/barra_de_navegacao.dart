@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import '../../theme.dart';
 
 class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final int selectedIndex;

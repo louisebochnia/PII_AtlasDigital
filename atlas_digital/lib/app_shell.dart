@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'top_nav_bar.dart';
-import 'home_page.dart';
-import 'content_page.dart';
-import 'gallery_page.dart';
+import 'src/componentes/barra_de_navegacao.dart';
+import 'src/telas/pagina_inicial.dart';
+import 'src/telas/pagina_conteudo.dart';
+import 'src/telas/pagina_galeria.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
