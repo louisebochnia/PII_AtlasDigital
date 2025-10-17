@@ -14,3 +14,5 @@ const TopicosSchema = new mongoose.Schema({
         required: true
     }
 });
+
+module.exports = mongoose.model('Topico', TopicosSchema);
