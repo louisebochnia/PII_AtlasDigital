@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const ImagemSchema = new mongoose.Schema({
+    nomeArquivo: {
+        type: String,
+        required: true
+    },
     enderecoImagem: { 
         type: String, 
         required: true 
@@ -13,8 +17,13 @@ const ImagemSchema = new mongoose.Schema({
         type: String, 
         required: true
     },
-    links: {
-        type: Array,
-        required: true
-    }
+    uploadDate: { 
+        type: Date, 
+        default: Date.now },
+    hiperlinks: [
+        {
+        palavra: String,
+        link: String
+        }
+    ]
 });
