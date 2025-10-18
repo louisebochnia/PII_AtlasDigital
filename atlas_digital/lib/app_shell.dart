@@ -15,7 +15,7 @@ class _AppShellState extends State<AppShell> {
   int _index = 0;
 
   final _pages = const [
-    HomePage(),
+    PaginaInicial(),
     ContentPage(),
     GalleryPage(),
   ];
