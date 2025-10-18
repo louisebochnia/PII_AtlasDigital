@@ -1,14 +1,10 @@
-import 'package:atlas_digital/src/componentes/painelAdm.dart';
 import 'package:flutter/material.dart';
 import 'temas.dart';
 import 'app_shell.dart';
+import 'src/componentes/painelAdm.dart';
 
-void main(){
-  //para passar de tela em tela
-  var app = const MaterialApp(
-    home: PainelAdm()
-  ); 
-  runApp(app);
+void main() {
+  runApp(const AtlasApp());
 }
 
 class AtlasApp extends StatelessWidget {
@@ -19,8 +15,11 @@ class AtlasApp extends StatelessWidget {
     return MaterialApp(
       title: 'Atlas Digital',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),     // <- usa âncoras de cor
-      home: const AppShell(),     // <- casca com navbar e páginas
+      theme: buildAppTheme(),
+
+      // Ponto de entrada:
+      home: const AppShell(),  // (navbar + páginas principais)
+      // home: const PainelAdm(),   // (abre direto o painel)
     );
   }
 }

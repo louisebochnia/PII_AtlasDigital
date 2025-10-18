@@ -35,18 +35,11 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
               // ---- LOGO (troque pelo seu asset se quiser) ----
               Row(
                 children: [
-                  // Ex.: Image.asset('assets/logo_fmabc.png', height: 28),
-                  const FlutterLogo(size: 28),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'FMABC',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: .2,
-                      color: AppColors.textPrimary,
-                    ),
+                  Image.asset(
+                    'assets/logo_fmabc.png',
+                    height: 36, // ajuste o tamanho da logo aqui
                   ),
+                  const SizedBox(width: 8),
                 ],
               ),
 
@@ -73,9 +66,15 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                   backgroundColor: AppColors.brandGreen,
                   foregroundColor: AppColors.white,
                   shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                 ),
-                child: const Text('Acessar ATLAS', style: TextStyle(fontWeight: FontWeight.w800)),
+                child: const Text(
+                  'Acessar ATLAS',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
               ),
 
               const SizedBox(width: 12),
@@ -87,9 +86,15 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                   backgroundColor: AppColors.brandGray90,
                   foregroundColor: AppColors.white,
                   shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                 ),
-                child: const Text('LOGIN', style: TextStyle(fontWeight: FontWeight.w800)),
+                child: const Text(
+                  'LOGIN',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
               ),
             ],
           ),
