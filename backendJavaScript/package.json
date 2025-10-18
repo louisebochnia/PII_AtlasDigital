@@ -1,29 +1,66 @@
 {
+
   "name": "pii_atlasdigital",
+
   "version": "1.0.0",
+
   "main": "app.js",
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+
+    "test": "cross-env NODE_ENV=test jest",
+
     "start": "nodemon app.js"
+
   },
+
   "repository": {
+
     "type": "git",
+
     "url": "git+https://github.com/louisebochnia/PII_AtlasDigital.git"
+
   },
+
   "keywords": [],
+
   "author": "",
+
   "license": "ISC",
+
   "bugs": {
+
     "url": "https://github.com/louisebochnia/PII_AtlasDigital/issues"
+
   },
+
   "homepage": "https://github.com/louisebochnia/PII_AtlasDigital#readme",
+
   "description": "",
+
   "dependencies": {
+
     "cors": "^2.8.5",
+
     "express": "^5.1.0",
+
     "mongoose": "^8.19.1"
+
   },
+
   "devDependencies": {
-    "nodemon": "^3.1.10"
+
+    "cross-env": "^10.1.0",
+
+    "jest": "^30.2.0",
+
+    "mongodb-memory-server": "^10.2.3",
+
+    "nodemon": "^3.1.10",
+
+    "supertest": "^7.1.4"
+
   }
+
 }
+
