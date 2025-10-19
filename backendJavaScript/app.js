@@ -16,59 +16,59 @@ app.use(express.json());
 app.use(cors());
 
 async function conectarAoMongo() {
-    await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`);
+  await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`)
 }
 
 // CRUD TÓPICOS --------------------------------------------------------------------------
 
 app.post('/topicos', async (req, res) => {
   try {
-    const novoTopico = new Topico(req.body);
-    const salvo = await novoTopico.save();
-    res.status(201).json(salvo);
+    const novoTopico = new Topico(req.body)
+    const salvo = await novoTopico.save()
+    res.status(201).json(salvo)
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
 app.get('/topicos', async (req, res) => {
   try {
-    const topicos = await Topico.find();
-    res.json(topicos);
+    const topicos = await Topico.find()
+    res.json(topicos)
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message })
   }
-});
+})
 
 app.get('/topicos/:id', async (req, res) => {
   try {
-    const topico = await Topico.findById(req.params.id);
-    if (!topico) return res.status(404).json({ message: 'Tópico não encontrado' });
-    res.json(topico);
+    const topico = await Topico.findById(req.params.id)
+    if (!topico) return res.status(404).json({ message: 'Tópico não encontrado' })
+    res.json(topico)
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
 app.put('/topicos/:id', async (req, res) => {
   try {
-    const atualizado = await Topico.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!atualizado) return res.status(404).json({ message: 'Tópico não encontrado' });
-    res.json(atualizado);
+    const atualizado = await Topico.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+    if (!atualizado) return res.status(404).json({ message: 'Tópico não encontrado' })
+    res.json(atualizado)
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
 app.delete('/topicos/:id', async (req, res) => {
   try {
-    const deletado = await Topico.findByIdAndDelete(req.params.id);
-    if (!deletado) return res.status(404).json({ message: 'Tópico não encontrado' });
-    res.json({ message: 'Tópico deletado com sucesso' });
+    const deletado = await Topico.findByIdAndDelete(req.params.id)
+    if (!deletado) return res.status(404).json({ message: 'Tópico não encontrado' })
+    res.json({ message: 'Tópico deletado com sucesso' })
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
 // FIM CRUD TÓPICOS ----------------------------------------------------------------------
 
@@ -76,50 +76,50 @@ app.delete('/topicos/:id', async (req, res) => {
 
 app.post('/informacao', async (req, res) => {
   try {
-    const informacao = new Informacao(req.body);
-    await informacao.save();
-    res.status(201).json(informacao);
+    const informacao = new Informacao(req.body)
+    await informacao.save()
+    res.status(201).json(informacao)
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
 app.get('/informacao', async (req, res) => {
   try {
-    const informacoes = await Informacao.find();
-    res.json(informacoes);
+    const informacoes = await Informacao.find()
+    res.json(informacoes)
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message })
   }
-});
+})
 
 app.get('/informacao/:id', async (req, res) => {
   try {
-    const info = await Informacao.findById(req.params.id);
-    if (!info) return res.status(404).json({ message: 'Não encontrado' });
-    res.json(info);
+    const info = await Informacao.findById(req.params.id)
+    if (!info) return res.status(404).json({ message: 'Não encontrado' })
+    res.json(info)
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message })
   }
-});
+})
 
 app.put('/informacao/:id', async (req, res) => {
   try {
-    const info = await Informacao.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(info);
+    const info = await Informacao.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    res.json(info)
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
 app.delete('/informacao/:id', async (req, res) => {
   try {
-    await Informacao.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Informação removida' });
+    await Informacao.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Informação removida' })
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message })
   }
-});
+})
 
 // FIM CRUD DE INFORMAÇÕES! --------------------------------------------------------------
 
@@ -155,12 +155,12 @@ app.post('/api/images/upload', upload.single('imagem')), async (req, res) => {
 
 // FIM CRUD DE IMAGENS! ------------------------------------------------------------------
 
-app.listen(3000, () => {
-    try {
-        conectarAoMongo();
-        console.log("servidor rodando em: http://localhost:3000");
-    }
-    catch (e) {
-        console.log('erro de conexão', e);
-    }
-})
+module.exports = app
+
+if (process.env.NODE_ENV !== 'test') {
+  conectarAoMongo()
+    .catch(err => console.log("Erro conexão Mongo:", err))
+
+  const PORT = 3000
+  app.listen(PORT, () => console.log(`server up & running, conexão ok`))
+}
