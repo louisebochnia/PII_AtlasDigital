@@ -1,3 +1,4 @@
+import 'package:atlas_digital/src/componentes/painelAdm.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,7 @@ class App extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Atlas Digital',
+        // home: const PainelAdm(),
         home: const AppShell(), // << PaginaConteudo fica dentro do AppShell
         routes: {
           '/conteudos': (_) => const PaginaConteudo(),

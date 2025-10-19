@@ -13,7 +13,6 @@ class _GaleriaPageState extends State<GaleriaPage> {
     {"nome": "Servidor Principal", "imagem": "https://exemplo.com/img2.png"},
   ];
 
-  // Função para abrir o pop-up de adicionar/editar
   void abrirPopupImagem({int? index}) {
     final isEditando = index != null;
     final nomeController = TextEditingController(
@@ -29,14 +28,18 @@ class _GaleriaPageState extends State<GaleriaPage> {
         return AlertDialog(
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20)),
-          title: Text(isEditando ? "Editar Imagem" : "Nova Imagem"),
+          title: Text(
+            isEditando ? "Editar Imagem" : "Nova Imagem",
+            style: const TextStyle(fontFamily: "Arial"),
+          ),
           content: SizedBox(
-            width: 350,
+            width: 750,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nomeController,
+                  style: const TextStyle(fontFamily: "Arial"),
                   decoration: const InputDecoration(
                     labelText: "Nome da imagem",
                     border: OutlineInputBorder(),
@@ -45,6 +48,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                 const SizedBox(height: 15),
                 TextField(
                   controller: imagemController,
+                  style: const TextStyle(fontFamily: "Arial"),
                   decoration: const InputDecoration(
                     labelText: "URL ou caminho da imagem",
                     hintText: "Ex: https://site.com/imagem.png",
@@ -57,7 +61,10 @@ class _GaleriaPageState extends State<GaleriaPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancelar"),
+              child: const Text(
+                "Cancelar",
+                style: TextStyle(fontFamily: "Arial"),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -73,8 +80,10 @@ class _GaleriaPageState extends State<GaleriaPage> {
                 if (nome.isEmpty || imagem.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content:
-                            Text("Preencha todos os campos antes de salvar")),
+                        content: Text(
+                      "Preencha todos os campos antes de salvar",
+                      style: TextStyle(fontFamily: "Arial"),
+                    )),
                   );
                   return;
                 }
@@ -97,13 +106,19 @@ class _GaleriaPageState extends State<GaleriaPage> {
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(isEditando
-                        ? "Imagem atualizada com sucesso!"
-                        : "Nova imagem adicionada!"),
+                    content: Text(
+                      isEditando
+                          ? "Imagem atualizada com sucesso!"
+                          : "Nova imagem adicionada!",
+                      style: const TextStyle(fontFamily: "Arial"),
+                    ),
                   ),
                 );
               },
-              child: const Text("Salvar"),
+              child: const Text(
+                "Salvar",
+                style: TextStyle(fontFamily: "Arial"),
+              ),
             ),
           ],
         );
@@ -117,7 +132,12 @@ class _GaleriaPageState extends State<GaleriaPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Imagem removida com sucesso")),
+      const SnackBar(
+        content: Text(
+          "Imagem removida com sucesso",
+          style: TextStyle(fontFamily: "Arial"),
+        ),
+      ),
     );
   }
 
@@ -131,31 +151,32 @@ class _GaleriaPageState extends State<GaleriaPage> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            fontFamily: "Poppins",
+            fontFamily: "Arial",
           ),
         ),
         const SizedBox(height: 20),
 
-        // Botão "Nova Imagem"
         Align(
           alignment: Alignment.centerLeft,
           child: ElevatedButton.icon(
             onPressed: () => abrirPopupImagem(),
             icon: const Icon(Icons.add),
-            label: const Text("Nova Imagem"),
+            label: const Text(
+              "Nova Imagem",
+              style: TextStyle(fontFamily: "Arial"),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(25),
               ),
             ),
           ),
         ),
         const SizedBox(height: 20),
 
-        // Lista de imagens
         Expanded(
           child: ListView.builder(
             itemCount: imagensGaleria.length,
@@ -170,31 +191,26 @@ class _GaleriaPageState extends State<GaleriaPage> {
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.4),
+                      color: Colors.grey.withOpacity(0.5),
                       spreadRadius: 2,
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
+                      blurRadius: 5,
+                      offset: const Offset(0, 0),
                     ),
                   ],
                 ),
                 child: Row(
                   children: [
-                    // Nome da imagem
                     Expanded(
                       child: Text(
                         conteudo['nome'],
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          fontFamily: "Arial",
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
-                    // (URL fica guardada, mas não aparece)
-                    // você pode acessar com conteudo['imagem']
-
-                    // Ações
                     Row(
                       children: [
                         IconButton(

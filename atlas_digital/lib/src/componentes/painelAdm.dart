@@ -1,5 +1,8 @@
+import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Administradores2.dart';
+import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Inicio2.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Galeria.dart';
+import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
 
 class PainelAdm extends StatefulWidget {
@@ -10,13 +13,13 @@ class PainelAdm extends StatefulWidget {
 }
 
 class _PainelAdmState extends State<PainelAdm> {
-  int _selectedIndex = 0; // índice do botão selecionado
+  int _selectedIndex = 0;
 
   final List<String> _menuLabels = [
     "Início",
     "Conteúdo",
     "Galeria",
-    "Pessoas",
+    "Administradores",
   ];
 
   final List<IconData> _menuIcons = [
@@ -27,10 +30,10 @@ class _PainelAdmState extends State<PainelAdm> {
   ];
 
   final List<Widget> _menuContents = [
-    Center(child: Text("Bem-vindo à página inicial!", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
+    InicioPage(),
     ConteudoPage(),
     GaleriaPage(),
-    Center(child: Text("Lista de pessoas / usuários.", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
+    AdministradoresPage(),
   ];
 
   @override
@@ -92,7 +95,6 @@ class _PainelAdmState extends State<PainelAdm> {
     );
   }
 
-  /// Função para gerar os botões do menu
   Widget _menuButton(IconData icon, String label, int index) {
     bool isSelected = index == _selectedIndex;
 
@@ -104,12 +106,12 @@ class _PainelAdmState extends State<PainelAdm> {
         });
       },
       style: TextButton.styleFrom(
-        backgroundColor: isSelected ? Colors.green : Colors.white,
+        backgroundColor: isSelected ? AppColors.brandGreen : Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: isSelected
-              ? const BorderSide(color: Colors.green, width: 3)
+              ? const BorderSide(color: AppColors.brandGreen, width: 3)
               : BorderSide.none,
         ),
       ),
@@ -124,7 +126,7 @@ class _PainelAdmState extends State<PainelAdm> {
                 color: isSelected ? Colors.white : Colors.green,
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
-                fontFamily: "Poppins",
+                fontFamily: "Arial",
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -134,7 +136,6 @@ class _PainelAdmState extends State<PainelAdm> {
     );
   }
 
-  /// Botão de saída vermelho
   Widget _exitButton() {
     return TextButton(
       onPressed: () {},
@@ -154,7 +155,7 @@ class _PainelAdmState extends State<PainelAdm> {
               "Voltar para o site",
               style: TextStyle(
                 fontSize: 15,
-                fontFamily: "Poppins",
+                fontFamily: "Arial",
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),

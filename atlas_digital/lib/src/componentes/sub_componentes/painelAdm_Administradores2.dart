@@ -1,41 +1,22 @@
 import 'package:flutter/material.dart';
 
-class ConteudoPage extends StatefulWidget {
-  const ConteudoPage({super.key});
+class AdministradoresPage extends StatefulWidget {
+  const AdministradoresPage({super.key});
 
   @override
-  State<ConteudoPage> createState() => _ConteudoPageState();
+  State<AdministradoresPage> createState() => _AdministradoresPageState();
 }
 
-class _ConteudoPageState extends State<ConteudoPage> {
-  List<Map<String, dynamic>> conteudos = [
-    {
-      "nome": "Administrador Secundário",
-      "descricao": "Essa galeria permite a navegação rápida entre conteúdos.",
-      "topico": "20",
-    },
-    {
-      "nome": "Administrador Secundário",
-      "descricao": "Essa galeria permite a navegação rápida entre conteúdos.",
-      "topico": "21",
-    },
-    {
-      "nome": "Administrador Secundário",
-      "descricao": "Essa galeria permite a navegação rápida entre conteúdos.",
-      "topico": "24",
-    },
+class _AdministradoresPageState extends State<AdministradoresPage> {
+  List<Map<String, dynamic>> administradores = [
+    {"nome": "Administrador Secundário"},
+    {"nome": "Servidor Principal"},
   ];
 
-  void abrirPopupConteudo({int? index}) {
+  void abrirPopupAdministrador({int? index}) {
     final isEditando = index != null;
     final nomeController = TextEditingController(
-      text: isEditando ? conteudos[index]['nome'] : '',
-    );
-    final descricaoController = TextEditingController(
-      text: isEditando ? conteudos[index]['descricao'] : '',
-    );
-    final topicoController = TextEditingController(
-      text: isEditando ? conteudos[index]['topico'] : '',
+      text: isEditando ? administradores[index]['nome'] : '',
     );
 
     showDialog(
@@ -45,42 +26,15 @@ class _ConteudoPageState extends State<ConteudoPage> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
-            isEditando ? "Editar Conteúdo" : "Novo Conteúdo",
+            isEditando ? "Editar Administrador" : "Novo Administrador",
             style: const TextStyle(fontFamily: "Arial"),
           ),
-          content: SizedBox(
-            width: 750,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nomeController,
-                  decoration: const InputDecoration(
-                    labelText: "Nome",
-                    border: OutlineInputBorder(),
-                  ),
-                  style: const TextStyle(fontFamily: "Arial"),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: descricaoController,
-                  decoration: const InputDecoration(
-                    labelText: "Descrição",
-                    border: OutlineInputBorder(),
-                  ),
-                  style: const TextStyle(fontFamily: "Arial"),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: topicoController,
-                  decoration: const InputDecoration(
-                    labelText: "Tópico",
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(fontFamily: "Arial"),
-                ),
-              ],
+          content: TextField(
+            controller: nomeController,
+            style: const TextStyle(fontFamily: "Arial"),
+            decoration: const InputDecoration(
+              labelText: "Nome",
+              border: OutlineInputBorder(),
             ),
           ),
           actions: [
@@ -100,14 +54,11 @@ class _ConteudoPageState extends State<ConteudoPage> {
               ),
               onPressed: () {
                 final nome = nomeController.text.trim();
-                final descricao = descricaoController.text.trim();
-                final topico = topicoController.text.trim();
-
-                if (nome.isEmpty || descricao.isEmpty || topico.isEmpty) {
+                if (nome.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                         content: Text(
-                      "Preencha todos os campos antes de salvar",
+                      "Preencha o campo antes de salvar",
                       style: TextStyle(fontFamily: "Arial"),
                     )),
                   );
@@ -116,17 +67,9 @@ class _ConteudoPageState extends State<ConteudoPage> {
 
                 setState(() {
                   if (isEditando) {
-                    conteudos[index!] = {
-                      "nome": nome,
-                      "descricao": descricao,
-                      "topico": topico,
-                    };
+                    administradores[index!] = {"nome": nome};
                   } else {
-                    conteudos.add({
-                      "nome": nome,
-                      "descricao": descricao,
-                      "topico": topico,
-                    });
+                    administradores.add({"nome": nome});
                   }
                 });
 
@@ -136,8 +79,8 @@ class _ConteudoPageState extends State<ConteudoPage> {
                   SnackBar(
                     content: Text(
                       isEditando
-                          ? "Conteúdo atualizado com sucesso!"
-                          : "Novo conteúdo adicionado!",
+                          ? "Administrador atualizado com sucesso!"
+                          : "Novo administrador adicionado!",
                       style: const TextStyle(fontFamily: "Arial"),
                     ),
                   ),
@@ -154,15 +97,15 @@ class _ConteudoPageState extends State<ConteudoPage> {
     );
   }
 
-  void deletarConteudo(int index) {
+  void deletarAdministrador(int index) {
     setState(() {
-      conteudos.removeAt(index);
+      administradores.removeAt(index);
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          "Conteúdo removido com sucesso",
+          "Administrador removido com sucesso",
           style: TextStyle(fontFamily: "Arial"),
         ),
       ),
@@ -175,7 +118,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Conteúdo',
+          'Administradores',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -187,16 +130,17 @@ class _ConteudoPageState extends State<ConteudoPage> {
         Align(
           alignment: Alignment.centerLeft,
           child: ElevatedButton.icon(
-            onPressed: () => abrirPopupConteudo(),
+            onPressed: () => abrirPopupAdministrador(),
             icon: const Icon(Icons.add),
             label: const Text(
-              "Novo Conteúdo",
+              "Novo Administrador",
               style: TextStyle(fontFamily: "Arial"),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(25),
               ),
@@ -207,9 +151,9 @@ class _ConteudoPageState extends State<ConteudoPage> {
 
         Expanded(
           child: ListView.builder(
-            itemCount: conteudos.length,
+            itemCount: administradores.length,
             itemBuilder: (context, index) {
-              final conteudo = conteudos[index];
+              final admin = administradores[index];
               return Container(
                 margin: const EdgeInsets.symmetric(vertical: 6),
                 padding:
@@ -229,9 +173,8 @@ class _ConteudoPageState extends State<ConteudoPage> {
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 2,
                       child: Text(
-                        conteudo['nome'],
+                        admin['nome'],
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -240,41 +183,16 @@ class _ConteudoPageState extends State<ConteudoPage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 4,
-                      child: Text(
-                        conteudo['descricao'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          fontFamily: "Arial",
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        conteudo['topico'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          fontFamily: "Arial",
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
                     Row(
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.black87),
-                          onPressed: () => abrirPopupConteudo(index: index),
+                          onPressed: () =>
+                              abrirPopupAdministrador(index: index),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deletarConteudo(index),
+                          onPressed: () => deletarAdministrador(index),
                         ),
                       ],
                     ),
