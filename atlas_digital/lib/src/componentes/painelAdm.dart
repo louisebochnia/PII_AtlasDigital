@@ -1,3 +1,4 @@
+import 'package:atlas_digital/src/componentes/Sub%20componentes/painelAdm_Conteudo.dart';
 import 'package:flutter/material.dart';
 
 class PainelAdm extends StatefulWidget {
@@ -26,7 +27,7 @@ class _PainelAdmState extends State<PainelAdm> {
 
   final List<Widget> _menuContents = [
     Center(child: Text("Bem-vindo à página inicial!", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
-    Center(child: Text("Aqui está o conteúdo principal.", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
+    ConteudoPage(),
     Center(child: Text("Galeria de imagens exibida aqui.", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
     Center(child: Text("Lista de pessoas / usuários.", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
   ];
@@ -50,7 +51,7 @@ class _PainelAdmState extends State<PainelAdm> {
                     ),
                   ),
                 ),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -71,7 +72,6 @@ class _PainelAdmState extends State<PainelAdm> {
             Expanded(
               flex: 5,
               child: Container(
-                color: const Color.fromRGBO(245, 245, 245, 1),
                 padding: const EdgeInsets.all(16),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),

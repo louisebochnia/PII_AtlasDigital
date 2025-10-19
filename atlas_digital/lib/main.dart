@@ -18,8 +18,8 @@ class AtlasApp extends StatelessWidget {
       theme: buildAppTheme(),
 
       // Ponto de entrada:
-      home: const AppShell(),  // (navbar + páginas principais)
-      // home: const PainelAdm(),   // (abre direto o painel)
+      // home: const AppShell(),  // (navbar + páginas principais)
+      home: const PainelAdm(),   // (abre direto o painel)
     );
   }
 }
