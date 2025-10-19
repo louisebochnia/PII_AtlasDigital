@@ -32,7 +32,7 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // ---- LOGO (troque pelo seu asset se quiser) ----
+              // ---- LOGO ----
               Row(
                 children: [
                   Image.asset(

@@ -16,9 +16,8 @@ class _AppShellState extends State<AppShell> {
 
   final _pages = const [
     PaginaInicial(),
-    ContentPage(),
-    GalleryPage(),
-  ];
+    PaginaConteudo(),
+    GalleryPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +26,9 @@ class _AppShellState extends State<AppShell> {
         selectedIndex: _index,
         onItemTap: (i) => setState(() => _index = i),
         onAtlas: () {
-          // TODO: navegação real (rota/página do ATLAS)
           debugPrint('Acessar ATLAS');
         },
         onLogin: () {
-          // TODO: abrir login/modal/rota
           debugPrint('LOGIN');
         },
       ),

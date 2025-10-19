@@ -1,4 +1,4 @@
-import 'package:atlas_digital/src/componentes/Sub%20componentes/painelAdm_Conteudo.dart';
+import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
 import 'package:flutter/material.dart';
 
 class PainelAdm extends StatefulWidget {

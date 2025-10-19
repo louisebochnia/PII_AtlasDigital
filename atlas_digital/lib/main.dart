@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'temas.dart';
 import 'app_shell.dart';
 import 'src/componentes/painelAdm.dart';
+import 'src/app.dart';
 
 void main() {
-  runApp(const AtlasApp());
+  runApp(const App()); // App vai envolver tudo com Provider + MaterialApp
 }
 
 class AtlasApp extends StatelessWidget {
@@ -18,8 +19,8 @@ class AtlasApp extends StatelessWidget {
       theme: buildAppTheme(),
 
       // Ponto de entrada:
-      // home: const AppShell(),  // (navbar + páginas principais)
-      home: const PainelAdm(),   // (abre direto o painel)
+      home: const AppShell(),  // (navbar + páginas principais)
+      // home: const PainelAdm(),   // (abre direto o painel)
     );
   }
 }
