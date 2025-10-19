@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
-=======
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Galeria.dart';
->>>>>>> 7dc5a61aab8ed55a95d0ba85f31995a9bc19f904
 import 'package:flutter/material.dart';
 
 class PainelAdm extends StatefulWidget {
