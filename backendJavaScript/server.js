@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const adminRoutes = require('./admin');
 
+const subadminRoutes = require('./subadmin');
+app.use('/api/subadmins', subadminRoutes);
+
 dotenv.config();
 
 const app = express();
