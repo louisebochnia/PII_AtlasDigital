@@ -5,6 +5,36 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
 const axios = require('axios');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const AdminSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true
+  }
+});
+
+// Criptografa a senha antes de salvar
+AdminSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Método para verificar senha
+AdminSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+module.exports = mongoose.model('Admin', AdminSchema);
 
 //Importação dos modelos
 const Imagem = require('./models/imagem');
@@ -164,3 +194,36 @@ if (process.env.NODE_ENV !== 'test') {
   const PORT = 3000
   app.listen(PORT, () => console.log(`server up & running, conexão ok`))
 }
+
+// models/Admin.js------------------------------------------------------------------
+
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const AdminSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true
+  }
+});
+
+// Criptografa a senha antes de salvar
+AdminSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Método para verificar senha
+AdminSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+module.exports = mongoose.model('Admin', AdminSchema);
