@@ -1,18 +1,25 @@
-const express = require('express')
-const cors = require('cors')
-const mongoose = require('mongoose')
+//Importação das bibliotecas necessárias para o backend
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const multer = require('multer');
+const path = require('path');
+const axios = require('axios');
+
+//Importação dos modelos
+const Imagem = require('./models/imagem');
 const Informacao = require('./models/informacao');
 const Topico = require('./models/topicos');
-const app = express() 
 
-app.use(express.json())
-app.use(cors())
+const app = express() ;
+app.use(express.json());
+app.use(cors());
 
 async function conectarAoMongo() {
     await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`);
 }
 
-// CRUD TÓPICOS ----------------------------------------------------------------------------------------------------
+// CRUD TÓPICOS --------------------------------------------------------------------------
 
 app.post('/topicos', async (req, res) => {
   try {
@@ -63,10 +70,9 @@ app.delete('/topicos/:id', async (req, res) => {
   }
 });
 
-// FIM CRUD TÓPICOS ----------------------------------------------------------------------------------------------------
+// FIM CRUD TÓPICOS ----------------------------------------------------------------------
 
-
-// CRUD DE INFORMAÇÕES! --------------------------------------------------------------
+// CRUD DE INFORMAÇÕES! ------------------------------------------------------------------
 
 app.post('/informacao', async (req, res) => {
   try {
@@ -117,12 +123,44 @@ app.delete('/informacao/:id', async (req, res) => {
 
 // FIM CRUD DE INFORMAÇÕES! --------------------------------------------------------------
 
+// CRUD DE IMAGENS! ----------------------------------------------------------------------
+
+// Código para salvar a imagem nos arquivos
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: 'uploads/images/',
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + '-' + file.originalname);
+    }
+  })
+})
+
+// Códigos para o banco de dados
+app.post('/api/images/upload', upload.single('imagem')), async (req, res) => {
+  try {
+    const novaImagem = new Imagem({
+      nomeArquivo: req.file.filenamename,
+      enderecoImagem: req.file.path,
+      topico: req.body.topico,
+      anotacao: req.body.anotacao
+    });
+
+    await novaImagem.save();
+  } catch (error) {
+    res.json({
+      error: error.message
+    });
+  }
+}
+
+// FIM CRUD DE IMAGENS! ------------------------------------------------------------------
+
 app.listen(3000, () => {
     try {
-        conectarAoMongo()
-        console.log("server up & running, conexão ok")
+        conectarAoMongo();
+        console.log("servidor rodando em: http://localhost:3000");
     }
     catch (e) {
-        console.log('erro de conexão', e)
+        console.log('erro de conexão', e);
     }
 })
