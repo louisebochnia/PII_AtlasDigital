@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
+=======
+import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
+import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Galeria.dart';
+>>>>>>> 7dc5a61aab8ed55a95d0ba85f31995a9bc19f904
 import 'package:flutter/material.dart';
 
 class PainelAdm extends StatefulWidget {
@@ -28,7 +33,7 @@ class _PainelAdmState extends State<PainelAdm> {
   final List<Widget> _menuContents = [
     Center(child: Text("Bem-vindo à página inicial!", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
     ConteudoPage(),
-    Center(child: Text("Galeria de imagens exibida aqui.", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
+    GaleriaPage(),
     Center(child: Text("Lista de pessoas / usuários.", style: TextStyle(fontSize: 22, fontFamily: "Poppins", fontWeight: FontWeight.bold))),
   ];
 
