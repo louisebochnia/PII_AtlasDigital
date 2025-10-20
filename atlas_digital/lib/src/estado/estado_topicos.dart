@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../modelos/topico.dart';
 import '../modelos/capitulo.dart';
 
@@ -10,55 +11,106 @@ class EstadoTopicos extends ChangeNotifier {
   final List<Topico> _topicos = [];
   List<Topico> get topicos => List.unmodifiable(_topicos);
 
-  // ---- MOQUE inicial para visualizar na página pública ----
+  // URL base da sua API (ajuste conforme seu backend)
+  static const String _baseUrl = 'http://localhost:3000/topicos';
+
+  // ---------------------------------------------------------------------------
+  // MOCK local — usado apenas se o banco estiver vazio ou offline
+  // ---------------------------------------------------------------------------
   void carregarMockSeVazio() {
     if (_topicos.isNotEmpty) return;
     _topicos.addAll([
       Topico(
         id: 't1',
-        titulo: 'Tecidos e Órgãos',
-        descricao:
-            'Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.',
-        capitulos: const [
-          Capitulo(id: 'c1', indice: 1, titulo: 'A Célula', capaUrl: null, rotaOuSlug: '/galeria/celula'),
-          Capitulo(id: 'c2', indice: 2, titulo: 'Epitélio', capaUrl: null, rotaOuSlug: '/galeria/epitelio'),
-          Capitulo(id: 'c3', indice: 3, titulo: 'Tecido Conjuntivo', capaUrl: null, rotaOuSlug: '/galeria/tecido-conjuntivo'),
-        ],
-      ),
-      Topico(
-        id: 't2',
-        titulo: 'Sistemas Orgânicos',
-        descricao:
-            'Conjunto de lâminas organizadas por sistemas fisiológicos para estudo integrado e correlação clínica.',
-        capitulos: const [
-          Capitulo(id: 'c4', indice: 1, titulo: 'Músculo', rotaOuSlug: '/galeria/musculo'),
-          Capitulo(id: 'c5', indice: 2, titulo: 'Cartilagem e Osso', rotaOuSlug: '/galeria/cartilagem-osso'),
-        ],
+        titulo: 'Conteúdo de Teste',
+        descricao: 'Descrição de teste',
+        capitulos: const [],
       ),
     ]);
     notifyListeners();
   }
 
-  // ---------------- CRUD Tópico ----------------
-  void adicionarTopico(Topico t) {
-    _topicos.add(t);
-    notifyListeners();
-  }
-
-  void editarTopico(String id, Topico novo) {
-    final i = _topicos.indexWhere((e) => e.id == id);
-    if (i != -1) {
-      _topicos[i] = novo;
-      notifyListeners();
+  // ---------------------------------------------------------------------------
+  // CARREGAR DO BACKEND
+  // ---------------------------------------------------------------------------
+  Future<void> carregarDoBanco() async {
+    try {
+      final res = await http.get(Uri.parse(_baseUrl));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as List;
+        _topicos
+          ..clear()
+          ..addAll(data.map((e) => Topico.fromJson(e)).toList());
+        notifyListeners();
+      } else {
+        debugPrint('Erro ao buscar tópicos: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao conectar com o servidor: $e');
     }
   }
 
-  void removerTopico(String id) {
-    _topicos.removeWhere((e) => e.id == id);
-    notifyListeners();
+  // ---------------------------------------------------------------------------
+  // CRUD Tópico (sincronizado com API)
+  // ---------------------------------------------------------------------------
+  Future<void> adicionarTopico(Topico t) async {
+    try {
+      final res = await http.post(
+        Uri.parse(_baseUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(t.toJson()),
+      );
+
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        _topicos.add(t);
+        notifyListeners();
+      } else {
+        debugPrint('Erro ao adicionar tópico no servidor: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Falha ao salvar tópico: $e');
+    }
   }
 
-  // ---------------- CRUD Capítulo ----------------
+  Future<void> editarTopico(String id, Topico novo) async {
+    final i = _topicos.indexWhere((e) => e.id == id);
+    if (i == -1) return;
+
+    try {
+      final res = await http.put(
+        Uri.parse('$_baseUrl/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(novo.toJson()),
+      );
+
+      if (res.statusCode == 200) {
+        _topicos[i] = novo;
+        notifyListeners();
+      } else {
+        debugPrint('Erro ao editar tópico: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao atualizar tópico: $e');
+    }
+  }
+
+  Future<void> removerTopico(String id) async {
+    try {
+      final res = await http.delete(Uri.parse('$_baseUrl/$id'));
+      if (res.statusCode == 200 || res.statusCode == 204) {
+        _topicos.removeWhere((e) => e.id == id);
+        notifyListeners();
+      } else {
+        debugPrint('Erro ao remover tópico: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao deletar tópico: $e');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // CRUD Capítulo (mantém local — backend ainda não implementa capítulos)
+  // ---------------------------------------------------------------------------
   void adicionarCapitulo(String idTopico, Capitulo c) {
     final i = _topicos.indexWhere((e) => e.id == idTopico);
     if (i == -1) return;
@@ -87,7 +139,9 @@ class EstadoTopicos extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------- Persistência local (opcional – ligada por chamada explícita) --------
+  // ---------------------------------------------------------------------------
+  // Persistência local (opcional – cache offline)
+  // ---------------------------------------------------------------------------
   Future<void> salvarLocal() async {
     final prefs = await SharedPreferences.getInstance();
     final json = jsonEncode(_topicos.map((t) => t.toJson()).toList());

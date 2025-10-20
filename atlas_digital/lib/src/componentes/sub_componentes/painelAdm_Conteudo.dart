@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../estado/estado_topicos.dart';
+import '../../modelos/topico.dart';
 
 class ConteudoPage extends StatefulWidget {
   const ConteudoPage({super.key});
@@ -8,42 +11,29 @@ class ConteudoPage extends StatefulWidget {
 }
 
 class _ConteudoPageState extends State<ConteudoPage> {
-  List<Map<String, dynamic>> conteudos = [
-    {
-      "nome": "Administrador Secundário",
-      "descricao": "Essa galeria permite a navegação rápida entre conteúdos.",
-      "topico": "20",
-    },
-    {
-      "nome": "Administrador Secundário",
-      "descricao": "Essa galeria permite a navegação rápida entre conteúdos.",
-      "topico": "21",
-    },
-    {
-      "nome": "Administrador Secundário",
-      "descricao": "Essa galeria permite a navegação rápida entre conteúdos.",
-      "topico": "24",
-    },
-  ];
+  // ------------------- POPUP DE ADIÇÃO / EDIÇÃO -------------------
+  void abrirPopupConteudo({String? id}) {
+    final estado = context.read<EstadoTopicos>();
+    final isEditando = id != null;
 
-  void abrirPopupConteudo({int? index}) {
-    final isEditando = index != null;
+    final topicoExistente = isEditando
+        ? estado.topicos.firstWhere((t) => t.id == id)
+        : null;
+
     final nomeController = TextEditingController(
-      text: isEditando ? conteudos[index]['nome'] : '',
+      text: topicoExistente?.titulo ?? '',
     );
     final descricaoController = TextEditingController(
-      text: isEditando ? conteudos[index]['descricao'] : '',
-    );
-    final topicoController = TextEditingController(
-      text: isEditando ? conteudos[index]['topico'] : '',
+      text: topicoExistente?.descricao ?? '',
     );
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             isEditando ? "Editar Conteúdo" : "Novo Conteúdo",
             style: const TextStyle(fontFamily: "Arial"),
@@ -70,16 +60,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                   ),
                   style: const TextStyle(fontFamily: "Arial"),
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: topicoController,
-                  decoration: const InputDecoration(
-                    labelText: "Tópico",
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(fontFamily: "Arial"),
-                ),
               ],
             ),
           ),
@@ -96,39 +76,46 @@ class _ConteudoPageState extends State<ConteudoPage> {
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onPressed: () {
                 final nome = nomeController.text.trim();
                 final descricao = descricaoController.text.trim();
-                final topico = topicoController.text.trim();
 
-                if (nome.isEmpty || descricao.isEmpty || topico.isEmpty) {
+                if (nome.isEmpty || descricao.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text(
-                      "Preencha todos os campos antes de salvar",
-                      style: TextStyle(fontFamily: "Arial"),
-                    )),
+                      content: Text("Preencha todos os campos antes de salvar"),
+                    ),
                   );
                   return;
                 }
 
-                setState(() {
-                  if (isEditando) {
-                    conteudos[index!] = {
-                      "nome": nome,
-                      "descricao": descricao,
-                      "topico": topico,
-                    };
-                  } else {
-                    conteudos.add({
-                      "nome": nome,
-                      "descricao": descricao,
-                      "topico": topico,
-                    });
-                  }
-                });
+                if (isEditando) {
+                  // Atualizar
+                  estado.editarTopico(
+                    id,
+                    Topico(
+                      id: id,
+                      titulo: nome,
+                      descricao: descricao,
+                      capitulos: estado.topicos
+                          .firstWhere((t) => t.id == id)
+                          .capitulos, // mantém os capítulos já existentes
+                    ),
+                  );
+                } else {
+                  // Adicionar
+                  estado.adicionarTopico(
+                    Topico(
+                      id: DateTime.now().toIso8601String(),
+                      titulo: nome,
+                      descricao: descricao,
+                      capitulos: const [],
+                    ),
+                  );
+                }
 
                 Navigator.pop(context);
 
@@ -154,10 +141,10 @@ class _ConteudoPageState extends State<ConteudoPage> {
     );
   }
 
-  void deletarConteudo(int index) {
-    setState(() {
-      conteudos.removeAt(index);
-    });
+  // ------------------- DELETAR CONTEÚDO -------------------
+  void deletarConteudo(String id) {
+    final estado = context.read<EstadoTopicos>();
+    estado.removerTopico(id);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -169,8 +156,11 @@ class _ConteudoPageState extends State<ConteudoPage> {
     );
   }
 
+  // ------------------- INTERFACE -------------------
   @override
   Widget build(BuildContext context) {
+    final estado = context.watch<EstadoTopicos>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -184,6 +174,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
         ),
         const SizedBox(height: 20),
 
+        // Botão "Novo Conteúdo"
         Align(
           alignment: Alignment.centerLeft,
           child: ElevatedButton.icon(
@@ -205,15 +196,19 @@ class _ConteudoPageState extends State<ConteudoPage> {
         ),
         const SizedBox(height: 20),
 
+        // Lista dinâmica
         Expanded(
           child: ListView.builder(
-            itemCount: conteudos.length,
+            itemCount: estado.topicos.length,
             itemBuilder: (context, index) {
-              final conteudo = conteudos[index];
+              final conteudo = estado.topicos[index];
+
               return Container(
                 margin: const EdgeInsets.symmetric(vertical: 6),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 243, 242, 242),
                   borderRadius: BorderRadius.circular(25),
@@ -229,54 +224,18 @@ class _ConteudoPageState extends State<ConteudoPage> {
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 2,
                       child: Text(
-                        conteudo['nome'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          fontFamily: "Arial",
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                        conteudo.titulo,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 4,
-                      child: Text(
-                        conteudo['descricao'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          fontFamily: "Arial",
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => abrirPopupConteudo(id: conteudo.id),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        conteudo['topico'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          fontFamily: "Arial",
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.black87),
-                          onPressed: () => abrirPopupConteudo(index: index),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deletarConteudo(index),
-                        ),
-                      ],
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => deletarConteudo(conteudo.id),
                     ),
                   ],
                 ),

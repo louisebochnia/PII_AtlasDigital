@@ -1,11 +1,17 @@
+import 'package:atlas_digital/app_shell.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'temas.dart';
-import 'app_shell.dart';
 import 'src/componentes/painelAdm.dart';
-import 'src/app.dart';
+import 'src/estado/estado_topicos.dart';
 
 void main() {
-  runApp(const App()); // App vai envolver tudo com Provider + MaterialApp
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => EstadoTopicos(),
+      child: const AtlasApp(),
+    ),
+  );
 }
 
 class AtlasApp extends StatelessWidget {
@@ -17,10 +23,8 @@ class AtlasApp extends StatelessWidget {
       title: 'Atlas Digital',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-
-      // Ponto de entrada:
-      home: const AppShell(),  // (navbar + páginas principais)
-      // home: const PainelAdm(),   // (abre direto o painel)
+      // home: const AppShell(),
+      home: const PainelAdm(),
     );
   }
 }
