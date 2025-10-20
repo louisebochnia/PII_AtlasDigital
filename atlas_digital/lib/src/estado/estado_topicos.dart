@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../modelos/topico.dart';
 import '../modelos/capitulo.dart';
+import '../../config/api_config.dart';
 
 class EstadoTopicos extends ChangeNotifier {
   static const _chave = 'atlas_topicos_v1';
@@ -12,7 +13,8 @@ class EstadoTopicos extends ChangeNotifier {
   List<Topico> get topicos => List.unmodifiable(_topicos);
 
   // URL base da sua API (ajuste conforme seu backend)
-  static const String _baseUrl = 'http://localhost:3000/topicos';
+  static final String _baseUrl = '${ApiConfig.baseUrl}/topicos';
+
 
   // ---------------------------------------------------------------------------
   // MOCK local — usado apenas se o banco estiver vazio ou offline
