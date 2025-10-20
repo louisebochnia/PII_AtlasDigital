@@ -23,8 +23,8 @@ class App extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Atlas Digital',
-        home: const LoginPopup(),
-        // home: const PainelAdm(),
+        // home: const LoginPopup(),
+        home: const PainelAdm(),
         // home: const AppShell(), // << PaginaConteudo fica dentro do AppShell
         routes: {
           '/conteudos': (_) => const PaginaConteudo(),
