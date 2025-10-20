@@ -27,3 +27,5 @@ const ImagemSchema = new mongoose.Schema({
         }
     ]
 });
+
+module.exports = mongoose.model('Imagem', ImagemSchema);

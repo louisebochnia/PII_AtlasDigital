@@ -3,8 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 
 //Importação dos modelos
 const Imagem = require('./models/imagem');
@@ -136,22 +136,42 @@ const upload = multer({
 })
 
 // Códigos para o banco de dados
-app.post('/api/images/upload', upload.single('imagem')), async (req, res) => {
+app.post('/api/images/upload', upload.single('imagem'), async (req, res) => {
   try {
     const novaImagem = new Imagem({
-      nomeArquivo: req.file.filenamename,
+      nomeArquivo: req.file.filename,
       enderecoImagem: req.file.path,
       topico: req.body.topico,
       anotacao: req.body.anotacao
     });
 
     await novaImagem.save();
+
+    res.status(200).json({ message: 'Imagem salva com sucesso!' });
+    
   } catch (error) {
-    res.json({
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
-}
+});
+
+app.delete('/api/images/:id', upload.single('imagem'), async (req, res) => {
+  try {
+    const imagem = await Imagem.findById(req.params.id);
+    if(!imagem) return res.json({error: 'Imagem não encontrada'});
+
+    //código para remover o arquivo da pasta de uploads
+    if(fs.existsSync(imagem.enderecoImagem)) {
+      fs.unlinkSync(imagem.enderecoImagem);
+    }
+
+    await Imagem.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: 'Imagem apagada com sucesso!' });
+  }
+  catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // FIM CRUD DE IMAGENS! ------------------------------------------------------------------
 
