@@ -1,4 +1,5 @@
 import 'package:atlas_digital/src/componentes/painelAdm.dart';
+import 'package:atlas_digital/src/componentes/sub_componentes/popup_login.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,8 +23,9 @@ class App extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Atlas Digital',
+        home: const LoginPopup(),
         // home: const PainelAdm(),
-        home: const AppShell(), // << PaginaConteudo fica dentro do AppShell
+        // home: const AppShell(), // << PaginaConteudo fica dentro do AppShell
         routes: {
           '/conteudos': (_) => const PaginaConteudo(),
           '/adm/conteudos': (_) => const PaginaAdmConteudosProvisorio(),
