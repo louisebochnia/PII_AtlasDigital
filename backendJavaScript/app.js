@@ -8,6 +8,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 
 //Importação dos modelos
+const SubTopico = require('./models/subtopicos');
 const Imagem = require('./models/imagem');
 const Informacao = require('./models/informacao');
 const Topico = require('./models/topicos');
@@ -22,6 +23,66 @@ app.use(cors());
 async function conectarAoMongo() {
   await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`)
 }
+
+// CRUD CAPITULOS ----------------------------------------------------------------------------------------------------
+app.post('/subtopicos', async (req, res) => {
+  try {
+    const novoSubtopico = new SubTopico(req.body);
+    const salvo = await novoSubtopico.save();
+    res.status(201).json(salvo);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Listar todos os Subtópicos
+app.get('/subtopicos', async (req, res) => {
+  try {
+    const subtopicos = await SubTopico.find();
+    res.json(subtopicos);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Buscar Subtópico por ID
+app.get('/subtopicos/:id', async (req, res) => {
+  try {
+    const subtopico = await SubTopico.findById(req.params.id);
+    if (!subtopico) return res.status(404).json({ message: 'Subtópico não encontrado' });
+    res.json(subtopico);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Atualizar Subtópico
+app.put('/subtopicos/:id', async (req, res) => {
+  try {
+    const atualizado = await SubTopico.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!atualizado) return res.status(404).json({ message: 'Subtópico não encontrado' });
+    res.json(atualizado);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Deletar Subtópico
+app.delete('/subtopicos/:id', async (req, res) => {
+  try {
+    const deletado = await SubTopico.findByIdAndDelete(req.params.id);
+    if (!deletado) return res.status(404).json({ message: 'Subtópico não encontrado' });
+    res.json({ message: 'Subtópico deletado com sucesso' });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// FIM CRUD CAPITULOS ----------------------------------------------------------------------------------------------------
 
 // CRUD TÓPICOS --------------------------------------------------------------------------
 

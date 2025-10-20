@@ -5,10 +5,7 @@ const TopicosSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    subtopicos: {
-        type: String, 
-        required: true
-    },
+    
     resumo: {
         type: String, 
         required: true
