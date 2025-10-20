@@ -6,7 +6,7 @@ class Topico {
   final String id;
   final String titulo;
   final String descricao;
-  final String? capaUrl; // opcional – caso queira uma imagem do tópico
+  final String? capaUrl;
   final List<Capitulo> capitulos;
 
   const Topico({
@@ -23,29 +23,30 @@ class Topico {
     String? descricao,
     String? capaUrl,
     List<Capitulo>? capitulos,
-  }) => Topico(
-    id: id ?? this.id,
-    titulo: titulo ?? this.titulo,
-    descricao: descricao ?? this.descricao,
-    capaUrl: capaUrl ?? this.capaUrl,
-    capitulos: capitulos ?? this.capitulos,
-  );
+  }) =>
+      Topico(
+        id: id ?? this.id,
+        titulo: titulo ?? this.titulo,
+        descricao: descricao ?? this.descricao,
+        capaUrl: capaUrl ?? this.capaUrl,
+        capitulos: capitulos ?? this.capitulos,
+      );
 
+  /// 🔄 Conversão para o formato do backend (Node/Mongo)
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'titulo': titulo,
-    'descricao': descricao,
-    'capaUrl': capaUrl,
-    'capitulos': capitulos.map((c) => c.toJson()).toList(),
-  };
+        'topico': titulo, // backend espera "topico"
+        'subtopicos': '', // se quiser, pode usar um campo fixo por enquanto
+        'resumo': descricao, // backend espera "resumo"
+      };
 
+  /// 🔄 Conversão do JSON do backend para o modelo Flutter
   factory Topico.fromJson(Map<String, dynamic> json) => Topico(
-    id: json['id'] as String,
-    titulo: json['titulo'] as String,
-    descricao: json['descricao'] as String,
-    capaUrl: json['capaUrl'] as String?,
-    capitulos: (json['capitulos'] as List<dynamic>? ?? [])
-        .map((e) => Capitulo.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
+        id: json['_id']?.toString() ?? '', // Mongo usa "_id"
+        titulo: json['topico'] ?? json['titulo'] ?? '',
+        descricao: json['resumo'] ?? json['descricao'] ?? '',
+        capaUrl: json['capaUrl'] as String?,
+        capitulos: (json['capitulos'] as List<dynamic>? ?? [])
+            .map((e) => Capitulo.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 }
