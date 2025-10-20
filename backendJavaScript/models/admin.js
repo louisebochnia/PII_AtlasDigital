@@ -9,6 +9,14 @@ const AdminSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true, // <-- impede e-mails duplicados
+    trim: true,
+    lowercase: true,
+    match: [/.+\@.+\..+/, 'Por favor, insira um e-mail válido']
+  },
   password: {
     type: String,
     required: true
