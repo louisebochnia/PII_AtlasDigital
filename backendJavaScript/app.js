@@ -5,11 +5,8 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
 const axios = require('axios');
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 // models/SubAdmin.js
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const SubAdminSchema = new mongoose.Schema({
   name: {
@@ -235,24 +232,6 @@ if (process.env.NODE_ENV !== 'test') {
   const PORT = 3000
   app.listen(PORT, () => console.log(`server up & running, conexão ok`))
 }
-
-// models/Admin.js------------------------------------------------------------------
-
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-
-const AdminSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
-});
 
 // Criptografa a senha antes de salvar
 AdminSchema.pre('save', async function (next) {
