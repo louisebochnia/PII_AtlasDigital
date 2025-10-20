@@ -5,16 +5,20 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 //Importação dos modelos
 const Imagem = require('./models/imagem');
 const Informacao = require('./models/informacao');
 const Topico = require('./models/topicos');
+const Admin = require('./models/admin');
+const SubAdmin = require('./models/subadmin');
 
 const app = express() ;
 app.use(express.json());
 app.use(cors());
 
+// CONEXXÃO COM O BANCO DE DADOS
 async function conectarAoMongo() {
   await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`)
 }
@@ -184,3 +188,16 @@ if (process.env.NODE_ENV !== 'test') {
   const PORT = 3000
   app.listen(PORT, () => console.log(`server up & running, conexão ok`))
 }
+
+// Criptografa a senha antes de salvar
+Admin.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Método para verificar senha
+Admin.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
