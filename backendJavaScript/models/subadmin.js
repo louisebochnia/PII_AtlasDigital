@@ -14,6 +14,14 @@ const SubAdminSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true, // <-- garante que não haja e-mails repetidos
+    trim: true,
+    lowercase: true, // normaliza o e-mail
+    match: [/.+\@.+\..+/, 'Por favor, insira um e-mail válido'] // validação básica
+  },
   password: {
     type: String,
     required: true
