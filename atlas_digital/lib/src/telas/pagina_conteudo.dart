@@ -1,4 +1,3 @@
-// lib/src/telas/pagina_conteudo.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

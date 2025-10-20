@@ -58,25 +58,6 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
               ),
 
               const Spacer(),
-
-              // ---- BOTÃO "Acessar ATLAS" (verde) ----
-              FilledButton(
-                onPressed: onAtlas,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.brandGreen,
-                  foregroundColor: AppColors.white,
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                ),
-                child: const Text(
-                  'Acessar ATLAS',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-
               const SizedBox(width: 12),
 
               // ---- BOTÃO "LOGIN" (cinza escuro) ----
