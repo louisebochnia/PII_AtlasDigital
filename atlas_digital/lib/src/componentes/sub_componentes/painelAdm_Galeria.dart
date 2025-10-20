@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart'; // <-- Import para escolher arquivo
 
 class GaleriaPage extends StatefulWidget {
   const GaleriaPage({super.key});
@@ -26,8 +27,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
             isEditando ? "Editar Imagem" : "Nova Imagem",
             style: const TextStyle(fontFamily: "Arial"),
@@ -46,14 +46,42 @@ class _GaleriaPageState extends State<GaleriaPage> {
                   ),
                 ),
                 const SizedBox(height: 15),
-                TextField(
-                  controller: imagemController,
-                  style: const TextStyle(fontFamily: "Arial"),
-                  decoration: const InputDecoration(
-                    labelText: "URL ou caminho da imagem",
-                    hintText: "Ex: https://site.com/imagem.png",
-                    border: OutlineInputBorder(),
-                  ),
+
+                // Campo e botão para escolher imagem
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: imagemController,
+                        style: const TextStyle(fontFamily: "Arial"),
+                        decoration: const InputDecoration(
+                          labelText: "URL ou caminho da imagem",
+                          hintText: "Ex: https://site.com/imagem.png ou C:/imagens/foto.png",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final result = await FilePicker.platform.pickFiles(
+                          type: FileType.image,
+                        );
+                        if (result != null && result.files.single.path != null) {
+                          imagemController.text = result.files.single.path!;
+                        }
+                      },
+                      icon: const Icon(Icons.folder_open),
+                      label: const Text("Escolher"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -80,10 +108,11 @@ class _GaleriaPageState extends State<GaleriaPage> {
                 if (nome.isEmpty || imagem.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text(
-                      "Preencha todos os campos antes de salvar",
-                      style: TextStyle(fontFamily: "Arial"),
-                    )),
+                      content: Text(
+                        "Preencha todos os campos antes de salvar",
+                        style: TextStyle(fontFamily: "Arial"),
+                      ),
+                    ),
                   );
                   return;
                 }
