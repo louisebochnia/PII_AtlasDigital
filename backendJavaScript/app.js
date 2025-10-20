@@ -1,4 +1,5 @@
 //Importação das bibliotecas necessárias para o backend
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -6,6 +7,8 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 
 //Importação dos modelos
 const SubTopico = require('./models/subtopicos');
@@ -239,26 +242,150 @@ app.delete('/api/images/:id', upload.single('imagem'), async (req, res) => {
 });
 
 // FIM CRUD DE IMAGENS! ------------------------------------------------------------------
+// ===================
+// 1. Middleware de autenticação
+// ===================
+const protect = async (req, res, next) => {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Token não fornecido.' });
+  }
 
-module.exports = app
+  try {
+    const token = header.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-if (process.env.NODE_ENV !== 'test') {
-  conectarAoMongo()
-    .catch(err => console.log("Erro conexão Mongo:", err))
+    if (decoded.role === 'admin') {
+      req.user = await Admin.findById(decoded.id).select('-password');
+    } else {
+      req.user = await SubAdmin.findById(decoded.id).select('-password');
+    }
 
-  const PORT = 3000
-  app.listen(PORT, () => console.log(`server up & running, conexão ok`))
-}
+    if (!req.user) return res.status(401).json({ message: 'Usuário não encontrado.' });
 
-// Criptografa a senha antes de salvar
-Admin.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Token inválido.' });
+  }
+};
+
+const adminOnly = (req, res, next) => {
+  if (!req.user || req.user instanceof SubAdmin) {
+    return res.status(403).json({ message: 'Acesso restrito a administradores.' });
+  }
   next();
+};
+
+// ===================
+// 2. LOGIN - Admin
+// ===================
+app.post('/api/admin/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email.endsWith('@fmabc.net')) {
+    return res.status(403).json({ message: 'Apenas e-mails @fmabc.net são permitidos.' });
+  }
+
+  try {
+    const admin = await Admin.findOne({ email });
+    if (!admin) return res.status(404).json({ message: 'Admin não encontrado.' });
+
+    const valid = await bcrypt.compare(password, admin.password);
+    if (!valid) return res.status(401).json({ message: 'Senha incorreta.' });
+
+    const token = jwt.sign({ id: admin._id, role: 'admin' }, process.env.JWT_SECRET, {
+      expiresIn: '1d'
+    });
+
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
 });
 
-// Método para verificar senha
-Admin.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
+// ===================
+// 3. LOGIN - SubAdmin
+// ===================
+app.post('/api/subadmin/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email.endsWith('@fmabc.net')) {
+    return res.status(403).json({ message: 'Apenas e-mails @fmabc.net são permitidos.' });
+  }
+
+  try {
+    const subAdmin = await SubAdmin.findOne({ email });
+    if (!subAdmin) return res.status(404).json({ message: 'SubAdmin não encontrado.' });
+
+    const valid = await bcrypt.compare(password, subAdmin.password);
+    if (!valid) return res.status(401).json({ message: 'Senha incorreta.' });
+
+    const token = jwt.sign({ id: subAdmin._id, role: 'subadmin' }, process.env.JWT_SECRET, {
+      expiresIn: '1d'
+    });
+
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+});
+
+// ===================
+// 4. CRUD SubAdmins (somente Admin)
+// ===================
+
+// Criar SubAdmin
+app.post('/api/subadmin', protect, adminOnly, async (req, res) => {
+  const { name, username, email, password } = req.body;
+
+  if (!email.endsWith('@fmabc.net')) {
+    return res.status(400).json({ message: 'Somente e-mails @fmabc.net são permitidos.' });
+  }
+
+  try {
+    const subAdmin = new SubAdmin({
+      name,
+      username,
+      email,
+      password,
+      createdBy: req.user._id
+    });
+
+    await subAdmin.save();
+    res.status(201).json(subAdmin);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Listar SubAdmins
+app.get('/api/subadmin', protect, adminOnly, async (req, res) => {
+  const subAdmins = await SubAdmin.find().populate('createdBy', 'username email');
+  res.json(subAdmins);
+});
+
+// Atualizar SubAdmin
+app.put('/api/subadmin/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const subAdmin = await SubAdmin.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!subAdmin) return res.status(404).json({ message: 'SubAdmin não encontrado.' });
+    res.json(subAdmin);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Excluir SubAdmin
+app.delete('/api/subadmin/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const subAdmin = await SubAdmin.findByIdAndDelete(req.params.id);
+    if (!subAdmin) return res.status(404).json({ message: 'SubAdmin não encontrado.' });
+    res.json({ message: 'SubAdmin removido com sucesso.' });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+module.exports = app
