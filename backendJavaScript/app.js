@@ -201,10 +201,10 @@ const upload = multer({
       cb(null, Date.now() + '-' + file.originalname);
     }
   })
-})
+});
 
 // Códigos para o banco de dados
-app.post('/api/images/upload', upload.single('imagem'), async (req, res) => {
+app.post('/images', upload.single('imagem'), async (req, res) => {
   try {
     const novaImagem = new Imagem({
       nomeArquivo: req.file.filename,
@@ -222,19 +222,21 @@ app.post('/api/images/upload', upload.single('imagem'), async (req, res) => {
   }
 });
 
-app.delete('/api/images/:id', upload.single('imagem'), async (req, res) => {
+app.delete('/images/:id', async (req, res) => {
   try {
     const imagem = await Imagem.findById(req.params.id);
-    if(!imagem) return res.json({error: 'Imagem não encontrada'});
-
-    //código para remover o arquivo da pasta de uploads
-    if(fs.existsSync(imagem.enderecoImagem)) {
-      fs.unlinkSync(imagem.enderecoImagem);
+    if(!imagem) {
+      return res.json({error: 'Imagem não encontrada'});
     }
+    else{
+      if(fs.existsSync(imagem.enderecoImagem)) {
+        fs.unlinkSync(imagem.enderecoImagem);
+      }
 
-    await Imagem.findByIdAndDelete(req.params.id);
+      await Imagem.findByIdAndDelete(req.params.id);
 
-    res.status(200).json({ message: 'Imagem apagada com sucesso!' });
+      res.status(200).json({ message: 'Imagem apagada com sucesso!' });
+    }
   }
   catch (error) {
     res.status(500).json({ error: error.message });
@@ -242,6 +244,7 @@ app.delete('/api/images/:id', upload.single('imagem'), async (req, res) => {
 });
 
 // FIM CRUD DE IMAGENS! ------------------------------------------------------------------
+
 // ===================
 // 1. Middleware de autenticação
 // ===================
@@ -389,3 +392,12 @@ app.delete('/api/subadmin/:id', protect, adminOnly, async (req, res) => {
 });
 
 module.exports = app
+
+if (process.env.NODE_ENV !== 'test') {
+  conectarAoMongo()
+    .catch(err => console.log("Erro conexão Mongo:", err))
+
+  const PORT = 3000
+  app.listen(PORT, () => console.log(`server up & running, conexão ok`))
+}
+

@@ -65,7 +65,7 @@ describe('Upload de Imagens - API', () => {
     
   it('deve salvar imagem no banco de dados', async () => {
     const res = await request(app)
-      .post('/api/images/upload')
+      .post('/images')
       .field('topico', 'Teste Tópico')
       .field('anotacao', 'Descrição teste')
       .attach('imagem', Buffer.from('fake content'), 'test-image.mrxs');
@@ -84,7 +84,7 @@ describe('Upload de Imagens - API', () => {
 
   it('deve remover imagem no banco de dados', async () => {
     await request(app)
-      .post('/api/images/upload')
+      .post('/images')
       .field('topico', 'Teste Tópico')
       .field('anotacao', 'Descrição teste')
       .attach('imagem', Buffer.from('fake content'), 'test-image.mrxs');
@@ -92,7 +92,7 @@ describe('Upload de Imagens - API', () => {
     const imagemSalva = await Imagem.findOne();
 
     const resDel = await request(app)
-      .delete(`/api/images/${imagemSalva._id}`);
+      .delete(`/images/${imagemSalva._id}`);
 
     expect(resDel.status).toBe(200);
     expect(resDel.body.message).toContain('apagada');
@@ -105,7 +105,7 @@ describe('Upload de Imagens - API', () => {
 
   it('não deve remover uma imagem caso o id não exista', async () => {
     await request(app)
-      .post('/api/images/upload')
+      .post('/images')
       .field('topico', 'Teste')
       .attach('imagem', Buffer.from('test'), 'test.mrxs');
 
@@ -113,7 +113,7 @@ describe('Upload de Imagens - API', () => {
     const countAntes = await Imagem.countDocuments();
 
     const resDel = await request(app)
-      .delete('/api/images/123123-0');
+      .delete('/images/123123-0');
 
     expect(resDel.status).toBe(500);
     
