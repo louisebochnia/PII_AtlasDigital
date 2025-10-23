@@ -25,8 +25,7 @@ beforeEach(async () => {
 describe('Modelo Topico', () => {
   it('deve criar um tópico com sucesso', async () => {
     const topico = new Topico({ 
-      topico: 'Teste', 
-      subtopicos: "Subtestes", 
+      topico: 'Teste',  
       resumo: 'Resumo teste' 
     })
     const saved = await topico.save()
@@ -50,8 +49,8 @@ describe('Modelo Topico', () => {
   })
 
   it('deve listar todos os tópicos', async () => {
-    await Topico.create({ topico: 'Topico 1', subtopicos: "Sub1, Sub2", resumo: 'Resumo 1' })
-    await Topico.create({ topico: 'Topico 2', subtopicos: "Sub3, Sub4", resumo: 'Resumo 2' })
+    await Topico.create({ topico: 'Topico 1', resumo: 'Resumo 1' })
+    await Topico.create({ topico: 'Topico 2', resumo: 'Resumo 2' })
 
     const topicos = await Topico.find({}).sort({ _id: 1 })
     expect(topicos.length).toBe(2)
@@ -62,7 +61,6 @@ describe('Modelo Topico', () => {
   it('deve deletar um tópico', async () => {
     const topico = await Topico.create({ 
       topico: 'Para deletar', 
-      subtopicos: "SubDeletar", 
       resumo: 'Resumo' 
     })
     await Topico.findByIdAndDelete(topico._id)
@@ -79,7 +77,7 @@ describe('API Topico', () => {
   beforeEach(async () => {
     const res = await request(app)
       .post('/topicos')
-      .send({ topico: 'Biologia', subtopicos: 'Célula, DNA', resumo: 'Estudo da vida.' })
+      .send({ topico: 'Biologia', resumo: 'Estudo da vida.' })
     idCriado = res.body._id
   })
 
@@ -88,7 +86,6 @@ describe('API Topico', () => {
       .post('/topicos')
       .send({
         topico: 'Química',
-        subtopicos: 'Moléculas, Reações',
         resumo: 'Estudo da matéria'
       })
     expect(res.statusCode).toBe(201)

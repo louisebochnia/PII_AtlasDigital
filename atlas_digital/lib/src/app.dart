@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import 'estado/estado_topicos.dart';
 import 'telas/pagina_conteudo.dart';
-import 'telas/pagina_adm_conteudos_provisorio.dart';
 import 'telas/pagina_galeria.dart';
 import '../app_shell.dart'; // seu AppShell com a TopNavBar/IndexedStack
 
@@ -28,7 +27,6 @@ class App extends StatelessWidget {
         // home: const AppShell(), // << PaginaConteudo fica dentro do AppShell
         routes: {
           '/conteudos': (_) => const PaginaConteudo(),
-          '/adm/conteudos': (_) => const PaginaAdmConteudosProvisorio(),
           '/galeria/celula': (_) =>
               const Scaffold(body: Center(child: Text('Galeria: Célula'))),
           '/galeria/epitelio': (_) =>

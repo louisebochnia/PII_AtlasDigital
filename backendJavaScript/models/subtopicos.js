@@ -1,10 +1,21 @@
 const mongoose = require('mongoose');
 
-const SubTopicoSchema = new mongoose.Schema({
-  nome: {
+const CapituloSchema = new mongoose.Schema({
+  indice: {
+    type: Number,
+    required: true
+  },
+  titulo: {
     type: String,
     required: true
+  },
+  capaUrl: {
+    type: String,
+    default: null
   }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('SubTopico', SubTopicoSchema);
+module.exports = mongoose.model('Capitulo', CapituloSchema);
+

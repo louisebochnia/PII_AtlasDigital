@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../modelos/topico.dart';
-import '../modelos/capitulo.dart';
 import '../../config/api_config.dart';
 
 class EstadoTopicos extends ChangeNotifier {
@@ -12,9 +11,7 @@ class EstadoTopicos extends ChangeNotifier {
   final List<Topico> _topicos = [];
   List<Topico> get topicos => List.unmodifiable(_topicos);
 
-  // URL base da sua API (ajuste conforme seu backend)
   static final String _baseUrl = '${ApiConfig.baseUrl}/topicos';
-
 
   // ---------------------------------------------------------------------------
   // MOCK local — usado apenas se o banco estiver vazio ou offline
@@ -22,11 +19,10 @@ class EstadoTopicos extends ChangeNotifier {
   void carregarMockSeVazio() {
     if (_topicos.isNotEmpty) return;
     _topicos.addAll([
-      Topico(
+      const Topico(
         id: 't1',
         titulo: 'Conteúdo de Teste',
-        descricao: 'Descrição de teste',
-        capitulos: const [],
+        resumo: 'Resumo de teste',
       ),
     ]);
     notifyListeners();
@@ -64,10 +60,12 @@ class EstadoTopicos extends ChangeNotifier {
       );
 
       if (res.statusCode == 201 || res.statusCode == 200) {
-        _topicos.add(t);
+        // resposta do backend com o _id gerado
+        final novoTopico = Topico.fromJson(jsonDecode(res.body));
+        _topicos.add(novoTopico);
         notifyListeners();
       } else {
-        debugPrint('Erro ao adicionar tópico no servidor: ${res.statusCode}');
+        debugPrint('Erro ao adicionar tópico: ${res.statusCode}');
       }
     } catch (e) {
       debugPrint('Falha ao salvar tópico: $e');
@@ -86,7 +84,8 @@ class EstadoTopicos extends ChangeNotifier {
       );
 
       if (res.statusCode == 200) {
-        _topicos[i] = novo;
+        final atualizado = Topico.fromJson(jsonDecode(res.body));
+        _topicos[i] = atualizado;
         notifyListeners();
       } else {
         debugPrint('Erro ao editar tópico: ${res.statusCode}');
@@ -111,38 +110,7 @@ class EstadoTopicos extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------------
-  // CRUD Capítulo (mantém local — backend ainda não implementa capítulos)
-  // ---------------------------------------------------------------------------
-  void adicionarCapitulo(String idTopico, Capitulo c) {
-    final i = _topicos.indexWhere((e) => e.id == idTopico);
-    if (i == -1) return;
-    final lista = [..._topicos[i].capitulos, c];
-    _topicos[i] = _topicos[i].copyWith(capitulos: lista);
-    notifyListeners();
-  }
-
-  void editarCapitulo(String idTopico, String idCapitulo, Capitulo novo) {
-    final i = _topicos.indexWhere((e) => e.id == idTopico);
-    if (i == -1) return;
-    final caps = [..._topicos[i].capitulos];
-    final j = caps.indexWhere((e) => e.id == idCapitulo);
-    if (j != -1) {
-      caps[j] = novo;
-      _topicos[i] = _topicos[i].copyWith(capitulos: caps);
-      notifyListeners();
-    }
-  }
-
-  void removerCapitulo(String idTopico, String idCapitulo) {
-    final i = _topicos.indexWhere((e) => e.id == idTopico);
-    if (i == -1) return;
-    final caps = _topicos[i].capitulos.where((e) => e.id != idCapitulo).toList();
-    _topicos[i] = _topicos[i].copyWith(capitulos: caps);
-    notifyListeners();
-  }
-
-  // ---------------------------------------------------------------------------
-  // Persistência local (opcional – cache offline)
+  // Persistência local (cache offline)
   // ---------------------------------------------------------------------------
   Future<void> salvarLocal() async {
     final prefs = await SharedPreferences.getInstance();

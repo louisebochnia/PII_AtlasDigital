@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import '../modelos/topico.dart';
-import '../componentes/sub_componentes/item_capitulo.dart';
+import '../modelos/topico.dart'; 
 
-class CartaoTopico extends StatelessWidget {
+class CartaoTopico extends StatefulWidget {
   final Topico topico;
   const CartaoTopico({super.key, required this.topico});
+
+  @override
+  State<CartaoTopico> createState() => _CartaoTopicoState();
+}
+
+class _CartaoTopicoState extends State<CartaoTopico> {
+  bool mostrarResumo = false;
 
   @override
   Widget build(BuildContext context) {
@@ -18,23 +24,17 @@ class CartaoTopico extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              topico.titulo,
+              widget.topico.titulo,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
-            Text(topico.descricao, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 210,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: topico.capitulos.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, i) =>
-                    ItemCapitulo(capitulo: topico.capitulos[i]),
-              ),
+            if (mostrarResumo)
+              Text(widget.topico.resumo, style: theme.textTheme.bodyMedium),
+            TextButton(
+              onPressed: () => setState(() => mostrarResumo = !mostrarResumo),
+              child: Text(mostrarResumo ? 'Esconder Resumo' : 'Mostrar Resumo'),
             ),
           ],
         ),
