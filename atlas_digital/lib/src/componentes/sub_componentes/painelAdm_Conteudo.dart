@@ -11,6 +11,34 @@ class ConteudoPage extends StatefulWidget {
 }
 
 class _ConteudoPageState extends State<ConteudoPage> {
+  // ------------------- CARREGAR CONTEUDDOS -----------------
+  bool _carregado = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarTopicos();
+  }
+
+  Future<void> _carregarTopicos() async {
+    final estado = context.read<EstadoTopicos>();
+
+    try {
+      await estado.carregarBanco();
+
+      if (estado.topicos.isEmpty) {
+        await estado.carregarLocal();
+        estado.carregarMockSeVazio();
+      }
+    } catch (e) {
+      debugPrint("Erro ao carregar tópicos: $e");
+    }
+
+    setState(() {
+      _carregado = true;
+    });
+  }
+
   // ------------------- POPUP DE CONTEÚDO -------------------
   void abrirPopupConteudo({String? id}) {
     final estado = context.read<EstadoTopicos>();
@@ -169,12 +197,35 @@ class _ConteudoPageState extends State<ConteudoPage> {
   }
 
   // ------------------- DELETAR CONTEÚDO -------------------
-  void deletarConteudo(String id) {
+  void deletarConteudo(String id) async {
     final estado = context.read<EstadoTopicos>();
-    estado.removerTopico(id);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Conteúdo removido com sucesso")),
+
+    // Mostra o diálogo de confirmação
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Confirmação"),
+        content: const Text("Tem certeza que deseja deletar este tópico?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false), // cancelar
+            child: const Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), // confirmar
+            child: const Text("Deletar", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
+
+    // Se o usuário confirmou
+    if (confirmar == true) {
+      await estado.removerTopico(id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Conteúdo removido com sucesso")),
+      );
+    }
   }
 
   // ------------------- INTERFACE PRINCIPAL -------------------
@@ -194,10 +245,10 @@ class _ConteudoPageState extends State<ConteudoPage> {
         ElevatedButton.icon(
           onPressed: () => abrirPopupConteudo(),
           icon: const Icon(Icons.add),
-          label: const Text("Novo Conteúdo",
-            style: TextStyle(
-              color: Colors.white),
-            ),
+          label: const Text(
+            "Novo Conteúdo",
+            style: TextStyle(color: Colors.white),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

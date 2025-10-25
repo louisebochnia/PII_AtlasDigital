@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const CapituloSchema = require('./subtopicos').schema;
 
 const TopicosSchema = new mongoose.Schema({
     topico: { 
@@ -9,7 +10,9 @@ const TopicosSchema = new mongoose.Schema({
     resumo: {
         type: String, 
         required: true
-    }
+    },
+
+    subtopicos: [CapituloSchema]
 });
 
 module.exports = mongoose.model('Topico', TopicosSchema);
