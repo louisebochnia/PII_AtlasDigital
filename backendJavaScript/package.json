@@ -10,7 +10,7 @@
 
     "test": "cross-env NODE_ENV=test jest",
 
-    "start": "nodemon app.js"
+    "start": "node app.js"
 
   },
 
