@@ -4,15 +4,20 @@ import 'package:provider/provider.dart';
 import 'temas.dart';
 import 'src/componentes/painelAdm.dart';
 import 'src/estado/estado_topicos.dart';
+import 'src/estado/estado_subtopicos.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => EstadoTopicos(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => EstadoTopicos()),
+        ChangeNotifierProvider(create: (_) => EstadoSubtopicos()),
+      ],
       child: const AtlasApp(),
     ),
   );
 }
+
 
 class AtlasApp extends StatelessWidget {
   const AtlasApp({super.key});

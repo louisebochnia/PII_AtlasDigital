@@ -1,33 +1,26 @@
 class Informacao {
   final String id;
   final int indice;
-  final String conteudo;
-  final String? tipo; // opcional, pode ser "texto", "imagem", etc.
+  final String informacao;
 
   Informacao({
     required this.id,
     required this.indice,
-    required this.conteudo,
-    this.tipo,
+    required this.informacao,
   });
 
-  // Converter JSON para objeto Informacao
   factory Informacao.fromJson(Map<String, dynamic> json) {
     return Informacao(
-      id: json['_id'] ?? '',
-      indice: json['indice'] ?? 0,
-      conteudo: json['conteudo'] ?? '',
-      tipo: json['tipo'],
+      id: json['_id'] ?? json['id'] ?? '',
+      indice: json['indice'] is int ? json['indice'] : int.tryParse(json['indice']?.toString() ?? '0') ?? 0,
+      informacao: json['informacao'] ?? '', // Agora usa 'informacao'
     );
   }
 
-  // Converter objeto Informacao para JSON
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
       'indice': indice,
-      'conteudo': conteudo,
-      'tipo': tipo,
+      'informacao': informacao, // Campo correto para o backend
     };
   }
 }
