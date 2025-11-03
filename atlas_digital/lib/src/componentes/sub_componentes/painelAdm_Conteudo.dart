@@ -90,6 +90,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) => Dialog(
           shape: RoundedRectangleBorder(
@@ -112,7 +113,10 @@ class _ConteudoPageState extends State<ConteudoPage> {
                 children: [
                   Text(
                     isEditando ? "Editar Subtópico" : "Novo Subtópico",
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
                   ),
                   const SizedBox(height: 15),
 
@@ -139,7 +143,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
                   ),
                   const SizedBox(height: 15),
 
-                  // COMENTEI a parte de imagem por enquanto, não tava indo
+                  // COMENTEI a parte de imagem por enquanto
                   /*
                   ElevatedButton.icon(
                     onPressed: () => selecionarImagem(setStateDialog),
@@ -167,7 +171,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                       child: Image.file(imagemSelecionada!, height: 120),
                     ),
                   */
-
                   const SizedBox(height: 20),
                   const Text(
                     "Informações:",
@@ -185,6 +188,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
                             Expanded(
                               child: TextField(
                                 controller: informacoesControllers[index],
+                                maxLines: 2,
                                 decoration: InputDecoration(
                                   labelText: "Informação ${index + 1}",
                                   border: OutlineInputBorder(
@@ -209,7 +213,8 @@ class _ConteudoPageState extends State<ConteudoPage> {
                     alignment: Alignment.centerLeft,
                     child: ElevatedButton.icon(
                       onPressed: () => setStateDialog(
-                        () => informacoesControllers.add(TextEditingController()),
+                        () =>
+                            informacoesControllers.add(TextEditingController()),
                       ),
                       icon: const Icon(Icons.add, color: Colors.white),
                       label: const Text(
@@ -233,6 +238,16 @@ class _ConteudoPageState extends State<ConteudoPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      // BOTÃO CANCELAR ADICIONADO
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          "Cancelar",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
                       ElevatedButton(
                         onPressed: () async {
                           final indiceText = indiceController.text.trim();
@@ -276,10 +291,9 @@ class _ConteudoPageState extends State<ConteudoPage> {
                               .toList();
 
                           final estado = context.read<EstadoSubtopicos>();
-                          
+
                           if (isEditando) {
                             // EDITAR subtópico existente
-                            
                             final subtopicoAtualizado = Subtopico(
                               id: subtopicoExistente!.id,
                               indice: indiceNumero,
@@ -330,7 +344,9 @@ class _ConteudoPageState extends State<ConteudoPage> {
                           ),
                         ),
                         child: Text(
-                          isEditando ? "Atualizar Subtópico" : "Salvar Subtópico",
+                          isEditando
+                              ? "Atualizar Subtópico"
+                              : "Salvar Subtópico",
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
@@ -374,9 +390,9 @@ class _ConteudoPageState extends State<ConteudoPage> {
           const SnackBar(content: Text("Subtópico removido com sucesso")),
         );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro ao remover: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Erro ao remover: $e")));
       }
     }
   }
@@ -420,136 +436,160 @@ class _ConteudoPageState extends State<ConteudoPage> {
 
     showDialog(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
-        child: Container(
-          width: 850,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
+      barrierDismissible: false,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setStateDialog) => Dialog(
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                spreadRadius: 2,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    isEditando ? "Editar Conteúdo" : "Novo Conteúdo",
-                    style: const TextStyle(
-                      fontFamily: "Arial",
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.close, color: Colors.red),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              TextField(
-                controller: tituloController,
-                decoration: InputDecoration(
-                  labelText: "Título",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 40,
+            vertical: 60,
+          ),
+          child: Container(
+            width: 850,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 4),
                 ),
-                style: const TextStyle(fontFamily: "Arial"),
-              ),
-              const SizedBox(height: 10),
-
-              TextField(
-                controller: resumoController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: "Resumo",
-                  hintText: "Digite o resumo do conteúdo...",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                style: const TextStyle(fontFamily: "Arial"),
-              ),
-              const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      final titulo = tituloController.text.trim();
-                      final resumo = resumoController.text.trim();
-
-                      if (titulo.isEmpty || resumo.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "Preencha todos os campos antes de salvar",
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      if (isEditando) {
-                        final topicoAtualizado = Topico(
-                          id: topicoExistente!.id,
-                          titulo: titulo,
-                          resumo: resumo,
-                        );
-
-                        await estado.editarTopico(
-                          topicoExistente.id,
-                          topicoAtualizado,
-                        );
-                      } else {
-                        final novoTopico = Topico(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          titulo: titulo,
-                          resumo: resumo,
-                        );
-
-                        await estado.adicionarTopico(novoTopico);
-                      }
-
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text(
-                      "Salvar",
-                      style: TextStyle(
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      isEditando ? "Editar Conteúdo" : "Novo Conteúdo",
+                      style: const TextStyle(
                         fontFamily: "Arial",
-                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
                       ),
                     ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(Icons.close, color: Colors.red),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                TextField(
+                  controller: tituloController,
+                  decoration: InputDecoration(
+                    labelText: "Título",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ],
-              ),
-            ],
+                  style: const TextStyle(fontFamily: "Arial"),
+                  onChanged: (value) {
+                    setStateDialog(() {});
+                  },
+                ),
+                const SizedBox(height: 10),
+
+                TextField(
+                  controller: resumoController,
+                  decoration: InputDecoration(
+                    labelText: "Resumo",
+                    hintText: "Digite o resumo do conteúdo.",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  style: const TextStyle(fontFamily: "Arial"),
+                  onChanged: (value) {
+                    setStateDialog(() {});
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        "Cancelar",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final titulo = tituloController.text.trim();
+                        final resumo = resumoController.text.trim();
+
+                        if (titulo.isEmpty || resumo.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Preencha todos os campos antes de salvar",
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (isEditando) {
+                          final topicoAtualizado = Topico(
+                            id: topicoExistente!.id,
+                            titulo: titulo,
+                            resumo: resumo,
+                          );
+
+                          await estado.editarTopico(
+                            topicoExistente.id,
+                            topicoAtualizado,
+                          );
+                        } else {
+                          final novoTopico = Topico(
+                            id: DateTime.now().millisecondsSinceEpoch
+                                .toString(),
+                            titulo: titulo,
+                            resumo: resumo,
+                          );
+
+                          await estado.adicionarTopico(novoTopico);
+                        }
+
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: const Text(
+                        "Salvar",
+                        style: TextStyle(
+                          fontFamily: "Arial",
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -590,11 +630,18 @@ class _ConteudoPageState extends State<ConteudoPage> {
   Widget _buildSubtopico(Subtopico subtopico) {
     return Container(
       margin: const EdgeInsets.only(top: 8, left: 16),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: const Color.fromARGB(255, 243, 242, 242),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -622,11 +669,12 @@ class _ConteudoPageState extends State<ConteudoPage> {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
+                    fontFamily: "Arial",
                   ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.edit, size: 18),
+                icon: const Icon(Icons.edit, size: 18, color: Colors.black87),
                 onPressed: () => abrirPopupSubtopico(
                   subtopico.topicoId,
                   subtopicoExistente: subtopico,
@@ -638,17 +686,21 @@ class _ConteudoPageState extends State<ConteudoPage> {
               ),
             ],
           ),
-          
+
           // Exibir informações do subtópico
           if (subtopico.informacoes.isNotEmpty) ...[
             const SizedBox(height: 8),
-            ...subtopico.informacoes.map((info) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                info.informacao,
-                style: const TextStyle(fontSize: 12),
+            ...subtopico.informacoes.map(
+              (info) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  info.informacao.length > 80
+                      ? '${info.informacao.substring(0, 80)}...'
+                      : info.informacao,
+                  style: const TextStyle(fontSize: 12, fontFamily: "Arial"),
+                ),
               ),
-            )),
+            ),
           ],
         ],
       ),
@@ -666,7 +718,11 @@ class _ConteudoPageState extends State<ConteudoPage> {
       children: [
         const Text(
           'Conteúdo',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontFamily: "Arial",
+          ),
         ),
         const SizedBox(height: 20),
 
@@ -675,7 +731,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
           icon: const Icon(Icons.add),
           label: const Text(
             "Novo Conteúdo",
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontFamily: "Arial"),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
@@ -693,19 +749,25 @@ class _ConteudoPageState extends State<ConteudoPage> {
             itemCount: estadoTopicos.topicos.length,
             itemBuilder: (context, index) {
               final conteudo = estadoTopicos.topicos[index];
-              final subtopicosDoTopico = estadoSubtopicos.filtrarPorTopico(conteudo.id);
-              
+              final subtopicosDoTopico = estadoSubtopicos.filtrarPorTopico(
+                conteudo.id,
+              );
+
               return Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(20),
+                  color: const Color.fromARGB(255, 243, 242, 242),
+                  borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      blurRadius: 6,
+                      color: Colors.grey.withOpacity(0.5),
                       spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 0),
                     ),
                   ],
                 ),
@@ -717,7 +779,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
                       children: [
                         Expanded(
                           child: Text(
-                            conteudo.titulo,
+                          conteudo.titulo,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontFamily: "Arial",
@@ -726,10 +788,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(
-                            Icons.edit,
-                            color: Color.fromARGB(255, 22, 22, 22),
-                          ),
+                          icon: const Icon(Icons.edit, color: Colors.black87),
                           onPressed: () => abrirPopupConteudo(id: conteudo.id),
                         ),
                         IconButton(
@@ -743,7 +802,9 @@ class _ConteudoPageState extends State<ConteudoPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0, bottom: 10),
                         child: Text(
-                          conteudo.resumo,
+                          conteudo.resumo.length > 100
+                              ? '${conteudo.resumo.substring(0, 100)}...'
+                              : conteudo.resumo,
                           style: const TextStyle(
                             fontFamily: "Arial",
                             fontSize: 14,
@@ -759,6 +820,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
+                          fontFamily: "Arial",
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -778,7 +840,10 @@ class _ConteudoPageState extends State<ConteudoPage> {
                         icon: const Icon(Icons.add, color: Colors.white),
                         label: const Text(
                           "Adicionar Subtópico",
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: "Arial",
+                          ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
