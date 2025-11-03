@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken');
 
 
 //Importação dos modelos
-const SubTopico = require('./models/subtopicos');
+const Subtopico = require('./models/subtopicos');
 const Imagem = require('./models/imagem');
 const Informacao = require('./models/informacao');
 const Topico = require('./models/topicos');
@@ -30,7 +30,7 @@ async function conectarAoMongo() {
 // CRUD CAPITULOS ----------------------------------------------------------------------------------------------------
 app.post('/subtopicos', async (req, res) => {
   try {
-    const novoSubtopico = new SubTopico(req.body);
+    const novoSubtopico = new Subtopico(req.body);
     const salvo = await novoSubtopico.save();
     res.status(201).json(salvo);
   } catch (err) {
@@ -41,17 +41,27 @@ app.post('/subtopicos', async (req, res) => {
 // Listar todos os Subtópicos
 app.get('/subtopicos', async (req, res) => {
   try {
-    const subtopicos = await SubTopico.find();
+    const subtopicos = await Subtopico.find();
     res.json(subtopicos);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+// Listar subtopicos de um topico
+app.get('/topicos/:topicoId/subtopicos', async (req, res) => {
+  try {
+    const subtopicos = await Subtopico.find({ topicoId: req.params.topicoId });
+    res.status(200).json(subtopicos);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao listar subtópicos', error: err.message });
+  }
+});
+
 // Buscar Subtópico por ID
 app.get('/subtopicos/:id', async (req, res) => {
   try {
-    const subtopico = await SubTopico.findById(req.params.id);
+    const subtopico = await Subtopico.findById(req.params.id);
     if (!subtopico) return res.status(404).json({ message: 'Subtópico não encontrado' });
     res.json(subtopico);
   } catch (err) {
@@ -62,7 +72,7 @@ app.get('/subtopicos/:id', async (req, res) => {
 // Atualizar Subtópico
 app.put('/subtopicos/:id', async (req, res) => {
   try {
-    const atualizado = await SubTopico.findByIdAndUpdate(
+    const atualizado = await Subtopico.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
@@ -77,8 +87,16 @@ app.put('/subtopicos/:id', async (req, res) => {
 // Deletar Subtópico
 app.delete('/subtopicos/:id', async (req, res) => {
   try {
-    const deletado = await SubTopico.findByIdAndDelete(req.params.id);
-    if (!deletado) return res.status(404).json({ message: 'Subtópico não encontrado' });
+    const subt = await Subtopico.findById(req.params.id);
+    if (!subt) return res.status(404).json({ message: 'Subtópico não encontrado' });
+
+    // remove referência do tópico pai
+    await Topico.findByIdAndUpdate(subt.topicoId, {
+      $pull: { subtopicos: subt._id }
+    });
+
+    await Subtopico.findByIdAndDelete(req.params.id);
+
     res.json({ message: 'Subtópico deletado com sucesso' });
   } catch (err) {
     res.status(400).json({ message: err.message });
