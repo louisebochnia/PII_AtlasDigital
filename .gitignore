@@ -43,7 +43,8 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-atlas_digital/android/app/src/debug
-atlas_digital/android/app/src/profile
-atlas_digital/android/app/src/release
+# Android, ios, linux e macos
+atlas_digital/android
+atlas_digital/ios
+atlas_digital/linux
+atlas_digital/macos
