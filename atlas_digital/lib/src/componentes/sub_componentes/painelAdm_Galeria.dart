@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart'; // <-- Import para escolher arquivo
+import 'package:file_picker/file_picker.dart';
 
 class GaleriaPage extends StatefulWidget {
   const GaleriaPage({super.key});
@@ -10,81 +10,416 @@ class GaleriaPage extends StatefulWidget {
 
 class _GaleriaPageState extends State<GaleriaPage> {
   List<Map<String, dynamic>> imagensGaleria = [
-    {"nome": "Administrador Secundário", "imagem": "https://exemplo.com/img1.png"},
-    {"nome": "Servidor Principal", "imagem": "https://exemplo.com/img2.png"},
+    {"nome": "Célula eucarionte", "imagem": "https://exemplo.com/img1.png"},
+    {"nome": "Tecido epitelial", "imagem": "https://exemplo.com/img2.png"},
   ];
 
   void abrirPopupImagem({int? index}) {
     final isEditando = index != null;
     final nomeController = TextEditingController(
-      text: isEditando ? imagensGaleria[index]['nome'] : '',
+      text: isEditando ? imagensGaleria[index!]['nome'] : '',
     );
     final imagemController = TextEditingController(
-      text: isEditando ? imagensGaleria[index]['imagem'] : '',
+      text: isEditando ? imagensGaleria[index!]['imagem'] : '',
     );
+
+    final List<String> opcoesTopico = [
+      'Biologia Celular',
+      'Histologia Geral',
+      'Histologia Especial',
+    ];
+
+    final Map<String, List<String>> mapaSubtopicos = {
+      'Biologia Celular': [
+        'Célula eucarionte',
+        'Especializações de membrana',
+        'Núcleo celular',
+      ],
+      'Histologia Geral': [
+        'Tecido epitelial',
+        'Tecido conjuntivo propriamente dito',
+        'Tecido cartilaginoso',
+        'Tecido ósseo',
+        'Sangue e medula óssea',
+        'Tecido muscular',
+        'Tecido nervoso e Sistema nervoso',
+      ],
+      'Histologia Especial': [
+        'Sistema cardiovascular',
+        'Sistema linfático',
+        'Sistema respiratório',
+        'Sistema digestório',
+        'Sistema endócrino',
+        'Sistema genital feminino',
+        'Sistema genital masculino',
+        'Sistema sensorial',
+      ],
+    };
+
+    // Variáveis para controlar o estado do diálogo
+    String? topicoSelecionado;
+    String? subtopicoSelecionado;
+    List<String> opcoesSubtopicoAtual = [];
 
     showDialog(
       context: context,
       builder: (context) {
+        // Detecta o tamanho da tela
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallScreen = screenWidth < 650;
+
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             isEditando ? "Editar Imagem" : "Nova Imagem",
             style: const TextStyle(fontFamily: "Arial"),
           ),
-          content: SizedBox(
-            width: 750,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nomeController,
-                  style: const TextStyle(fontFamily: "Arial"),
-                  decoration: const InputDecoration(
-                    labelText: "Nome da imagem",
-                    border: OutlineInputBorder(),
+          content: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return SizedBox(
+                width: isSmallScreen ? screenWidth * 0.9 : 750,
+                child: SingleChildScrollView( 
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Campo e botão para escolher imagem
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: imagemController,
+                              style: const TextStyle(fontFamily: "Arial"),
+                              decoration: const InputDecoration(
+                                labelText: "URL ou caminho da imagem",
+                                hintText:
+                                    "Ex: https://site.com/imagem.png ou C:/imagens/foto.png",
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final result = await FilePicker.platform
+                                    .pickFiles(type: FileType.image);
+                                if (result != null &&
+                                    result.files.single.path != null) {
+                                  imagemController.text =
+                                      result.files.single.path!;
+                                }
+                              },
+                              icon: const Icon(Icons.folder_open),
+                              label: isSmallScreen
+                                  ? const Text("") // Só ícone em telas pequenas
+                                  : const Text("Escolher"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blueAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // SEÇÃO DIRETÓRIO
+                      const Text(
+                        "Diretório",
+                        style: TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Layout responsivo para os dropdowns
+                      if (isSmallScreen)
+                        // Versão para telas pequenas - vertical
+                        Column(
+                          children: [
+                            // Dropdown Tópico
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Tópico:",
+                                  style: TextStyle(
+                                    fontFamily: "Arial",
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                DropdownButtonFormField<String>(
+                                  value: topicoSelecionado,
+                                  isExpanded:
+                                      true, // Importante para telas pequenas
+                                  decoration: InputDecoration(
+                                    hintText: 'Selecione o tópico',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem<String>(
+                                      value: null,
+                                      child: Text('Selecione o tópico'),
+                                    ),
+                                    ...opcoesTopico.map((String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    }).toList(),
+                                  ],
+                                  onChanged: (String? newValue) {
+                                    setStateDialog(() {
+                                      topicoSelecionado = newValue;
+                                      subtopicoSelecionado = null;
+                                      opcoesSubtopicoAtual =
+                                          mapaSubtopicos[newValue] ?? [];
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            // Dropdown Subtópico
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Subtópico:",
+                                  style: TextStyle(
+                                    fontFamily: "Arial",
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                DropdownButtonFormField<String>(
+                                  value: subtopicoSelecionado,
+                                  isExpanded:
+                                      true, // Importante para telas pequenas
+                                  decoration: InputDecoration(
+                                    hintText: topicoSelecionado == null
+                                        ? 'Selecione primeiro o tópico'
+                                        : 'Selecione o subtópico',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  items: opcoesSubtopicoAtual.isEmpty
+                                      ? [
+                                          const DropdownMenuItem<String>(
+                                            value: null,
+                                            child: Text(
+                                              'Nenhuma opção disponível',
+                                            ),
+                                          ),
+                                        ]
+                                      : [
+                                          const DropdownMenuItem<String>(
+                                            value: null,
+                                            child: Text('Selecione o subtópico'),
+                                          ),
+                                          ...opcoesSubtopicoAtual.map((
+                                            String value,
+                                          ) {
+                                            return DropdownMenuItem<String>(
+                                              value: value,
+                                              child: Text(value),
+                                            );
+                                          }).toList(),
+                                        ],
+                                  onChanged:
+                                      topicoSelecionado == null ||
+                                          opcoesSubtopicoAtual.isEmpty
+                                      ? null
+                                      : (String? newValue) {
+                                          setStateDialog(() {
+                                            subtopicoSelecionado = newValue;
+                                          });
+                                        },
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      else
+                        // Versão para telas grandes - horizontal
+                        Row(
+                          children: [
+                            // Dropdown Tópico
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Tópico:",
+                                    style: TextStyle(
+                                      fontFamily: "Arial",
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  DropdownButtonFormField<String>(
+                                    value: topicoSelecionado,
+                                    decoration: InputDecoration(
+                                      hintText: 'Selecione o tópico',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                    items: [
+                                      const DropdownMenuItem<String>(
+                                        value: null,
+                                        child: Text('Selecione o tópico'),
+                                      ),
+                                      ...opcoesTopico.map((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                    ],
+                                    onChanged: (String? newValue) {
+                                      setStateDialog(() {
+                                        topicoSelecionado = newValue;
+                                        subtopicoSelecionado = null;
+                                        opcoesSubtopicoAtual =
+                                            mapaSubtopicos[newValue] ?? [];
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Dropdown Subtópico
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Subtópico:",
+                                    style: TextStyle(
+                                      fontFamily: "Arial",
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  DropdownButtonFormField<String>(
+                                    value: subtopicoSelecionado,
+                                    decoration: InputDecoration(
+                                      hintText: topicoSelecionado == null
+                                          ? 'Selecione primeiro o tópico'
+                                          : 'Selecione o subtópico',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                    items: opcoesSubtopicoAtual.isEmpty
+                                        ? [
+                                            const DropdownMenuItem<String>(
+                                              value: null,
+                                              child: Text(
+                                                'Nenhuma opção disponível',
+                                              ),
+                                            ),
+                                          ]
+                                        : [
+                                            const DropdownMenuItem<String>(
+                                              value: null,
+                                              child: Text(
+                                                'Selecione o subtópico',
+                                              ),
+                                            ),
+                                            ...opcoesSubtopicoAtual.map((
+                                              String value,
+                                            ) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Text(value),
+                                              );
+                                            }).toList(),
+                                          ],
+                                    onChanged:
+                                        topicoSelecionado == null ||
+                                            opcoesSubtopicoAtual.isEmpty
+                                        ? null
+                                        : (String? newValue) {
+                                            setStateDialog(() {
+                                              subtopicoSelecionado = newValue;
+                                            });
+                                          },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 20),
+
+                      // SEÇÃO ANOTAÇÃO
+                      const Text(
+                        "Anotação",
+                        style: TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: isSmallScreen ? 100 : 80, 
+                        child: TextField(
+                          maxLines: null, 
+                          expands: true, 
+                          textAlignVertical: TextAlignVertical.top, 
+                          decoration: const InputDecoration(
+                            hintText: "Digite as anotações e informações da imagem",
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            alignLabelWithHint: true,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 15),
-
-                // Campo e botão para escolher imagem
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: imagemController,
-                        style: const TextStyle(fontFamily: "Arial"),
-                        decoration: const InputDecoration(
-                          labelText: "URL ou caminho da imagem",
-                          hintText: "Ex: https://site.com/imagem.png ou C:/imagens/foto.png",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        final result = await FilePicker.platform.pickFiles(
-                          type: FileType.image,
-                        );
-                        if (result != null && result.files.single.path != null) {
-                          imagemController.text = result.files.single.path!;
-                        }
-                      },
-                      icon: const Icon(Icons.folder_open),
-                      label: const Text("Escolher"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              );
+            },
           ),
           actions: [
             TextButton(
@@ -99,7 +434,8 @@ class _GaleriaPageState extends State<GaleriaPage> {
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onPressed: () {
                 final nome = nomeController.text.trim();
@@ -122,11 +458,15 @@ class _GaleriaPageState extends State<GaleriaPage> {
                     imagensGaleria[index!] = {
                       "nome": nome,
                       "imagem": imagem,
+                      "topico": topicoSelecionado,
+                      "subtopico": subtopicoSelecionado,
                     };
                   } else {
                     imagensGaleria.add({
                       "nome": nome,
                       "imagem": imagem,
+                      "topico": topicoSelecionado,
+                      "subtopico": subtopicoSelecionado,
                     });
                   }
                 });
@@ -213,8 +553,10 @@ class _GaleriaPageState extends State<GaleriaPage> {
               final conteudo = imagensGaleria[index];
               return Container(
                 margin: const EdgeInsets.symmetric(vertical: 6),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 243, 242, 242),
                   borderRadius: BorderRadius.circular(25),

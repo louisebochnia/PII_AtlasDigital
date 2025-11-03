@@ -22,7 +22,7 @@ const app = express() ;
 app.use(express.json());
 app.use(cors());
 
-// CONEXXÃO COM O BANCO DE DADOS
+// CONEXÃO COM O BANCO DE DADOS
 async function conectarAoMongo() {
   await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`)
 }
