@@ -19,6 +19,11 @@ class ConteudoPage extends StatefulWidget {
 }
 
 class _ConteudoPageState extends State<ConteudoPage> {
+  // ------------------- FILTROS E PESQUISA -------------------
+  String _filtroTopicoSelecionado = 'Todos';
+  String _termoPesquisa = '';
+  bool _ordenarAlfabeticamente = false;
+
   // ------------------- CARREGAR CONTEUDDOS -----------------
   bool _carregado = false;
 
@@ -50,43 +55,45 @@ class _ConteudoPageState extends State<ConteudoPage> {
       }
     }
 
-    File? imagemSelecionada;
+    //Comentei Essa parte de imagem por que não funcionou direito
 
-    Future<void> selecionarImagem(StateSetter setStateDialog) async {
-      final resultado = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-      );
-      if (resultado != null && resultado.files.single.path != null) {
-        setStateDialog(() {
-          imagemSelecionada = File(resultado.files.single.path!);
-        });
-      }
-    }
+    // File? imagemSelecionada;
 
-    Future<String?> uploadImagem(File imagem) async {
-      try {
-        final uri = Uri.parse('http://localhost:3000/images');
-        final request = http.MultipartRequest('POST', uri);
-        request.files.add(
-          await http.MultipartFile.fromPath('imagem', imagem.path),
-        );
-        request.fields['topico'] = 'subtopico';
-        request.fields['anotacao'] = 'capa';
+    // Future<void> selecionarImagem(StateSetter setStateDialog) async {
+    //   final resultado = await FilePicker.platform.pickFiles(
+    //     type: FileType.image,
+    //   );
+    //   if (resultado != null && resultado.files.single.path != null) {
+    //     setStateDialog(() {
+    //       imagemSelecionada = File(resultado.files.single.path!);
+    //     });
+    //   }
+    // }
 
-        final response = await request.send();
-        if (response.statusCode == 200) {
-          final resBody = await response.stream.bytesToString();
-          final data = jsonDecode(resBody);
-          return data['enderecoImagem'];
-        } else {
-          debugPrint('Erro ao enviar imagem: ${response.statusCode}');
-          return null;
-        }
-      } catch (e) {
-        debugPrint('Erro no upload: $e');
-        return null;
-      }
-    }
+    // Future<String?> uploadImagem(File imagem) async {
+    //   try {
+    //     final uri = Uri.parse('http://localhost:3000/images');
+    //     final request = http.MultipartRequest('POST', uri);
+    //     request.files.add(
+    //       await http.MultipartFile.fromPath('imagem', imagem.path),
+    //     );
+    //     request.fields['topico'] = 'subtopico';
+    //     request.fields['anotacao'] = 'capa';
+
+    //     final response = await request.send();
+    //     if (response.statusCode == 200) {
+    //       final resBody = await response.stream.bytesToString();
+    //       final data = jsonDecode(resBody);
+    //       return data['enderecoImagem'];
+    //     } else {
+    //       debugPrint('Erro ao enviar imagem: ${response.statusCode}');
+    //       return null;
+    //     }
+    //   } catch (e) {
+    //     debugPrint('Erro no upload: $e');
+    //     return null;
+    //   }
+    // }
 
     showDialog(
       context: context,
@@ -143,34 +150,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                   ),
                   const SizedBox(height: 15),
 
-                  // COMENTEI a parte de imagem por enquanto
-                  /*
-                  ElevatedButton.icon(
-                    onPressed: () => selecionarImagem(setStateDialog),
-                    icon: const Icon(Icons.image, color: Colors.white),
-                    label: const Text(
-                      "Selecionar Imagem",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  if (imagemSelecionada != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(imagemSelecionada!, height: 120),
-                    ),
-                  */
                   const SizedBox(height: 20),
                   const Text(
                     "Informações:",
@@ -238,7 +217,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // BOTÃO CANCELAR ADICIONADO
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
@@ -253,7 +231,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                           final indiceText = indiceController.text.trim();
                           final titulo = tituloController.text.trim();
 
-                          // Validações básicas
                           if (indiceText.isEmpty || titulo.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -263,7 +240,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                             return;
                           }
 
-                          // Converter para número e validar
                           final indiceNumero = int.tryParse(indiceText);
                           if (indiceNumero == null || indiceNumero < 1) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -276,13 +252,12 @@ class _ConteudoPageState extends State<ConteudoPage> {
                             return;
                           }
 
-                          // Monta lista de Informacao
                           final listaInformacoes = informacoesControllers
                               .asMap()
                               .entries
                               .map(
                                 (entry) => Informacao(
-                                  id: '', // backend gera
+                                  id: '',
                                   indice: entry.key,
                                   informacao: entry.value.text.trim(),
                                 ),
@@ -293,7 +268,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                           final estado = context.read<EstadoSubtopicos>();
 
                           if (isEditando) {
-                            // EDITAR subtópico existente
                             final subtopicoAtualizado = Subtopico(
                               id: subtopicoExistente!.id,
                               indice: indiceNumero,
@@ -314,7 +288,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
                               );
                             }
                           } else {
-                            // CRIAR novo subtópico
                             final novoSubtopico = Subtopico(
                               id: '',
                               indice: indiceNumero,
@@ -687,7 +660,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
             ],
           ),
 
-          // Exibir informações do subtópico
           if (subtopico.informacoes.isNotEmpty) ...[
             const SizedBox(height: 8),
             ...subtopico.informacoes.map(
@@ -707,11 +679,158 @@ class _ConteudoPageState extends State<ConteudoPage> {
     );
   }
 
+  // ------------------- FILTRAR E ORDENAR TÓPICOS -------------------
+  List<Topico> _filtrarEOrdenarTopicos(
+    List<Topico> topicos,
+    List<Subtopico> todosSubtopicos,
+  ) {
+    List<Topico> topicosFiltrados = topicos;
+
+    // Aplicar filtro por tópico
+    if (_filtroTopicoSelecionado != 'Todos') {
+      topicosFiltrados = topicosFiltrados
+          .where((topico) => topico.titulo == _filtroTopicoSelecionado)
+          .toList();
+    }
+
+    // Aplicar pesquisa
+    if (_termoPesquisa.isNotEmpty) {
+      final termo = _termoPesquisa.toLowerCase();
+      topicosFiltrados = topicosFiltrados.where((topico) {
+        // Buscar nos subtópicos deste tópico
+        final subtopicosDoTopico = todosSubtopicos
+            .where((subtopico) => subtopico.topicoId == topico.id)
+            .toList();
+
+        return topico.titulo.toLowerCase().contains(termo) ||
+            topico.resumo.toLowerCase().contains(termo) ||
+            subtopicosDoTopico.any(
+              (subtopico) =>
+                  subtopico.titulo.toLowerCase().contains(termo) ||
+                  subtopico.informacoes.any(
+                    (info) => info.informacao.toLowerCase().contains(termo),
+                  ),
+            );
+      }).toList();
+    }
+
+    // Aplicar ordenação alfabética
+    if (_ordenarAlfabeticamente) {
+      topicosFiltrados.sort((a, b) => a.titulo.compareTo(b.titulo));
+    }
+
+    return topicosFiltrados;
+  }
+
+  // ------------------- WIDGET DOS FILTROS -------------------
+  Widget _buildFiltros() {
+    final estadoTopicos = context.watch<EstadoTopicos>();
+
+    // Obter lista única de tópicos para o dropdown
+    final topicosUnicos =
+        ['Todos'] + estadoTopicos.topicos.map((t) => t.titulo).toSet().toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        children: [
+          // Pesquisa e Ordenação
+          Row(
+            children: [
+              // Campo de pesquisa
+              Expanded(
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _termoPesquisa = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Pesquisar tópicos, subtópicos...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Filtro por tópico
+          Row(
+            children: [
+              const Text(
+                'Filtrar por:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(width: 12),
+
+              DropdownButton<String>(
+                value: _filtroTopicoSelecionado,
+                onChanged: (String? novoValor) {
+                  setState(() {
+                    _filtroTopicoSelecionado = novoValor!;
+                  });
+                },
+                items: topicosUnicos.map<DropdownMenuItem<String>>((
+                  String valor,
+                ) {
+                  return DropdownMenuItem<String>(
+                    value: valor,
+                    child: Text(valor, style: const TextStyle(fontSize: 14)),
+                  );
+                }).toList(),
+                style: const TextStyle(color: Colors.black),
+                underline: Container(height: 2, color: Colors.green),
+              ),
+
+              const Spacer(),
+
+              // Botão para limpar filtros
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _filtroTopicoSelecionado = 'Todos';
+                    _termoPesquisa = '';
+                    _ordenarAlfabeticamente = false;
+                  });
+                },
+                icon: const Icon(Icons.clear, size: 18),
+                label: const Text('Limpar Filtros'),
+                style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   // ------------------- INTERFACE PRINCIPAL -------------------
+  @override
   @override
   Widget build(BuildContext context) {
     final estadoTopicos = context.watch<EstadoTopicos>();
     final estadoSubtopicos = context.watch<EstadoSubtopicos>();
+
+    // Aplicar filtros e ordenação
+    final topicosFiltrados = _filtrarEOrdenarTopicos(
+      estadoTopicos.topicos,
+      estadoSubtopicos.subtopicos,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -724,6 +843,10 @@ class _ConteudoPageState extends State<ConteudoPage> {
             fontFamily: "Arial",
           ),
         ),
+        const SizedBox(height: 20),
+
+        // Filtros
+        _buildFiltros(),
         const SizedBox(height: 20),
 
         ElevatedButton.icon(
@@ -744,126 +867,167 @@ class _ConteudoPageState extends State<ConteudoPage> {
         ),
         const SizedBox(height: 20),
 
-        Expanded(
-          child: ListView.builder(
-            itemCount: estadoTopicos.topicos.length,
-            itemBuilder: (context, index) {
-              final conteudo = estadoTopicos.topicos[index];
-              final subtopicosDoTopico = estadoSubtopicos.filtrarPorTopico(
-                conteudo.id,
-              );
+        // Indicador de resultados
+        if (_termoPesquisa.isNotEmpty || _filtroTopicoSelecionado != 'Todos')
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              '${topicosFiltrados.length} tópico(s) encontrado(s)',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
 
-              return Container(
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 243, 242, 242),
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Linha principal do tópico
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                          conteudo.titulo,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Arial",
-                              fontSize: 16,
+        Expanded(
+          child: topicosFiltrados.isEmpty
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        'Nenhum tópico encontrado',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Tente ajustar os filtros ou a pesquisa',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: topicosFiltrados.length,
+                  itemBuilder: (context, index) {
+                    final conteudo = topicosFiltrados[index];
+                    final subtopicosDoTopico = estadoSubtopicos
+                        .filtrarPorTopico(conteudo.id);
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 243, 242, 242),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  conteudo.titulo,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: "Arial",
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.black87,
+                                ),
+                                onPressed: () =>
+                                    abrirPopupConteudo(id: conteudo.id),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => deletarConteudo(conteudo.id),
+                              ),
+                            ],
+                          ),
+
+                          if (conteudo.resumo.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 4.0,
+                                bottom: 10,
+                              ),
+                              child: Text(
+                                conteudo.resumo.length > 100
+                                    ? '${conteudo.resumo.substring(0, 100)}...'
+                                    : conteudo.resumo,
+                                style: const TextStyle(
+                                  fontFamily: "Arial",
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+
+                          if (subtopicosDoTopico.isNotEmpty) ...[
+                            const Text(
+                              "Subtópicos:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                fontFamily: "Arial",
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Column(
+                              children: subtopicosDoTopico
+                                  .map(_buildSubtopico)
+                                  .toList(),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: ElevatedButton.icon(
+                              onPressed: () => abrirPopupSubtopico(conteudo.id),
+                              icon: const Icon(Icons.add, color: Colors.white),
+                              label: const Text(
+                                "Adicionar Subtópico",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: "Arial",
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                shadowColor: Colors.greenAccent.withOpacity(
+                                  0.4,
+                                ),
+                                elevation: 3,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.black87),
-                          onPressed: () => abrirPopupConteudo(id: conteudo.id),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deletarConteudo(conteudo.id),
-                        ),
-                      ],
-                    ),
-
-                    if (conteudo.resumo.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0, bottom: 10),
-                        child: Text(
-                          conteudo.resumo.length > 100
-                              ? '${conteudo.resumo.substring(0, 100)}...'
-                              : conteudo.resumo,
-                          style: const TextStyle(
-                            fontFamily: "Arial",
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
+                        ],
                       ),
-
-                    // SUBTÓPICOS DO TÓPICO
-                    if (subtopicosDoTopico.isNotEmpty) ...[
-                      const Text(
-                        "Subtópicos:",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          fontFamily: "Arial",
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Column(
-                        children: subtopicosDoTopico
-                            .map(_buildSubtopico)
-                            .toList(),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-
-                    // Botão para adicionar subtópico
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: ElevatedButton.icon(
-                        onPressed: () => abrirPopupSubtopico(conteudo.id),
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        label: const Text(
-                          "Adicionar Subtópico",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: "Arial",
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          shadowColor: Colors.greenAccent.withOpacity(0.4),
-                          elevation: 3,
-                        ),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );
