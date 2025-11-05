@@ -1,4 +1,5 @@
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Administradores2.dart';
+import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Estatisticas.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Inicio2.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Galeria.dart';
@@ -20,6 +21,7 @@ class _PainelAdmState extends State<PainelAdm> {
     "Conteúdo",
     "Galeria",
     "Administradores",
+    "Estatísticas",
   ];
 
   final List<IconData> _menuIcons = [
@@ -27,6 +29,7 @@ class _PainelAdmState extends State<PainelAdm> {
     Icons.content_paste_outlined,
     Icons.image_outlined,
     Icons.people_alt_outlined,
+    Icons.auto_graph_rounded,
   ];
 
   final List<Widget> _menuContents = [
@@ -34,6 +37,7 @@ class _PainelAdmState extends State<PainelAdm> {
     ConteudoPage(),
     GaleriaPage(),
     AdministradoresPage(),
+    EstatisticasPage(),
   ];
 
   @override
