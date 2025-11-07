@@ -131,7 +131,7 @@ class _telaConteudoState extends State<telaConteudo> {
             ),
             const SizedBox(height: 20),
 
-            // 🔹 FutureBuilder que carrega as seções
+            // FutureBuilder que carrega as seções
             FutureBuilder<List<Map<String, dynamic>>>(
               future: buscarDadosDoBanco(),
               builder: (context, snapshot) {
