@@ -1,9 +1,20 @@
-// lib/src/telas/pagina_inicial.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../componentes/rodape.dart';
+import '../estado/estado_estatisticas.dart';
 
-class PaginaInicial extends StatelessWidget {
+class PaginaInicial extends StatefulWidget {
   const PaginaInicial({super.key});
+
+  @override
+  State<PaginaInicial> createState() => _PaginaInicialState();
+}
+
+class _PaginaInicialState extends State<PaginaInicial> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,13 +22,9 @@ class PaginaInicial extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 40),
-
           Rodape(
             logoAsset: 'assets/logo_fmabc.png',
-            onFaq: () {
-              // exemplo: abre rota do FAQ
-              // Navigator.pushNamed(context, '/faq');
-            },
+            onFaq: () {},
             colunas: const [
               FooterColumnData(
                 titulo: 'Coluna 1',
@@ -38,8 +45,7 @@ class PaginaInicial extends StatelessWidget {
                 ],
               ),
             ],
-            endereco:
-                'Sede: Av. Príncipe de Gales, 821 – Bairro Príncipe de Gales – Santo André, SP – CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes, 2000 – Vila Sacadura Cabral – Santo André / SP – CEP: 09060-870 (Portaria 2) Telefone: (11) 4993-5400',
+            endereco: 'Sede: Av. Príncipe de Gales, 821 – Bairro Príncipe de Gales – Santo André, SP – CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes, 2000 – Vila Sacadura Cabral – Santo André / SP – CEP: 09060-870 (Portaria 2) Telefone: (11) 4993-5400',
             site: 'www.fmabc.br',
           ),
         ],

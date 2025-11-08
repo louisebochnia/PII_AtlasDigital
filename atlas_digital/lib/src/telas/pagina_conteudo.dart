@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../estado/estado_topicos.dart';
+import '../estado/estado_estatisticas.dart';
 import '../componentes/cartao_topico.dart';
 
-class PaginaConteudo extends StatelessWidget {
+class PaginaConteudo extends StatefulWidget {
   const PaginaConteudo({super.key});
+
+  @override
+  State<PaginaConteudo> createState() => _PaginaConteudoState();
+}
+
+class _PaginaConteudoState extends State<PaginaConteudo> {
+
+  @override
+  void initState() {
+    super.initState();
+   
+  }
 
   @override
   Widget build(BuildContext context) {
