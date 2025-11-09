@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
 import '../../estado/estado_topicos.dart';
 import '../../estado/estado_subtopicos.dart';
 import '../../modelos/topico.dart';

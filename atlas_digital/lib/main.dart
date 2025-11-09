@@ -5,6 +5,7 @@ import 'temas.dart';
 import 'src/componentes/painelAdm.dart';
 import 'src/estado/estado_topicos.dart';
 import 'src/estado/estado_subtopicos.dart';
+import 'src/estado/estado_estatisticas.dart'; 
 
 void main() {
   runApp(
@@ -12,6 +13,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => EstadoTopicos()),
         ChangeNotifierProvider(create: (_) => EstadoSubtopicos()),
+        ChangeNotifierProvider(create: (_) => EstadoEstatisticas()),
       ],
       child: const AtlasApp(),
     ),
