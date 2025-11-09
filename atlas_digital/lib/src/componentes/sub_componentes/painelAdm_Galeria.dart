@@ -1,5 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:atlas_digital/src/estado/estado_subtopicos.dart';
+import 'package:atlas_digital/src/estado/estado_topicos.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
+import 'dart:html' as html;
 
 class GaleriaPage extends StatefulWidget {
   const GaleriaPage({super.key});
@@ -9,56 +17,39 @@ class GaleriaPage extends StatefulWidget {
 }
 
 class _GaleriaPageState extends State<GaleriaPage> {
+  final String protocolo = 'http://';
+  final String baseURL = 'localhost:3000';
+
   List<Map<String, dynamic>> imagensGaleria = [
     {"nome": "Célula eucarionte", "imagem": "https://exemplo.com/img1.png"},
     {"nome": "Tecido epitelial", "imagem": "https://exemplo.com/img2.png"},
   ];
 
-  void abrirPopupImagem({int? index}) {
+  dynamic arquivoSelecionado;
+  String? nomeArquivoWeb;
+  String? topicoSelecionado;
+  String? subtopicoSelecionado;
+  final nomeController = TextEditingController(
+    // text: isEditando ? imagensGaleria[index!]['nome'] : '',
+  );
+  final imagemController = TextEditingController(
+    // text: isEditando ? imagensGaleria[index!]['imagem'] : '',
+  );
+  final anotacaoController = TextEditingController(
+    // text: isEditando ? imagensGaleria[index!]['imagem'] : '',
+  );
+
+  bool enviando = false;
+
+  Future<void> abrirPopupImagem({int? index}) async {
     final isEditando = index != null;
-    final nomeController = TextEditingController(
-      text: isEditando ? imagensGaleria[index!]['nome'] : '',
-    );
-    final imagemController = TextEditingController(
-      text: isEditando ? imagensGaleria[index!]['imagem'] : '',
-    );
 
-    final List<String> opcoesTopico = [
-      'Biologia Celular',
-      'Histologia Geral',
-      'Histologia Especial',
-    ];
+    await _carregarTopicos();
 
-    final Map<String, List<String>> mapaSubtopicos = {
-      'Biologia Celular': [
-        'Célula eucarionte',
-        'Especializações de membrana',
-        'Núcleo celular',
-      ],
-      'Histologia Geral': [
-        'Tecido epitelial',
-        'Tecido conjuntivo propriamente dito',
-        'Tecido cartilaginoso',
-        'Tecido ósseo',
-        'Sangue e medula óssea',
-        'Tecido muscular',
-        'Tecido nervoso e Sistema nervoso',
-      ],
-      'Histologia Especial': [
-        'Sistema cardiovascular',
-        'Sistema linfático',
-        'Sistema respiratório',
-        'Sistema digestório',
-        'Sistema endócrino',
-        'Sistema genital feminino',
-        'Sistema genital masculino',
-        'Sistema sensorial',
-      ],
-    };
-
+    final List<String> opcoesTopico = carregarTituloTopicos();
+    final Map<String, List<String>> mapaSubtopicos = carregarTituloSubtopicos();
+    
     // Variáveis para controlar o estado do diálogo
-    String? topicoSelecionado;
-    String? subtopicoSelecionado;
     List<String> opcoesSubtopicoAtual = [];
 
     showDialog(
@@ -92,11 +83,13 @@ class _GaleriaPageState extends State<GaleriaPage> {
                             child: TextField(
                               controller: imagemController,
                               style: const TextStyle(fontFamily: "Arial"),
+                              readOnly: true,
                               decoration: const InputDecoration(
-                                labelText: "URL ou caminho da imagem",
+                                labelText: "Selecione um arquivo ZIP que inclua o .mrxs da imagem e os .dat",
                                 hintText:
-                                    "Ex: https://site.com/imagem.png ou C:/imagens/foto.png",
+                                    "Nenhum arquivo selecionado",
                                 border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.image),
                               ),
                             ),
                           ),
@@ -105,13 +98,26 @@ class _GaleriaPageState extends State<GaleriaPage> {
                             height: 56,
                             child: ElevatedButton.icon(
                               onPressed: () async {
-                                final result = await FilePicker.platform
-                                    .pickFiles(type: FileType.image);
-                                if (result != null &&
-                                    result.files.single.path != null) {
-                                  imagemController.text =
-                                      result.files.single.path!;
-                                }
+                                final uploadInput = html.FileUploadInputElement();
+                                uploadInput.accept = '.zip';
+                                uploadInput.click();
+
+                                await uploadInput.onChange.first;
+                                
+                                final file = uploadInput.files!.first;
+
+                                setState(() {
+                                  imagemController.text = file.name;
+                                });
+                                arquivoSelecionado = file;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text('Arquivo selecionado: ${file.name}'),
+                                        backgroundColor: Colors.green,
+                                    ),
+                                );
+                                
                               },
                               icon: const Icon(Icons.folder_open),
                               label: isSmallScreen
@@ -127,6 +133,31 @@ class _GaleriaPageState extends State<GaleriaPage> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // SEÇÃO NOME IMAGEM
+                      const Text(
+                        "Nome da imagem:",
+                        style: TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 56,
+                        child: TextField(
+                          controller: nomeController,
+                          style: const TextStyle(fontFamily: "Arial"),
+                          decoration: const InputDecoration(
+                            labelText: "Nome da imagem",
+                            hintText:
+                                "Digite o nome da imagem que será exibido na galeria",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -401,6 +432,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                       SizedBox(
                         height: isSmallScreen ? 100 : 80, 
                         child: TextField(
+                          controller: anotacaoController,
                           maxLines: null, 
                           expands: true, 
                           textAlignVertical: TextAlignVertical.top, 
@@ -423,11 +455,14 @@ class _GaleriaPageState extends State<GaleriaPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                limparFormulario();
+                Navigator.pop(context);
+              },
               child: const Text(
                 "Cancelar",
                 style: TextStyle(fontFamily: "Arial"),
-              ),
+              ), 
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -440,8 +475,9 @@ class _GaleriaPageState extends State<GaleriaPage> {
               onPressed: () {
                 final nome = nomeController.text.trim();
                 final imagem = imagemController.text.trim();
+                final anotacao = anotacaoController.text.trim();
 
-                if (nome.isEmpty || imagem.isEmpty) {
+                if (nome.isEmpty || imagem.isEmpty || anotacao.isEmpty || subtopicoSelecionado == null || subtopicoSelecionado!.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
@@ -462,12 +498,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                       "subtopico": subtopicoSelecionado,
                     };
                   } else {
-                    imagensGaleria.add({
-                      "nome": nome,
-                      "imagem": imagem,
-                      "topico": topicoSelecionado,
-                      "subtopico": subtopicoSelecionado,
-                    });
+                    salvarImagem();
                   }
                 });
 
@@ -478,7 +509,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                     content: Text(
                       isEditando
                           ? "Imagem atualizada com sucesso!"
-                          : "Nova imagem adicionada!",
+                          : '',
                       style: const TextStyle(fontFamily: "Arial"),
                     ),
                   ),
@@ -508,6 +539,139 @@ class _GaleriaPageState extends State<GaleriaPage> {
         ),
       ),
     );
+  }
+
+  // CÓDIGO PARA MOSTRAR OS TÓPICOS E SUBTÓPICOS NO DROPDOWN
+  Future<void> _carregarTopicos() async {
+    final estadoTopicos = context.read<EstadoTopicos>();
+    final estadoSubtopicos = context.read<EstadoSubtopicos>();
+
+    try {
+      await estadoTopicos.carregarBanco();
+      await estadoSubtopicos.carregarBanco();
+
+      if (estadoTopicos.topicos.isEmpty) {
+        await estadoTopicos.carregarLocal();
+        estadoTopicos.carregarMockSeVazio();
+      }
+    } catch (e) {
+      debugPrint("Erro ao carregar dados: $e");
+    }
+  }
+
+  List<String> carregarTituloTopicos(){
+    final estadoTopicos = context.read<EstadoTopicos>();
+
+    return estadoTopicos.topicos.map((topico) => topico.titulo).toList();
+  }
+
+  Map<String, List<String>> carregarTituloSubtopicos(){
+    final estadoTopicos = context.read<EstadoTopicos>();
+    final estadoSubtopicos = context.read<EstadoSubtopicos>();
+
+    return Map.fromEntries(
+      estadoTopicos.topicos.map((topico) {
+        final subtopicos = estadoSubtopicos.filtrarPorTopico(topico.id);
+        return MapEntry(
+          topico.titulo, 
+          subtopicos.map((sub) => sub.titulo).toList()
+          );
+      })
+    );
+  }
+
+  // CÓDIGO PARA ENVIAR AS INFORMAÇÕES PARA O BACKEND
+  Future<void> salvarImagem() async {
+    final uri = '${protocolo}${baseURL}/images';
+
+    setState(() => enviando = true);
+
+    try {
+      final campos = {
+        'nomeImagem': nomeController.text,
+        'topico': topicoSelecionado!,
+        'subtopico': subtopicoSelecionado!,
+        'anotacao': anotacaoController.text,
+      };
+
+      debugPrint("Arquivo selecionado: $arquivoSelecionado");
+
+      final file = arquivoSelecionado as html.File;
+
+      // 🔹 Usa o FormData nativo do DOM, que suporta stream de arquivo
+      final formData = html.FormData();
+
+      // Adiciona campos de texto
+      campos.forEach((key, value) {
+        formData.append(key, value.toString());
+      });
+
+      // Adiciona o arquivo (sem ler os bytes!)
+      formData.appendBlob('imagem', file, file.name);
+
+      // 🔹 Envia a requisição usando XMLHttpRequest (por baixo do Dio)
+      final xhr = html.HttpRequest();
+
+      xhr.open('POST', uri);
+      xhr.responseType = 'json';
+
+      // Opcional: callback de progresso (pode mostrar barra de progresso)
+      xhr.upload.onProgress.listen((event) {
+        if (event.lengthComputable) {
+          final percent = (event.loaded! / event.total!) * 100;
+          debugPrint("Progresso upload: ${percent.toStringAsFixed(2)}%");
+        }
+      });
+
+      // Envia o formulário
+      xhr.send(formData);
+
+      // Aguarda término
+      await xhr.onLoad.first;
+
+      if (xhr.status == 200) {
+        final resp = xhr.response;
+        if (resp is Map && resp['message'] == 'Imagem salva com sucesso!') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Imagem adicionada com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          throw Exception('Erro: ${resp?['error'] ?? 'resposta inválida'}');
+        }
+      } else {
+        throw Exception('Falha HTTP ${xhr.status}: ${xhr.statusText}');
+      }
+
+    } catch (erro) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha ao salvar a imagem no banco!'), backgroundColor: Colors.red),
+      );
+      debugPrint('$erro');
+    } finally {
+      setState(() => enviando = false);
+      limparFormulario();
+    }
+  }
+
+  void limparFormulario() {
+    setState(() {
+      topicoSelecionado = null;
+      subtopicoSelecionado = null;
+      arquivoSelecionado = null;
+    });
+    anotacaoController.clear();
+    nomeController.clear();
+    imagemController.clear();
+  }
+
+  @override
+  void dispose() {
+    anotacaoController.dispose();
+    nomeController.dispose();
+    super.dispose();
   }
 
   @override

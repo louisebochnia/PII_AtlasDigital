@@ -5,12 +5,30 @@ const ImagemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    nomeImagem: {
+        type: String,
+        required: true
+    },
+    enderecoPastaMrxs:{
+        type: String,
+        required: true
+    },
     enderecoImagem: { 
         type: String, 
         required: true 
     },
+    enderecoThumbnail: {
+        type: String,
+    },
+    enderecoTiles: {
+        type: String,
+    },
     topico: {
         type: String, 
+        required: true
+    },
+    subtopico: {
+        type: String,
         required: true
     },
     anotacao: {
