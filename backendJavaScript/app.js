@@ -37,14 +37,14 @@ async function conectarAoMongo() {
 // ROTA GET - Buscar estatísticas
 app.get('/estatisticas', async (req, res) => {
   try {
-    console.log('📊 BACKEND: Buscando estatísticas...');
-    
+    console.log('BACKEND: Buscando estatísticas...');
+
     const estatisticas = await Estatisticas.find({})
       .sort({ data: -1 })
       .limit(30);
 
     const totalAcessos = estatisticas.reduce((total, estat) => total + estat.totalAcessos, 0);
-    
+
     const todosUsuariosUnicos = new Set();
     estatisticas.forEach(estat => {
       estat.usuariosUnicos.forEach(userId => todosUsuariosUnicos.add(userId));
@@ -52,18 +52,18 @@ app.get('/estatisticas', async (req, res) => {
 
     const acessosPorDia = {};
     const hoje = new Date();
-    
+
     for (let i = 0; i < 7; i++) {
       const data = new Date(hoje);
       data.setDate(data.getDate() - (6 - i));
       const dataStr = data.toISOString().split('T')[0];
-      
+
       const estatDia = estatisticas.find(e => e.data === dataStr);
       acessosPorDia[dataStr] = estatDia ? estatDia.totalAcessos : 0;
     }
 
     console.log('BACKEND: Estatísticas enviadas - Total:', totalAcessos);
-    
+
     res.json({
       success: true,
       totalAcessos: totalAcessos,
@@ -83,7 +83,7 @@ app.get('/estatisticas', async (req, res) => {
 app.post('/estatisticas/visita', async (req, res) => {
   try {
     console.log('BACKEND: ROTA POST /estatisticas/visita CHAMADA!');
-    
+
     const dataAcesso = new Date(req.body.dataAcesso || Date.now());
     const dataFormatada = dataAcesso.toISOString().split('T')[0];
     const hora = dataAcesso.getHours();
@@ -95,25 +95,26 @@ app.post('/estatisticas/visita', async (req, res) => {
     let estatistica = await Estatisticas.findOne({ data: dataFormatada });
 
     if (estatistica) {
-      console.log('📊 BACKEND: Estatística existente. Acessos antes:', estatistica.totalAcessos);
+      console.log('BACKEND: Estatística existente. Acessos antes:', estatistica.totalAcessos);
       estatistica.totalAcessos += 1;
-      
-      // Use objeto normal em vez de Map
       estatistica.acessosPorHora[hora] = (estatistica.acessosPorHora[hora] || 0) + 1;
       estatistica.paginasAcessadas[pagina] = (estatistica.paginasAcessadas[pagina] || 0) + 1;
-      
+      estatistica.markModified('acessosPorHora');
+      estatistica.markModified('paginasAcessadas');
+
       if (userId && !estatistica.usuariosUnicos.includes(userId)) {
         estatistica.usuariosUnicos.push(userId);
+        estatistica.markModified('usuariosUnicos');
       }
-      
+
       estatistica.ultimaAtualizacao = new Date();
     } else {
       console.log('BACKEND: Criando NOVA estatística');
       estatistica = new Estatisticas({
         data: dataFormatada,
         totalAcessos: 1,
-        acessosPorHora: { [hora]: 1 },  
-        paginasAcessadas: { [pagina]: 1 }, 
+        acessosPorHora: { [hora]: 1 },
+        paginasAcessadas: { [pagina]: 1 },
         usuariosUnicos: userId ? [userId] : [],
         ultimaAtualizacao: new Date()
       });
@@ -340,24 +341,24 @@ const upload = multer({
   })
 });
 
-async function descompactarZip(zipPath, destino){
+async function descompactarZip(zipPath, destino) {
   await fs.createReadStream(zipPath)
     .pipe(unzipper.Extract({ path: destino }))
     .promise();
 
-    console.log('ZIP extraído em: ', destino);
+  console.log('ZIP extraído em: ', destino);
 
   await fs.promises.unlink(zipPath);
 }
 
-async function listarArquivosRecursivamente(diretorio, baseDir = diretorio, arquivoList = []){
+async function listarArquivosRecursivamente(diretorio, baseDir = diretorio, arquivoList = []) {
   const itens = await fs.promises.readdir(diretorio);
 
-  for (const item of itens){
+  for (const item of itens) {
     const caminhoCompleto = path.join(diretorio, item);
     const stat = await fs.promises.stat(caminhoCompleto);
 
-    if(stat.isDirectory()){
+    if (stat.isDirectory()) {
       await listarArquivosRecursivamente(caminhoCompleto, baseDir, arquivoList);
     } else {
       const caminhoRelativo = path.relative(baseDir, caminhoCompleto);
@@ -380,31 +381,31 @@ async function prepararPastaMrxs(destino) {
   const subpastas = await fs.promises.readdir(mrxsDir, { withFileTypes: true });
   let pastaEncontrada = null;
 
-  for (const ent of subpastas){
-    if(ent.isDirectory()){
+  for (const ent of subpastas) {
+    if (ent.isDirectory()) {
       const conteudo = await fs.promises.readdir(path.join(mrxsDir, ent.name));
       const contemArquivosMRXS = conteudo.some(f =>
         f.toLowerCase().endsWith('.dat') ||
         f.toLowerCase() === 'slidesdat.ini'
       );
 
-      if(contemArquivosMRXS) {
+      if (contemArquivosMRXS) {
         pastaEncontrada = ent.name;
         break;
       }
     }
   }
 
-  if(pastaEncontrada) {
+  if (pastaEncontrada) {
     const origem = path.join(mrxsDir, pastaEncontrada);
     const destinoFiles = path.join(mrxsDir, `${mrxsBaseName}.mrxs.files`);
 
     try {
-      await fs.promises.access(destinoFiles); 
+      await fs.promises.access(destinoFiles);
     } catch {
       await fs.promises.rename(origem, destinoFiles);
     }
-  } else{
+  } else {
     console.log('Nenhuma pasta compatível encontrada');
   }
 
@@ -415,10 +416,10 @@ async function prepararPastaMrxs(destino) {
   };
 }
 
-async function preGerarTilesPrincipais(mrxsFile, mrxsPath){
+async function preGerarTilesPrincipais(mrxsFile, mrxsPath) {
   const slideName = path.parse(mrxsFile).name;
   const tilesDir = path.join("uploads", "tiles", path.parse(mrxsFile).name,);
-  await fs.promises.mkdir(tilesDir, {recursive: true});
+  await fs.promises.mkdir(tilesDir, { recursive: true });
 
   const python = `python python/tiles.py pre "${mrxsPath}" "${tilesDir}"`
 
@@ -494,7 +495,7 @@ app.delete('/images/:id', async (req, res) => {
         fs.unlinkSync(imagem.enderecoImagem);
       }
 
-      if (imagem.enderecoThumbnail && fs.existsSync(imagem.enderecoThumbnail)){
+      if (imagem.enderecoThumbnail && fs.existsSync(imagem.enderecoThumbnail)) {
         fs.unlinkSync(imagem.enderecoThumbnail);
       }
 
@@ -513,17 +514,17 @@ app.delete('/images/:id', async (req, res) => {
 // CRUD DE USUÁRIOS! ----------------------------------------------------------------------
 
 app.post('/signup', async (req, res) => {
-  try{
+  try {
     const email = req.body.email;
     const senha = req.body.senha;
     const cargo = req.body.cargo
 
-    if(!email.endsWith('@fmabc.net')){
+    if (!email.endsWith('@fmabc.net')) {
       return res.status(403).json({ message: 'Apenas e-mails @fmabc.net são permitidos.' });
     }
 
     const senhaCriptografada = await bcrypt.hash(senha, 10);
-    const usuario = new Usuario({email: email, senha: senhaCriptografada, cargo: cargo});
+    const usuario = new Usuario({ email: email, senha: senhaCriptografada, cargo: cargo });
 
     const respMongo = await usuario.save();
     console.log(respMongo)
@@ -533,47 +534,47 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-app.post('/login', async(req, res) => {
+app.post('/login', async (req, res) => {
   const email = req.body.email;
   const senha = req.body.senha;
 
   const usuarioExiste = await Usuario.findOne({ email: email });
 
-  if(!usuarioExiste) {
+  if (!usuarioExiste) {
     return res.status(401).json({ mensagem: "Email inválido!" });
   }
 
   const senhaValida = await bcrypt.compare(senha, usuarioExiste.senha);
 
-  if(!senhaValida) {
+  if (!senhaValida) {
     return res.status(401).json({ mensagem: "Senha inválida!" });
   }
 
   const token = jwt.sign(
-    {email: email},
+    { email: email },
     "id-secreto",
-    {expiresIn: "7d"}
+    { expiresIn: "7d" }
   );
 
-  res.status(200).json({token: token, cargo: usuarioExiste.cargo, id: usuarioExiste._id});
+  res.status(200).json({ token: token, cargo: usuarioExiste.cargo, id: usuarioExiste._id });
 });
 
-app.get('/usuarios', async(req, res) => {
-  try{
+app.get('/usuarios', async (req, res) => {
+  try {
 
     const usuarios = await Usuario.find().sort({
       cargo: 1,
       email: 1
     });
 
-    res.status(200).json(usuarios); 
+    res.status(200).json(usuarios);
   } catch (erro) {
     res.status(500).json({ message: erro.message })
   }
-  
+
 });
 
-app.get('/usuario/:id', async(req, res) => {
+app.get('/usuario/:id', async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.params.id)
 
@@ -599,7 +600,7 @@ app.put('/usuario/:id', async (req, res) => {
   }
 })
 
-app.delete('/usuario/:id', async(req, res) => {
+app.delete('/usuario/:id', async (req, res) => {
   try {
     const usuario = await Usuario.findByIdAndDelete(req.params.id);
 
@@ -609,7 +610,7 @@ app.delete('/usuario/:id', async(req, res) => {
 
     res.json({ message: 'Informação removida' })
   } catch (erro) {
-    res.status(400).json({ })
+    res.status(400).json({})
   }
 });
 
