@@ -40,7 +40,11 @@
 
   "dependencies": {
 
+    "bcrypt": "^6.0.0",
+
     "bcryptjs": "^3.0.2",
+
+    "child-process-promise": "^2.2.1",
 
     "cors": "^2.8.5",
 
@@ -56,7 +60,9 @@
 
     "muter": "^0.7.0",
 
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+
+    "unzipper": "^0.12.3"
 
   },
 

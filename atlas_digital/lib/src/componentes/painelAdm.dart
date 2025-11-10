@@ -42,57 +42,59 @@ class _PainelAdmState extends State<PainelAdm> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(40),
-      child: Row(
-        children: [
-          // MENU LATERAL
-          Expanded(
-            flex: 2,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  right: BorderSide(
-                    color: const Color.fromARGB(255, 214, 206, 206),
-                    width: 4,
+    return Scaffold(
+      body: Container(
+        padding: const EdgeInsets.all(40),
+        child: Row(
+          children: [
+            // MENU LATERAL
+            Expanded(
+              flex: 2,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: BorderSide(
+                      color: const Color.fromARGB(255, 214, 206, 206),
+                      width: 4,
+                    ),
                   ),
                 ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (int i = 0; i < _menuLabels.length; i++) ...[
-                    _menuButton(_menuIcons[i], _menuLabels[i], i),
-                    const SizedBox(height: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (int i = 0; i < _menuLabels.length; i++) ...[
+                      _menuButton(_menuIcons[i], _menuLabels[i], i),
+                      const SizedBox(height: 12),
+                    ],
+                    const Spacer(),
+                    _exitButton(),
                   ],
-                  const Spacer(),
-                  _exitButton(),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 20),
-
-          // CONTEÚDO PRINCIPAL COM ANIMAÇÃO
-          Expanded(
-            flex: 5,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Container(
-                  key: ValueKey(_selectedIndex),
-                  child: _menuContents[_selectedIndex],
                 ),
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(width: 20),
+
+            // CONTEÚDO PRINCIPAL COM ANIMAÇÃO
+            Expanded(
+              flex: 5,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    key: ValueKey(_selectedIndex),
+                    child: _menuContents[_selectedIndex],
+                  ),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -144,7 +146,9 @@ class _PainelAdmState extends State<PainelAdm> {
       style: TextButton.styleFrom(
         backgroundColor: const Color.fromARGB(255, 250, 17, 1),
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
       child: Row(
         children: const [
