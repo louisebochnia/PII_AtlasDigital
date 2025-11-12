@@ -1,4 +1,5 @@
 import 'package:atlas_digital/app_shell.dart';
+import 'package:atlas_digital/src/componentes/telaCapitolo.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'temas.dart';
@@ -31,7 +32,8 @@ class AtlasApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       // home: const AppShell(),
-      home: const PainelAdm(),
+      // home: const PainelAdm(),
+      home: const telaCapitulo(),
     );
   }
 }
