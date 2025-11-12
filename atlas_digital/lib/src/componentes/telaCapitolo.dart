@@ -171,6 +171,7 @@ class _telaCapituloState extends State<telaCapitulo> {
                               Text(
                                 item['titucap'],
                                 style: const TextStyle(
+                                  color: Colors.black,
                                   fontSize: 32,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -179,6 +180,7 @@ class _telaCapituloState extends State<telaCapitulo> {
                               Text(
                                 'Conteúdos Relacionados',
                                 style: const TextStyle(
+                                  color: Colors.black,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -264,7 +266,7 @@ class _telaCapituloState extends State<telaCapitulo> {
                       overflow: expandido[index]
                           ? TextOverflow.visible
                           : TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
                     ),
 
                     const SizedBox(height: 16),
