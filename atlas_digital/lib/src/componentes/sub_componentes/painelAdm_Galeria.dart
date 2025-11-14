@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:atlas_digital/src/estado/estado_imagem.dart';
 import 'package:atlas_digital/src/estado/estado_subtopicos.dart';
 import 'package:atlas_digital/src/estado/estado_topicos.dart';
-import 'package:flutter/foundation.dart';
+import 'package:atlas_digital/src/modelos/imagem.dart';
+import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:dio/dio.dart';
 import 'dart:html' as html;
 
 class GaleriaPage extends StatefulWidget {
@@ -20,37 +20,47 @@ class _GaleriaPageState extends State<GaleriaPage> {
   final String protocolo = 'http://';
   final String baseURL = 'localhost:3000';
 
-  List<Map<String, dynamic>> imagensGaleria = [
-    {"nome": "Célula eucarionte", "imagem": "https://exemplo.com/img1.png"},
-    {"nome": "Tecido epitelial", "imagem": "https://exemplo.com/img2.png"},
-  ];
+  List<Map<String, dynamic>> imagensGaleria = [];
+
+  @override
+  void initState(){
+    super.initState();
+    carregarImagens();
+  }  
 
   dynamic arquivoSelecionado;
   String? nomeArquivoWeb;
   String? topicoSelecionado;
   String? subtopicoSelecionado;
-  final nomeController = TextEditingController(
-    // text: isEditando ? imagensGaleria[index!]['nome'] : '',
-  );
-  final imagemController = TextEditingController(
-    // text: isEditando ? imagensGaleria[index!]['imagem'] : '',
-  );
-  final anotacaoController = TextEditingController(
-    // text: isEditando ? imagensGaleria[index!]['imagem'] : '',
-  );
+  
+  final nomeController = TextEditingController();
+  final imagemController = TextEditingController();
+  final anotacaoController = TextEditingController();
 
   bool enviando = false;
 
   Future<void> abrirPopupImagem({int? index}) async {
     final isEditando = index != null;
 
+    await carregarImagens();
+
     await _carregarTopicos();
 
     final List<String> opcoesTopico = carregarTituloTopicos();
     final Map<String, List<String>> mapaSubtopicos = carregarTituloSubtopicos();
+
     
     // Variáveis para controlar o estado do diálogo
     List<String> opcoesSubtopicoAtual = [];
+    
+    if(isEditando){
+      nomeController.text = imagensGaleria[index]['nome'];
+      imagemController.text = imagensGaleria[index]['nomeArquivo'];
+      anotacaoController.text = imagensGaleria[index]['anotacao'];
+      topicoSelecionado = imagensGaleria[index]['topico'];
+      subtopicoSelecionado = imagensGaleria[index]['subtopico'];
+       opcoesSubtopicoAtual = mapaSubtopicos[topicoSelecionado] ?? [];
+    }
 
     showDialog(
       context: context,
@@ -76,6 +86,15 @@ class _GaleriaPageState extends State<GaleriaPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+
+                      const Text(
+                        "Aviso: Para salvar uma imagem é preciso enviar um arquivo ZIP, que inclua o arquivo .mrxs e uma pasta com os .dat da imagem.",
+                        style: TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 16
+                        ),
+                      ),
+                      const SizedBox(width: 14),
                       // Campo e botão para escolher imagem
                       Row(
                         children: [
@@ -85,7 +104,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                               style: const TextStyle(fontFamily: "Arial"),
                               readOnly: true,
                               decoration: const InputDecoration(
-                                labelText: "Selecione um arquivo ZIP que inclua o .mrxs da imagem e os .dat",
+                                labelText: "Arquivo Selecionado",
                                 hintText:
                                     "Nenhum arquivo selecionado",
                                 border: OutlineInputBorder(),
@@ -97,7 +116,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                           SizedBox(
                             height: 56,
                             child: ElevatedButton.icon(
-                              onPressed: () async {
+                              onPressed: isEditando ? null : () async {
                                 final uploadInput = html.FileUploadInputElement();
                                 uploadInput.accept = '.zip';
                                 uploadInput.click();
@@ -491,29 +510,13 @@ class _GaleriaPageState extends State<GaleriaPage> {
 
                 setState(() {
                   if (isEditando) {
-                    imagensGaleria[index!] = {
-                      "nome": nome,
-                      "imagem": imagem,
-                      "topico": topicoSelecionado,
-                      "subtopico": subtopicoSelecionado,
-                    };
+                    salvarEdicoes(index);
                   } else {
                     salvarImagem();
                   }
                 });
 
                 Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isEditando
-                          ? "Imagem atualizada com sucesso!"
-                          : '',
-                      style: const TextStyle(fontFamily: "Arial"),
-                    ),
-                  ),
-                );
               },
               child: const Text(
                 "Salvar",
@@ -523,21 +526,6 @@ class _GaleriaPageState extends State<GaleriaPage> {
           ],
         );
       },
-    );
-  }
-
-  void deletarConteudo(int index) {
-    setState(() {
-      imagensGaleria.removeAt(index);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          "Imagem removida com sucesso",
-          style: TextStyle(fontFamily: "Arial"),
-        ),
-      ),
     );
   }
 
@@ -598,7 +586,6 @@ class _GaleriaPageState extends State<GaleriaPage> {
 
       final file = arquivoSelecionado as html.File;
 
-      // 🔹 Usa o FormData nativo do DOM, que suporta stream de arquivo
       final formData = html.FormData();
 
       // Adiciona campos de texto
@@ -606,16 +593,13 @@ class _GaleriaPageState extends State<GaleriaPage> {
         formData.append(key, value.toString());
       });
 
-      // Adiciona o arquivo (sem ler os bytes!)
       formData.appendBlob('imagem', file, file.name);
 
-      // 🔹 Envia a requisição usando XMLHttpRequest (por baixo do Dio)
       final xhr = html.HttpRequest();
 
       xhr.open('POST', uri);
       xhr.responseType = 'json';
 
-      // Opcional: callback de progresso (pode mostrar barra de progresso)
       xhr.upload.onProgress.listen((event) {
         if (event.lengthComputable) {
           final percent = (event.loaded! / event.total!) * 100;
@@ -623,10 +607,8 @@ class _GaleriaPageState extends State<GaleriaPage> {
         }
       });
 
-      // Envia o formulário
       xhr.send(formData);
 
-      // Aguarda término
       await xhr.onLoad.first;
 
       if (xhr.status == 200) {
@@ -638,6 +620,8 @@ class _GaleriaPageState extends State<GaleriaPage> {
               backgroundColor: Colors.green,
             ),
           );
+          final estadoImagem = context.read<EstadoImagem>();
+          await estadoImagem.carregarImagens();
         } else {
           throw Exception('Erro: ${resp?['error'] ?? 'resposta inválida'}');
         }
@@ -648,6 +632,84 @@ class _GaleriaPageState extends State<GaleriaPage> {
     } catch (erro) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Falha ao salvar a imagem no banco!'), backgroundColor: Colors.red),
+      );
+      debugPrint('$erro');
+    } finally {
+      setState(() => enviando = false);
+      limparFormulario();
+    }
+  }
+
+  Future<void> carregarImagens() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final estadoImagem = context.read<EstadoImagem>();
+      await estadoImagem.carregarImagens();
+      
+      setState(() {
+        imagensGaleria = pegarImagens();
+      });
+    });
+  }
+
+  List<Map<String, dynamic>> pegarImagens(){
+    final estadoImagem = context.read<EstadoImagem>();
+
+    return estadoImagem.imagens.map((imagem) => {
+      'id': imagem.id,
+      'nomeArquivo': imagem.nome_arquivo,
+      'nome': imagem.nome_imagem,
+      'pastaMrxs': imagem.endereco_pasta_mrxs,
+      'thumbnail': imagem.endereco_thumbnail,
+      'tiles': imagem.endereco_tiles,
+      'topico': imagem.topico,
+      'subtopico': imagem.subtopico,
+      'anotacao': imagem.anotacao,
+      'hiperlinks': imagem.hiperlinks
+    }).toList();
+  }
+
+  String converterParaUrl(String caminhoRelativo) {
+    if (caminhoRelativo.isEmpty) return '';
+    
+    final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
+    return '$protocolo$baseURL/$caminhoNormalizado';
+  }
+
+  Future<void> salvarEdicoes(int index) async {
+      
+    debugPrint('Entrou em salvar');
+
+    setState(() => enviando = true);
+
+    try{
+      final estadoImagem = context.read<EstadoImagem>();
+
+      final imagemOriginal = estadoImagem.imagens[index];
+
+      final imagemAlterada = new Imagem(
+        id: imagemOriginal.id, 
+        nome_arquivo: imagemOriginal.nome_arquivo, 
+        nome_imagem: nomeController.text,
+        endereco_pasta_mrxs: imagemOriginal.endereco_pasta_mrxs, 
+        endereco_thumbnail: imagemOriginal.endereco_thumbnail, 
+        endereco_tiles: imagemOriginal.endereco_tiles,
+        topico: topicoSelecionado!, 
+        subtopico: subtopicoSelecionado!, 
+        anotacao: anotacaoController.text,
+        hiperlinks: imagemOriginal.hiperlinks
+      );
+
+      final foiEditada = await estadoImagem.atualizarImagem(imagemAlterada.id, imagemAlterada);
+
+      if(foiEditada){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Os dados da imagem foram alterados com sucesso!'), backgroundColor: Colors.green),
+        );
+        await estadoImagem.carregarImagens();
+      }  
+    } catch (erro) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha ao salvar os novos dados no banco!'), backgroundColor: Colors.red),
       );
       debugPrint('$erro');
     } finally {
@@ -667,6 +729,22 @@ class _GaleriaPageState extends State<GaleriaPage> {
     imagemController.clear();
   }
 
+  
+  Future<void> deletarImagem(int index) async {
+    final estadoImagem = context.read<EstadoImagem>();
+
+    await estadoImagem.removerImagem(estadoImagem.imagens[index].id);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Imagem removida com sucesso",
+          style: TextStyle(fontFamily: "Arial"),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     anotacaoController.dispose();
@@ -676,95 +754,147 @@ class _GaleriaPageState extends State<GaleriaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Galeria',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            fontFamily: "Arial",
-          ),
-        ),
-        const SizedBox(height: 20),
+    return Consumer<EstadoImagem>(
+      builder: (context, estadoImagem, child) {    
 
-        Align(
-          alignment: Alignment.centerLeft,
-          child: ElevatedButton.icon(
-            onPressed: () => abrirPopupImagem(),
-            icon: const Icon(Icons.add),
-            label: const Text(
-              "Nova Imagem",
-              style: TextStyle(fontFamily: "Arial"),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        Expanded(
-          child: ListView.builder(
-            itemCount: imagensGaleria.length,
-            itemBuilder: (context, index) {
-              final conteudo = imagensGaleria[index];
-              return Container(
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 16,
+        final imagens = estadoImagem.imagens;  
+        return Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Galeria',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "Arial",
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 243, 242, 242),
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 0),
+                const SizedBox(height: 20),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ElevatedButton.icon(
+                    onPressed: () => abrirPopupImagem(),
+                    icon: const Icon(Icons.add),
+                    label: const Text(
+                      "Nova Imagem",
+                      style: TextStyle(fontFamily: "Arial"),
                     ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        conteudo['nome'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          fontFamily: "Arial",
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.black87),
-                          onPressed: () => abrirPopupImagem(index: index),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deletarConteudo(index),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            },
+                const SizedBox(height: 20),
+
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: imagens.length,
+                    itemBuilder: (context, index) {
+                      final imagem = imagens[index];
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 243, 242, 242),
+                          borderRadius: BorderRadius.circular(25),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 150,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.brandGreen,
+                                  width: 2.0
+                                ),
+                                borderRadius: BorderRadius.circular(8.0)
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(6.5),
+                                child: Image.network(
+                                  converterParaUrl(imagem.endereco_thumbnail),
+                                  fit: BoxFit.cover,
+                                )
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    imagem.nome_imagem,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      fontFamily: "Arial",
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    "Tópico: ${imagem.topico}",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: "Arial",
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    "Subtópico: ${imagem.subtopico}",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: "Arial",
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.black87),
+                                  onPressed: () => abrirPopupImagem(index: index),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => deletarImagem(index),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

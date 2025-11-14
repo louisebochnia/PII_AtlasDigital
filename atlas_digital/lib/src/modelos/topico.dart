@@ -24,13 +24,13 @@ class Topico {
     );
   }
 
-  /// 🔄 Envia dados no formato esperado pelo backend (Node/Mongo)
+  // Envia dados no formato esperado pelo backend (Node/Mongo)
   Map<String, dynamic> toJson() => {
         'topico': titulo,
         'resumo': resumo,
       };
 
-  /// 🔄 Converte JSON do backend para o modelo Flutter
+  // Converte JSON do backend para o modelo Flutter
   factory Topico.fromJson(Map<String, dynamic> json) {
     return Topico(
       id: json['_id']?.toString() ?? '',

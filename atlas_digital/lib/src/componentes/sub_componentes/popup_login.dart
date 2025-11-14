@@ -1,6 +1,8 @@
 import 'package:atlas_digital/src/componentes/painelAdm.dart';
 import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPopup extends StatefulWidget {
   const LoginPopup({super.key});
@@ -10,11 +12,6 @@ class LoginPopup extends StatefulWidget {
 }
 
 class _LoginPopupState extends State<LoginPopup> {
-  Map<String, String?> usuarios = {
-    "adm@exemplo.com": "123456",
-    "teste@exemplo.com": null,
-  };
-
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
 
@@ -22,60 +19,155 @@ class _LoginPopupState extends State<LoginPopup> {
   String? emailSelecionado;
   String? mensagemErro;
   bool lembrarSenha = false;
+  bool isLoading = false;
+  
+  String baseUrl = 'http://localhost:3000';  // URL do seu backend
 
-  void verificarEmail() {
+  Future<void> verificarEmail() async {
+    setState(() {
+      isLoading = true;
+      mensagemErro = null;
+    });
+
     String email = emailController.text.trim();
 
-    if (usuarios.containsKey(email)) {
+    if (!email.endsWith('@fmabc.net')) {
       setState(() {
-        emailSelecionado = email;
-        etapaEmail = false;
-        mensagemErro = null;
+        mensagemErro = "Apenas e-mails @fmabc.net são permitidos.";
+        isLoading = false;
       });
-    } else {
+      return;
+    }
+
+    try {
+      // Tenta verificar se é um admin
+      final adminResponse = await http.post(
+        Uri.parse('$baseUrl/api/admin/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': 'dummy'}),
+      );
+
+      if (adminResponse.statusCode != 404) {
+        setState(() {
+          emailSelecionado = email;
+          etapaEmail = false;
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Se não for admin, tenta verificar se é subadmin
+      final subadminResponse = await http.post(
+        Uri.parse('$baseUrl/api/subadmin/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': 'dummy'}),
+      );
+
+      if (subadminResponse.statusCode != 404) {
+        setState(() {
+          emailSelecionado = email;
+          etapaEmail = false;
+          isLoading = false;
+        });
+        return;
+      }
+
       setState(() {
         mensagemErro = "Email não cadastrado.";
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        mensagemErro = "Erro ao verificar email. Tente novamente.";
+        isLoading = false;
       });
     }
   }
 
-  void verificarOuCadastrarSenha() {
+  Future<void> verificarOuCadastrarSenha() async {
+    setState(() {
+      isLoading = true;
+      mensagemErro = null;
+    });
+
+    String email = emailSelecionado!;
     String senha = senhaController.text.trim();
 
     if (senha.isEmpty) {
       setState(() {
         mensagemErro = "Digite uma senha válida.";
+        isLoading = false;
       });
       return;
     }
 
-    if (usuarios[emailSelecionado] == null) {
-      usuarios[emailSelecionado!] = senha;
-      setState(() {
-        mensagemErro = "Senha cadastrada com sucesso!";
-      });
-      Future.delayed(const Duration(seconds: 1), () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const PainelAdm()),
-        );
-      });
-    } else {
-      if (usuarios[emailSelecionado] == senha) {
+    try {
+      // Tenta login como admin
+      var response = await http.post(
+        Uri.parse('$baseUrl/api/admin/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': senha}),
+      );
+
+      var data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
         setState(() {
           mensagemErro = "Login realizado com sucesso!";
+          isLoading = false;
         });
+        
+        // Salva o token se "lembrar senha" estiver marcado
+        if (lembrarSenha) {
+          // TODO: Implementar armazenamento seguro do token
+        }
+
         Future.delayed(const Duration(seconds: 1), () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const PainelAdm()),
           );
         });
-      } else {
-        setState(() {
-          mensagemErro = "Senha incorreta.";
-        });
+        return;
       }
+
+      // Se não for admin, tenta como subadmin
+      response = await http.post(
+        Uri.parse('$baseUrl/api/subadmin/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': senha}),
+      );
+
+      data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          mensagemErro = "Login realizado com sucesso!";
+          isLoading = false;
+        });
+        
+        if (lembrarSenha) {
+          // TODO: Implementar armazenamento seguro do token
+        }
+
+        Future.delayed(const Duration(seconds: 1), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const PainelAdm()),
+          );
+        });
+        return;
+      }
+
+      setState(() {
+        mensagemErro = "Senha incorreta.";
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        mensagemErro = "Erro ao realizar login. Tente novamente.";
+        isLoading = false;
+      });
     }
   }
 
@@ -86,11 +178,7 @@ class _LoginPopupState extends State<LoginPopup> {
     if (etapaEmail) {
       textoInstrucao = "Coloque seu e-mail para entrar na sua conta";
     } else {
-      if (usuarios[emailSelecionado] == null) {
-        textoInstrucao = "Primeiro acesso! Cadastre sua senha";
-      } else {
-        textoInstrucao = "Digite sua senha para continuar";
-      }
+      textoInstrucao = "Digite sua senha para continuar";
     }
 
     return AlertDialog(

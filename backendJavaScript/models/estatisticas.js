@@ -13,11 +13,11 @@ const estatisticasSchema = new mongoose.Schema({
     default: 0
   },
   acessosPorHora: {
-    type: Object,  // ✅ MUDE de Map para Object
+    type: Object, 
     default: {}
   },
   paginasAcessadas: {
-    type: Object,  // ✅ MUDE de Map para Object
+    type: Object,  
     default: {}
   },
   usuariosUnicos: {

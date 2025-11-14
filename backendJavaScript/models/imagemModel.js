@@ -13,15 +13,13 @@ const ImagemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    enderecoImagem: { 
-        type: String, 
-        required: true 
-    },
     enderecoThumbnail: {
         type: String,
+        required: true
     },
     enderecoTiles: {
         type: String,
+        required: true
     },
     topico: {
         type: String, 
@@ -35,9 +33,6 @@ const ImagemSchema = new mongoose.Schema({
         type: String, 
         required: true
     },
-    uploadDate: { 
-        type: Date, 
-        default: Date.now },
     hiperlinks: [
         {
         palavra: String,
