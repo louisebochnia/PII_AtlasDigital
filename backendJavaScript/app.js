@@ -21,6 +21,7 @@ const SubAdmin = require('./models/subadmin');
 const Usuario = require('./models/usuario');
 const Estatisticas = require('./models/estatisticas');
 const ImagemThumbnail = require('./imagemThumbnail');
+const hyperlink = require('./models/hyperlink');
 
 
 const app = express();
@@ -614,151 +615,53 @@ app.delete('/usuario/:id', async (req, res) => {
   }
 });
 
-// // ===================
-// // 1. Middleware de autenticação
-// // ===================
-// const protect = async (req, res, next) => {
-//   const header = req.headers.authorization;
-//   if (!header || !header.startsWith('Bearer ')) {
-//     return res.status(401).json({ message: 'Token não fornecido.' });
-//   }
+// Crud Hyperlinks
+app.post('/hyperlink', async (req, res) => {
+  try {
+    const hyperlink = new hyperlink(req.body)
+    await hyperlink.save()
+    res.status(201).json(hyperlink)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
+  }
+})
 
-//   try {
-//     const token = header.split(' ')[1];
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+app.get('/hyperlink', async (req, res) => {
+  try {
+    const hyperlink = await hyperlink.find()
+    res.json(hyperlink)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
 
-//     if (decoded.role === 'admin') {
-//       req.user = await Admin.findById(decoded.id).select('-password');
-//     } else {
-//       req.user = await SubAdmin.findById(decoded.id).select('-password');
-//     }
+app.get('/hyperlink/:id', async (req, res) => {
+  try {
+    const info = await hyperlink.findById(req.params.id)
+    if (!info) return res.status(404).json({ message: 'Não encontrado' })
+    res.json(info)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
 
-//     if (!req.user) return res.status(401).json({ message: 'Usuário não encontrado.' });
+app.put('/hyperlink/:id', async (req, res) => {
+  try {
+    const info = await hyperlink.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    res.json(info)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
+  }
+})
 
-//     next();
-//   } catch (error) {
-//     res.status(401).json({ message: 'Token inválido.' });
-//   }
-// };
-
-// const adminOnly = (req, res, next) => {
-//   if (!req.user || req.user instanceof SubAdmin) {
-//     return res.status(403).json({ message: 'Acesso restrito a administradores.' });
-//   }
-//   next();
-// };
-
-// // ===================
-// // 2. LOGIN - Admin
-// // ===================
-// app.post('/api/admin/login', async (req, res) => {
-//   const { email, password } = req.body;
-
-//   if (!email.endsWith('@fmabc.net')) {
-//     return res.status(403).json({ message: 'Apenas e-mails @fmabc.net são permitidos.' });
-//   }
-
-//   try {
-//     const admin = await Admin.findOne({ email });
-//     if (!admin) return res.status(404).json({ message: 'Admin não encontrado.' });
-
-//     const valid = await bcrypt.compare(password, admin.password);
-//     if (!valid) return res.status(401).json({ message: 'Senha incorreta.' });
-
-//     const token = jwt.sign({ id: admin._id, role: 'admin' }, process.env.JWT_SECRET, {
-//       expiresIn: '1d'
-//     });
-
-//     res.json({ token });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Erro interno do servidor.' });
-//   }
-// });
-
-// // ===================
-// // 3. LOGIN - SubAdmin
-// // ===================
-// app.post('/api/subadmin/login', async (req, res) => {
-//   const { email, password } = req.body;
-
-//   if (!email.endsWith('@fmabc.net')) {
-//     return res.status(403).json({ message: 'Apenas e-mails @fmabc.net são permitidos.' });
-//   }
-
-//   try {
-//     const subAdmin = await SubAdmin.findOne({ email });
-//     if (!subAdmin) return res.status(404).json({ message: 'SubAdmin não encontrado.' });
-
-//     const valid = await bcrypt.compare(password, subAdmin.password);
-//     if (!valid) return res.status(401).json({ message: 'Senha incorreta.' });
-
-//     const token = jwt.sign({ id: subAdmin._id, role: 'subadmin' }, process.env.JWT_SECRET, {
-//       expiresIn: '1d'
-//     });
-
-//     res.json({ token });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Erro interno do servidor.' });
-//   }
-// });
-
-// // ===================
-// // 4. CRUD SubAdmins (somente Admin)
-// // ===================
-
-// // Criar SubAdmin
-// app.post('/api/subadmin', protect, adminOnly, async (req, res) => {
-//   const { name, username, email, password } = req.body;
-
-//   if (!email.endsWith('@fmabc.net')) {
-//     return res.status(400).json({ message: 'Somente e-mails @fmabc.net são permitidos.' });
-//   }
-
-//   try {
-//     const subAdmin = new SubAdmin({
-//       name,
-//       username,
-//       email,
-//       password,
-//       createdBy: req.user._id
-//     });
-
-//     await subAdmin.save();
-//     res.status(201).json(subAdmin);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// });
-
-// // Listar SubAdmins
-// app.get('/api/subadmin', protect, adminOnly, async (req, res) => {
-//   const subAdmins = await SubAdmin.find().populate('createdBy', 'username email');
-//   res.json(subAdmins);
-// });
-
-// // Atualizar SubAdmin
-// app.put('/api/subadmin/:id', protect, adminOnly, async (req, res) => {
-//   try {
-//     const subAdmin = await SubAdmin.findByIdAndUpdate(req.params.id, req.body, { new: true });
-//     if (!subAdmin) return res.status(404).json({ message: 'SubAdmin não encontrado.' });
-//     res.json(subAdmin);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// });
-
-// // Excluir SubAdmin
-// app.delete('/api/subadmin/:id', protect, adminOnly, async (req, res) => {
-//   try {
-//     const subAdmin = await SubAdmin.findByIdAndDelete(req.params.id);
-//     if (!subAdmin) return res.status(404).json({ message: 'SubAdmin não encontrado.' });
-//     res.json({ message: 'SubAdmin removido com sucesso.' });
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// });
+app.delete('/hyperlink/:id', async (req, res) => {
+  try {
+    await hyperlink.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Link removido' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
 
 module.exports = app
 
