@@ -34,8 +34,8 @@ class AtlasApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       // home: const AppShell(),
-      // home: const PainelAdm(),
-      home: const telaCapitulo(),
+      home: const PainelAdm(),
+      // home: const telaCapitulo(),
     );
   }
 }
