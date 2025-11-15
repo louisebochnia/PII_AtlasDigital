@@ -57,7 +57,7 @@ class SecaoHorizontal extends StatelessWidget {
 
         // Carrossel horizontal com Scrollbar
         SizedBox(
-          height: 190, // altura do card
+          height: 194, // altura do card
           child: Scrollbar(
             controller: controller,
             thumbVisibility: true,

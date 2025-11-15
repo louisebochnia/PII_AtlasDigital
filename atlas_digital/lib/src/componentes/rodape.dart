@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../temas.dart';
 
 class Rodape extends StatelessWidget {
@@ -6,7 +7,7 @@ class Rodape extends StatelessWidget {
   final List<FooterColumnData> colunas;
   final String endereco;
   final String site;
-  final String logoAsset; // use 'assets/logo_fmabc.png'
+  final String logoAsset;
   final double borderRadius;
 
   const Rodape({
@@ -22,7 +23,7 @@ class Rodape extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFF1F1F1), // fundo cinza claro do bloco
@@ -173,26 +174,44 @@ class _RedesSociais extends StatelessWidget {
       ],
     );
   }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 }
 
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final String tooltip;
+  final VoidCallback? onTap;
 
-  const _SocialIcon({required this.icon, required this.tooltip});
+  const _SocialIcon({
+    required this.icon, 
+    required this.tooltip,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0x33000000), width: 1.6),
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0x33000000), width: 1.6),
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+          ),
+          child: Icon(icon, size: 26, color: AppColors.textPrimary),
         ),
-        child: Icon(icon, size: 26, color: AppColors.textPrimary),
       ),
     );
   }
@@ -297,16 +316,34 @@ class _RodapeLegal extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          site,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF1E7A3A),
-            decoration: TextDecoration.underline,
+        InkWell(
+          onTap: () => _launchSite(site),
+          child: Text(
+            site,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF1E7A3A),
+              decoration: TextDecoration.underline,
+            ),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _launchSite(String url) async {
+    // Adiciona https:// se não tiver protocolo
+    String formattedUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      formattedUrl = 'https://$url';
+    }
+    
+    final uri = Uri.parse(formattedUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $formattedUrl';
+    }
   }
 }
 

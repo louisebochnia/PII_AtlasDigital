@@ -33,9 +33,9 @@ class AtlasApp extends StatelessWidget {
       title: 'Atlas Digital',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      // home: const AppShell(),
+      home: const AppShell(),
       // home: const PainelAdm(),
-      home: const telaCapitulo(),
+      // home: const telaCapitulo(),
     );
   }
 }
