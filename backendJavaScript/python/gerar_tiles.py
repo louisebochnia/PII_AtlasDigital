@@ -125,12 +125,14 @@ def gerar_tile_sob_demanda(mrxs_path, level, tx, ty, output_dir):
         img = carregar_mrxs(mrxs_path)
         
         escalas = {
-            -4: 8.0,   # 800%
-            -3: 6.0,   # 600%
-            -2: 4.0,   # 400%
-            -1: 2.0,   # 200%
-            0: 1.0,    # 100%
-            1: 0.8     # 80%
+            -8: 8.0,   # 800%
+            -7: 7.0,   # 700%
+            -6: 6.0,   # 600%
+            -5: 5.0,   # 500%
+            -4: 4.0,   # 400%
+            -3: 3.0,   # 300%
+            -2: 2.0,   # 200%
+            -1: 1.5,   # 150%
         }
         
         escala = escalas.get(level)
