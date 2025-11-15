@@ -5,6 +5,48 @@ import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Galeria.dart';
 import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Classe para gerenciar o estado do upload globalmente
+class UploadState with ChangeNotifier {
+  bool _mostrarPopupProgresso = false;
+  double _progressoUpload = 0.0;
+  bool _uploadCancelado = false;
+  Function? _onCancelarUpload;
+
+  bool get mostrarPopupProgresso => _mostrarPopupProgresso;
+  double get progressoUpload => _progressoUpload;
+  bool get uploadCancelado => _uploadCancelado;
+
+  void iniciarUpload(Function onCancelar) {
+    _mostrarPopupProgresso = true;
+    _progressoUpload = 0.0;
+    _uploadCancelado = false;
+    _onCancelarUpload = onCancelar;
+    notifyListeners();
+  }
+
+  void atualizarProgresso(double progresso) {
+    _progressoUpload = progresso;
+    notifyListeners();
+  }
+
+  void cancelarUpload() {
+    _uploadCancelado = true;
+    _mostrarPopupProgresso = false;
+    if (_onCancelarUpload != null) {
+      _onCancelarUpload!();
+    }
+    notifyListeners();
+  }
+
+  void finalizarUpload() {
+    _mostrarPopupProgresso = false;
+    _progressoUpload = 0.0;
+    _onCancelarUpload = null;
+    notifyListeners();
+  }
+}
 
 class PainelAdm extends StatefulWidget {
   const PainelAdm({super.key});
@@ -15,6 +57,7 @@ class PainelAdm extends StatefulWidget {
 
 class _PainelAdmState extends State<PainelAdm> {
   int _selectedIndex = 0;
+  final UploadState _uploadState = UploadState();
 
   final List<String> _menuLabels = [
     "Início",
@@ -32,71 +75,173 @@ class _PainelAdmState extends State<PainelAdm> {
     Icons.auto_graph_rounded,
   ];
 
-  final List<Widget> _menuContents = [
-    InicioPage(),
-    ConteudoPage(),
-    GaleriaPage(),
-    AdministradoresPage(),
-    EstatisticasPage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.all(40),
-        child: Row(
+    return ChangeNotifierProvider.value(
+      value: _uploadState,
+      child: Scaffold(
+        body: Stack(
           children: [
-            // MENU LATERAL
-            Expanded(
-              flex: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    right: BorderSide(
-                      color: const Color.fromARGB(255, 214, 206, 206),
-                      width: 4,
+            Container(
+              padding: const EdgeInsets.all(40),
+              child: Row(
+                children: [
+                  // MENU LATERAL
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            color: const Color.fromARGB(255, 214, 206, 206),
+                            width: 4,
+                          ),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (int i = 0; i < _menuLabels.length; i++) ...[
+                            _menuButton(_menuIcons[i], _menuLabels[i], i),
+                            const SizedBox(height: 12),
+                          ],
+                          const Spacer(),
+                          _exitButton(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (int i = 0; i < _menuLabels.length; i++) ...[
-                      _menuButton(_menuIcons[i], _menuLabels[i], i),
-                      const SizedBox(height: 12),
-                    ],
-                    const Spacer(),
-                    _exitButton(),
-                  ],
-                ),
+
+                  const SizedBox(width: 20),
+
+                  // CONTEÚDO PRINCIPAL COM ANIMAÇÃO
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: Container(
+                          key: ValueKey(_selectedIndex),
+                          child: _buildMenuContent(_selectedIndex),
+                        ),
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(width: 20),
+            // POPUP GLOBAL DE PROGRESSO DO UPLOAD
+            Consumer<UploadState>(
+              builder: (context, uploadState, child) {
+                if (!uploadState.mostrarPopupProgresso) return const SizedBox();
 
-            // CONTEÚDO PRINCIPAL COM ANIMAÇÃO
-            Expanded(
-              flex: 5,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Container(
-                    key: ValueKey(_selectedIndex),
-                    child: _menuContents[_selectedIndex],
-                  ),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                ),
-              ),
+                return Stack(
+                  children: [
+                    // Fundo semi-transparente que bloqueia interação
+                    ModalBarrier(
+                      color: Colors.black.withOpacity(0.5),
+                      dismissible: false,
+                    ),
+
+                    // Diálogo de progresso
+                    Center(
+                      child: AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: const Text(
+                          "Enviando Imagem",
+                          style: TextStyle(fontFamily: "Arial"),
+                          textAlign: TextAlign.center,
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "Fazendo upload da imagem...",
+                              style: TextStyle(fontFamily: "Arial"),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 20),
+                            LinearProgressIndicator(
+                              value: uploadState.progressoUpload / 100,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.green,
+                              ),
+                              minHeight: 12,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              "${uploadState.progressoUpload.toStringAsFixed(1)}%",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: "Arial",
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              "Aguarde enquanto o arquivo é enviado",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                                fontFamily: "Arial",
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              uploadState.cancelarUpload();
+                            },
+                            child: const Text(
+                              "Cancelar",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontFamily: "Arial",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildMenuContent(int index) {
+    switch (index) {
+      case 0:
+        return InicioPage();
+      case 1:
+        return ConteudoPage();
+      case 2:
+        return GaleriaPage(uploadState: _uploadState);
+      case 3:
+        return AdministradoresPage();
+      case 4:
+        return EstatisticasPage();
+      default:
+        return InicioPage();
+    }
   }
 
   Widget _menuButton(IconData icon, String label, int index) {
@@ -146,9 +291,7 @@ class _PainelAdmState extends State<PainelAdm> {
       style: TextButton.styleFrom(
         backgroundColor: const Color.fromARGB(255, 250, 17, 1),
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Row(
         children: const [
