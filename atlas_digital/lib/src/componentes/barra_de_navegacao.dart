@@ -1,4 +1,4 @@
-import 'package:atlas_digital/src/componentes/painelAdm.dart';
+import 'package:atlas_digital/src/telas/painelAdm.dart';
 import 'package:flutter/material.dart';
 import '../../temas.dart';
 import 'sub_componentes/popup_login.dart';

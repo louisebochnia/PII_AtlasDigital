@@ -4,12 +4,9 @@ import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Estatist
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Inicio2.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Conteudo.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Galeria.dart';
-import 'package:atlas_digital/src/componentes/barra_de_navegacao.dart'; 
 import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:atlas_digital/src/estado/estado_usuario.dart';
-import 'package:atlas_digital/src/componentes/sub_componentes/popup_login.dart';
 
 // Classe para gerenciar o estado do upload globalmente
 class UploadState with ChangeNotifier {
@@ -80,22 +77,9 @@ class _PainelAdmState extends State<PainelAdm> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  void _verificarLogin() {
-    final estadoUsuario = Provider.of<EstadoUsuario>(context, listen: false);
-    if (!estadoUsuario.estaLogado) {
-      // Se não estiver logado, mostrar popup de login
-      showDialog(context: context, builder: (context) => const LoginPopup());
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [ChangeNotifierProvider.value(value: _uploadState)],
+    return ChangeNotifierProvider.value(
+      value: _uploadState,
       child: Scaffold(
         body: Stack(
           children: [
@@ -103,6 +87,7 @@ class _PainelAdmState extends State<PainelAdm> {
               padding: const EdgeInsets.all(40),
               child: Row(
                 children: [
+                  // MENU LATERAL
                   Expanded(
                     flex: 2,
                     child: Container(
@@ -131,7 +116,7 @@ class _PainelAdmState extends State<PainelAdm> {
 
                   const SizedBox(width: 20),
 
-                  // CONTEÚDO PRINCIPAL
+                  // CONTEÚDO PRINCIPAL COM ANIMAÇÃO
                   Expanded(
                     flex: 5,
                     child: Container(
@@ -265,25 +250,6 @@ class _PainelAdmState extends State<PainelAdm> {
 
     return TextButton(
       onPressed: () {
-        // Verificar se é a página de Administradores e se o usuário tem permissão
-        if (index == 3) {
-          final estadoUsuario = Provider.of<EstadoUsuario>(
-            context,
-            listen: false,
-          );
-          if (!estadoUsuario.isAdmin) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  "Acesso restrito a administradores",
-                  style: TextStyle(fontFamily: "Arial"),
-                ),
-              ),
-            );
-            return;
-          }
-        }
-
         if (!mounted) return;
         setState(() {
           _selectedIndex = index;
@@ -321,42 +287,36 @@ class _PainelAdmState extends State<PainelAdm> {
   }
 
   Widget _exitButton() {
-  return TextButton(
-    onPressed: () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AppShell(), 
-        ),
-      );
-    },
-    style: TextButton.styleFrom(
-      backgroundColor: const Color.fromARGB(255, 220, 20, 20), 
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ),
-    child: Row(
-      children: const [
-        Icon(
-          Icons.exit_to_app, 
-          color: Colors.white,
-          size: 20,
-        ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            "Voltar para o site",
-            style: TextStyle(
-              fontSize: 15,
-              fontFamily: "Arial",
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
+    return TextButton(
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AppShell()),
+        );
+      },
+      style: TextButton.styleFrom(
+        backgroundColor: const Color.fromARGB(255, 220, 20, 20),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Row(
+        children: const [
+          Icon(Icons.exit_to_app, color: Colors.white, size: 20),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              "Voltar para o site",
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: "Arial",
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }

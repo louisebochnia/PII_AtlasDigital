@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+// IMPORTS DOS SEUS COMPONENTES
 import 'src/componentes/barra_de_navegacao.dart';
-import 'src/telas/pagina_inicial.dart';
-import 'src/componentes/telaConteudo.dart';
-import 'src/telas/pagina_galeria.dart';
-import 'src/estado/estado_estatisticas.dart';
-import 'src/componentes/sub_componentes/popup_login.dart';
 import 'src/componentes/rodape.dart';
+import 'src/componentes/sub_componentes/popup_login.dart';
+
+// IMPORTS DAS TELAS
+import 'src/telas/pagina_inicial.dart';
+import 'src/telas/pagina_conteudo.dart';
+import 'src/telas/pagina_galeria.dart';
+
+// ESTADOS
+import 'src/estado/estado_estatisticas.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -17,9 +23,9 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
-  bool _visitaRegistrada = false; //EVITAR REGISTRAR MÚLTIPLAS VEZES---
+  bool _visitaRegistrada = false;
 
-  final _pages = const [PaginaInicial(), telaConteudo(), GalleryPage()];
+  final _pages = const [PaginaInicial(), telaConteudo(), PaginaGaleria()];
 
   @override
   void initState() {
@@ -29,14 +35,13 @@ class _AppShellState extends State<AppShell> {
 
   void _registrarVisitaApp() {
     if (!_visitaRegistrada) {
-      // USA Future.microtask PARA EVITAR ERROS DE CONTEXTO-------------
       Future.microtask(() {
         final estadoEstatisticas = Provider.of<EstadoEstatisticas>(
           context,
           listen: false,
         );
         estadoEstatisticas.registrarVisita(
-          userId: 'visitante_app', // SISTEMA DE USUÁRIO ---------------
+          userId: 'visitante_app',
           pagina: 'app_shell',
         );
         _visitaRegistrada = true;
@@ -48,21 +53,29 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // --- AQUI ESTÁ A CONEXÃO ---
       appBar: TopNavBar(
         selectedIndex: _index,
         onItemTap: (i) => setState(() => _index = i),
         onAtlas: () {
           debugPrint('Acessar ATLAS');
         },
+        // QUANDO CLICAR NO BOTÃO LOGIN DA NAVBAR:
         onLogin: () {
-          debugPrint('LOGIN');
+          showDialog(
+            context: context,
+            barrierDismissible: true, // Permite fechar clicando fora
+            builder: (BuildContext context) {
+              // Chama o seu componente de Popup
+              return const LoginPopup(); 
+            },
+          );
         },
       ),
       body: CustomScrollView(
         slivers: [
           // Conteúdo principal da página atual
-          SliverFillRemaining(
-            hasScrollBody: false,
+          SliverToBoxAdapter(
             child: IndexedStack(index: _index, children: _pages),
           ),
 
@@ -93,7 +106,8 @@ class _AppShellState extends State<AppShell> {
                   ],
                 ),
               ],
-              endereco: 'Sede: Av. Príncipe de Gales, 821 – Bairro Príncipe de Gales – Santo André, SP – CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes, 2000 – Vila Sacadura Cabral – Santo André / SP – CEP: 09060-870 (Portaria 2) Telefone: (11) 4993-5400',
+              endereco:
+                  'Sede: Av. Príncipe de Gales, 821 – Bairro Príncipe de Gales – Santo André, SP – CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes, 2000 – Vila Sacadura Cabral – Santo André / SP – CEP: 09060-870 (Portaria 2) Telefone: (11) 4993-5400',
               site: 'www.fmabc.br',
             ),
           ),
