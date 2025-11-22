@@ -67,7 +67,7 @@ class _AdministradoresPageState extends State<AdministradoresPage> {
 
                 setState(() {
                   if (isEditando) {
-                    administradores[index!] = {"nome": nome};
+                    administradores[index] = {"nome": nome};
                   } else {
                     administradores.add({"nome": nome});
                   }

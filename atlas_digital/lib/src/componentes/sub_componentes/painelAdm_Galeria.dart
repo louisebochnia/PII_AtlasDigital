@@ -1,6 +1,4 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:atlas_digital/src/componentes/painelAdm.dart';
+import 'package:atlas_digital/src/telas/painelAdm.dart';
 import 'package:atlas_digital/src/estado/estado_imagem.dart';
 import 'package:atlas_digital/src/estado/estado_subtopicos.dart';
 import 'package:atlas_digital/src/estado/estado_topicos.dart';
@@ -214,7 +212,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                 ),
                                 const SizedBox(height: 6),
                                 DropdownButtonFormField<String>(
-                                  value: topicoSelecionado,
+                                  initialValue: topicoSelecionado,
                                   isExpanded:
                                       true, // Importante para telas pequenas
                                   decoration: InputDecoration(
@@ -265,7 +263,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                 ),
                                 const SizedBox(height: 6),
                                 DropdownButtonFormField<String>(
-                                  value: subtopicoSelecionado,
+                                  initialValue: subtopicoSelecionado,
                                   isExpanded:
                                       true, // Importante para telas pequenas
                                   decoration: InputDecoration(
@@ -338,7 +336,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
-                                    value: topicoSelecionado,
+                                    initialValue: topicoSelecionado,
                                     decoration: InputDecoration(
                                       hintText: 'Selecione o tópico',
                                       border: OutlineInputBorder(
@@ -390,7 +388,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
-                                    value: subtopicoSelecionado,
+                                    initialValue: subtopicoSelecionado,
                                     decoration: InputDecoration(
                                       hintText: topicoSelecionado == null
                                           ? 'Selecione primeiro o tópico'

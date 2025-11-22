@@ -22,79 +22,92 @@ class Rodape extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // LÓGICA RESPONSIVA DE BORDA
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double horizontalPadding = screenWidth > 1000 ? 160 : 20;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
+      padding: const EdgeInsets.only(top: 24),
+      // Container Cinza que ocupa largura total
       child: Container(
+        width: double.infinity,
         decoration: BoxDecoration(
           color: const Color(0xFFF1F1F1), // fundo cinza claro do bloco
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(borderRadius),
+            topRight: Radius.circular(borderRadius),
+          ),
         ),
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final isNarrow = c.maxWidth < 900;
-            final isVeryNarrow = c.maxWidth < 620;
+        // Centraliza o conteúdo limitado a 1100px
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 2000),
+            child: Padding(
+              // Aplica a margem de 80px (Desktop) ou 20px (Mobile)
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 40, horizontalPadding, 20),
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final isNarrow = c.maxWidth < 900;
+                  final isVeryNarrow = c.maxWidth < 620;
 
-            final main = isNarrow
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _Topo(
-                        logoAsset: logoAsset,
-                        onFaq: onFaq,
-                        showFaqRight: false,
-                      ),
-                      const SizedBox(height: 20),
-                      _RedesSociais(),
-                      const SizedBox(height: 20),
-                      _ColunasLinks(colunas: colunas, compact: isVeryNarrow),
-                    ],
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      //logo e redes sociais
-                      Expanded(
-                        flex: 5,
-                        child: Column(
+                  final main = isNarrow
+                      ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _Topo(
                               logoAsset: logoAsset,
                               onFaq: onFaq,
-                              showFaqRight: true,
+                              showFaqRight: false,
                             ),
                             const SizedBox(height: 20),
                             _RedesSociais(),
+                            const SizedBox(height: 20),
+                            _ColunasLinks(colunas: colunas, compact: isVeryNarrow),
                           ],
-                        ),
-                      ),
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //logo e redes sociais
+                            Expanded(
+                              flex: 5,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _Topo(
+                                    logoAsset: logoAsset,
+                                    onFaq: onFaq,
+                                    showFaqRight: true,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _RedesSociais(),
+                                ],
+                              ),
+                            ),
 
-                      const SizedBox(width: 32),
+                            const SizedBox(width: 32),
 
-                      // colunas de links
-                      Expanded(
-                        flex: 6,
-                        child: _ColunasLinks(colunas: colunas),
-                      ),
+                            // colunas de links
+                            Expanded(
+                              flex: 6,
+                              child: _ColunasLinks(colunas: colunas),
+                            ),
+                          ],
+                        );
 
-                      const SizedBox(width: 32),
-
-                      // bloco direito: CTA (apenas em telas largas – já aparece no topo)
-                      if (false) const SizedBox.shrink(),
+                  return Column(
+                    children: [
+                      main,
+                      const SizedBox(height: 40),
+                      const Divider(height: 1, color: Color(0x14000000)),
+                      const SizedBox(height: 20),
+                      _RodapeLegal(endereco: endereco, site: site),
                     ],
                   );
-
-            return Column(
-              children: [
-                main,
-                const SizedBox(height: 20),
-                const Divider(height: 1, color: Color(0x14000000)),
-                const SizedBox(height: 10),
-                _RodapeLegal(endereco: endereco, site: site),
-              ],
-            );
-          },
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -146,7 +159,6 @@ class _Topo extends StatelessWidget {
 class _RedesSociais extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Ícones default do Material (você pode trocar por assets SVG/PNG)
     final icons = <Widget>[
       _SocialIcon(icon: Icons.photo_camera_outlined, tooltip: 'Instagram'),
       _SocialIcon(icon: Icons.facebook, tooltip: 'Facebook'),
@@ -191,7 +203,7 @@ class _SocialIcon extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _SocialIcon({
-    required this.icon, 
+    required this.icon,
     required this.tooltip,
     this.onTap,
   });
@@ -312,7 +324,7 @@ class _RodapeLegal extends StatelessWidget {
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 12,
-            color: Color(0xFF1E7A3A), // verde do print
+            color: Color(0xFF1E7A3A),
           ),
         ),
         const SizedBox(height: 4),
@@ -332,12 +344,10 @@ class _RodapeLegal extends StatelessWidget {
   }
 
   Future<void> _launchSite(String url) async {
-    // Adiciona https:// se não tiver protocolo
     String formattedUrl = url;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       formattedUrl = 'https://$url';
     }
-    
     final uri = Uri.parse(formattedUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -347,11 +357,8 @@ class _RodapeLegal extends StatelessWidget {
   }
 }
 
-// -----------------------------
-// Tipos de dados do Rodapé
-// -----------------------------
 class FooterColumnData {
-  final String titulo; // não exibido (só para referência)
+  final String titulo;
   final List<FooterItem> itens;
   const FooterColumnData({required this.titulo, required this.itens});
 }
