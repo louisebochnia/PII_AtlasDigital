@@ -1,3 +1,4 @@
+import 'package:atlas_digital/src/componentes/painelAdm.dart';
 import 'package:flutter/material.dart';
 import '../../temas.dart';
 import 'sub_componentes/popup_login.dart';
@@ -6,18 +7,32 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final int selectedIndex;
   final ValueChanged<int> onItemTap;
   final VoidCallback onAtlas;
-  final VoidCallback onLogin;
+  final VoidCallback? onLogin;
 
   const TopNavBar({
     super.key,
     required this.selectedIndex,
     required this.onItemTap,
     required this.onAtlas,
-    required this.onLogin,
+    this.onLogin,
   });
 
   @override
   Size get preferredSize => const Size.fromHeight(72);
+
+  void _abrirPopupLogin(BuildContext context) {
+    showDialog(context: context, builder: (context) => const LoginPopup()).then(
+      (loginData) {
+        if (loginData != null) {
+          // Redireciona para o PainelAdm SEM a NavBar
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const PainelAdm()),
+          );
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,20 +48,20 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // ---- LOGO ----
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/logo_fmabc.png',
-                    height: 36, // ajuste o tamanho da logo aqui
-                  ),
-                  const SizedBox(width: 8),
-                ],
+              // LOGO
+              GestureDetector(
+                onTap: onAtlas,
+                child: Row(
+                  children: [
+                    Image.asset('assets/logo_fmabc.png', height: 36),
+                    const SizedBox(width: 8),
+                  ],
+                ),
               ),
 
               const SizedBox(width: 24),
 
-              // ---- MENU CENTRAL ----
+              // MENU CENTRAL
               Wrap(
                 spacing: 28,
                 children: List.generate(items.length, (i) {
@@ -61,9 +76,12 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
               const Spacer(),
               const SizedBox(width: 12),
 
-              // ---- BOTÃO "LOGIN" (cinza escuro) ----
+              // BOTÃO LOGIN
               FilledButton(
-                onPressed: onLogin,
+                onPressed: () {
+                  debugPrint('🎯 BOTÃO LOGIN CLICADO 🎯');
+                  _abrirPopupLogin(context);
+                },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.brandGray90,
                   foregroundColor: AppColors.white,
@@ -127,7 +145,6 @@ class _NavItemState extends State<_NavItem> {
               ),
             ),
             const SizedBox(height: 6),
-            // Sublinhado amarelo
             AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               curve: Curves.easeOut,

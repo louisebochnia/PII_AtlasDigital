@@ -8,11 +8,13 @@ import 'src/estado/estado_topicos.dart';
 import 'src/estado/estado_subtopicos.dart';
 import 'src/estado/estado_estatisticas.dart';
 import 'src/estado/estado_imagem.dart';
+import 'src/estado/estado_usuario.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => EstadoUsuario()),
         ChangeNotifierProvider(create: (_) => EstadoTopicos()),
         ChangeNotifierProvider(create: (_) => EstadoSubtopicos()),
         ChangeNotifierProvider(create: (_) => EstadoEstatisticas()),
