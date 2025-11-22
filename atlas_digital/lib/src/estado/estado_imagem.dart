@@ -107,4 +107,31 @@ class EstadoImagem extends ChangeNotifier {
     }
   }
 
+  // MÉTODOS DE BUSCA
+  Imagem? encontrarPorId(String id) {
+    try {
+      return _imagens.firstWhere((imagem) => imagem.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  List<Imagem> imagensPorTopico(String topico) {
+    return _imagens.where((imagem) => imagem.topico == topico).toList();
+  }
+
+  List<Imagem> imagensPorSubtopico(String subtopico) {
+    return _imagens.where((imagem) => imagem.subtopico == subtopico).toList();
+  }
+
+  List<String> get topicosUnicos {
+    final topicos = _imagens.map((imagem) => imagem.topico).toSet();
+    return topicos.where((topico) => topico.isNotEmpty).toList();
+  }
+
+  List<String> get subtopicosUnicos {
+    final subtopicos = _imagens.map((imagem) => imagem.subtopico).toSet();
+    return subtopicos.where((subtopico) => subtopico.isNotEmpty).toList();
+  }
+
 }
