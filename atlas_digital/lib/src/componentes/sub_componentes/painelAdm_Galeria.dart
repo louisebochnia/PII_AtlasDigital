@@ -212,7 +212,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                 ),
                                 const SizedBox(height: 6),
                                 DropdownButtonFormField<String>(
-                                  initialValue: topicoSelecionado,
+                                  value: topicoSelecionado,
                                   isExpanded:
                                       true, // Importante para telas pequenas
                                   decoration: InputDecoration(
@@ -263,7 +263,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                 ),
                                 const SizedBox(height: 6),
                                 DropdownButtonFormField<String>(
-                                  initialValue: subtopicoSelecionado,
+                                  value: subtopicoSelecionado,
                                   isExpanded:
                                       true, // Importante para telas pequenas
                                   decoration: InputDecoration(
@@ -336,7 +336,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
-                                    initialValue: topicoSelecionado,
+                                    value: topicoSelecionado,
                                     decoration: InputDecoration(
                                       hintText: 'Selecione o tópico',
                                       border: OutlineInputBorder(
@@ -388,7 +388,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
-                                    initialValue: subtopicoSelecionado,
+                                    value: subtopicoSelecionado,
                                     decoration: InputDecoration(
                                       hintText: topicoSelecionado == null
                                           ? 'Selecione primeiro o tópico'

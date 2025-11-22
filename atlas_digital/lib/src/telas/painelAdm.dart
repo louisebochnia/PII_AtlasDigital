@@ -1,3 +1,4 @@
+import 'package:atlas_digital/app_shell.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Administradores2.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Estatisticas.dart';
 import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Inicio2.dart';
@@ -287,16 +288,21 @@ class _PainelAdmState extends State<PainelAdm> {
 
   Widget _exitButton() {
     return TextButton(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AppShell()),
+        );
+      },
       style: TextButton.styleFrom(
-        backgroundColor: const Color.fromARGB(255, 250, 17, 1),
+        backgroundColor: const Color.fromARGB(255, 220, 20, 20),
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Row(
         children: const [
-          Icon(Icons.exit_to_app_outlined, color: Colors.white),
-          SizedBox(width: 14),
+          Icon(Icons.exit_to_app, color: Colors.white, size: 20),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               "Voltar para o site",

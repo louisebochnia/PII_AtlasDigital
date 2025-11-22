@@ -392,9 +392,9 @@ app.post('/images', upload.single('imagem'), async (req, res) => {
 });
 
 app.get('/images', async (req, res) => {
-  try{
+  try {
     dadosImagens = await ImagemModel.find();
-    res.status(200).json(dadosImagens); 
+    res.status(200).json(dadosImagens);
   } catch (erro) {
     res.status(500).json({ message: erro.message });
   }
@@ -418,15 +418,15 @@ app.delete('/images/:id', async (req, res) => {
     }
     else {
       if (fs.existsSync(imagem.enderecoPastaMrxs)) {
-        fs.rmSync(imagem.enderecoPastaMrxs, {recursive: true, force: true});
+        fs.rmSync(imagem.enderecoPastaMrxs, { recursive: true, force: true });
       }
 
       if (imagem.enderecoThumbnail && fs.existsSync(imagem.enderecoThumbnail)) {
         fs.unlinkSync(imagem.enderecoThumbnail);
       }
 
-      if (imagem.enderecoTiles && fs.existsSync(imagem.enderecoTiles)){
-        fs.rmSync(imagem.enderecoTiles, {recursive: true, force: true});
+      if (imagem.enderecoTiles && fs.existsSync(imagem.enderecoTiles)) {
+        fs.rmSync(imagem.enderecoTiles, { recursive: true, force: true });
       }
 
       await ImagemModel.findByIdAndDelete(imagem.id);
@@ -574,14 +574,17 @@ app.post('/signup', async (req, res) => {
   try {
     const email = req.body.email;
     const senha = req.body.senha;
-    const cargo = req.body.cargo
+    const cargo = req.body.cargo;
 
     if (!email.endsWith('@fmabc.net')) {
       return res.status(403).json({ message: 'Apenas e-mails @fmabc.net são permitidos.' });
     }
 
-    const senhaCriptografada = await bcrypt.hash(senha, 10);
-    const usuario = new Usuario({ email: email, senha: senhaCriptografada, cargo: cargo });
+    const usuario = new Usuario({ 
+      email: email, 
+      senha: senha, 
+      cargo: cargo 
+    });
 
     const respMongo = await usuario.save();
     console.log(respMongo)
@@ -601,7 +604,7 @@ app.post('/login', async (req, res) => {
     return res.status(401).json({ mensagem: "Email inválido!" });
   }
 
-  const senhaValida = await bcrypt.compare(senha, usuarioExiste.senha);
+  const senhaValida = (senha === usuarioExiste.senha); 
 
   if (!senhaValida) {
     return res.status(401).json({ mensagem: "Senha inválida!" });

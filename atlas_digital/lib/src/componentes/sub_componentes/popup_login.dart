@@ -1,8 +1,9 @@
-import 'package:atlas_digital/src/telas/painelAdm.dart';
 import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:atlas_digital/src/estado/estado_usuario.dart';
 
 class LoginPopup extends StatefulWidget {
   const LoginPopup({super.key});
@@ -20,8 +21,8 @@ class _LoginPopupState extends State<LoginPopup> {
   String? mensagemErro;
   bool lembrarSenha = false;
   bool isLoading = false;
-  
-  String baseUrl = 'http://localhost:3000';  // URL do seu backend
+  String baseUrl = 'http://localhost:3000';
+  bool mostrarSenha = false;
 
   Future<void> verificarEmail() async {
     setState(() {
@@ -40,132 +41,114 @@ class _LoginPopupState extends State<LoginPopup> {
     }
 
     try {
-      // Tenta verificar se é um admin
-      final adminResponse = await http.post(
-        Uri.parse('$baseUrl/api/admin/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'password': 'dummy'}),
-      );
+      debugPrint('-- Verificando email: $email');
 
-      if (adminResponse.statusCode != 404) {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'email': email, 'senha': 'senha_temporaria'}),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      debugPrint('-- Resposta da API: ${response.statusCode}');
+      debugPrint('-- Corpo da resposta: ${response.body}');
+
+      if (response.statusCode == 401) {
+        final data = json.decode(response.body);
+        if (data['mensagem'] == "Senha inválida!") {
+          debugPrint('-- Email EXISTE - senha inválida');
+          setState(() {
+            emailSelecionado = email;
+            etapaEmail = false;
+            isLoading = false;
+            mensagemErro = null;
+          });
+          return;
+        }
+        if (data['mensagem'] == "Email inválido!") {
+          debugPrint('-- Email NÃO existe');
+          setState(() {
+            mensagemErro = "Email não cadastrado.";
+            isLoading = false;
+          });
+          return;
+        }
+      }
+
+      if (response.statusCode == 200) {
+        debugPrint('-- Email EXISTE - login bem sucedido');
         setState(() {
           emailSelecionado = email;
           etapaEmail = false;
           isLoading = false;
+          mensagemErro = null;
         });
         return;
       }
 
-      // Se não for admin, tenta verificar se é subadmin
-      final subadminResponse = await http.post(
-        Uri.parse('$baseUrl/api/subadmin/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'password': 'dummy'}),
-      );
-
-      if (subadminResponse.statusCode != 404) {
-        setState(() {
-          emailSelecionado = email;
-          etapaEmail = false;
-          isLoading = false;
-        });
-        return;
-      }
-
+      debugPrint('-- Status code não esperado: ${response.statusCode}');
       setState(() {
         mensagemErro = "Email não cadastrado.";
         isLoading = false;
       });
     } catch (e) {
+      debugPrint('-- ERRO na verificação de email: $e');
       setState(() {
-        mensagemErro = "Erro ao verificar email. Tente novamente.";
+        mensagemErro = "Erro ao verificar email. Verifique a conexão.";
         isLoading = false;
       });
     }
   }
 
-  Future<void> verificarOuCadastrarSenha() async {
+  Future<void> fazerLogin() async {
     setState(() {
       isLoading = true;
       mensagemErro = null;
     });
 
-    String email = emailSelecionado!;
-    String senha = senhaController.text.trim();
-
-    if (senha.isEmpty) {
-      setState(() {
-        mensagemErro = "Digite uma senha válida.";
-        isLoading = false;
-      });
-      return;
-    }
-
     try {
-      // Tenta login como admin
-      var response = await http.post(
-        Uri.parse('$baseUrl/api/admin/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'password': senha}),
-      );
+      final String senha = senhaController.text;
+      debugPrint('-- Fazendo login: $emailSelecionado');
+      debugPrint('-- Senha enviada: $senha');
 
-      var data = json.decode(response.body);
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'email': emailSelecionado, 'senha': senha}),
+          )
+          .timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
-        setState(() {
-          mensagemErro = "Login realizado com sucesso!";
-          isLoading = false;
-        });
-        
-        // Salva o token se "lembrar senha" estiver marcado
-        if (lembrarSenha) {
-          // TODO: Implementar armazenamento seguro do token
-        }
-
-        Future.delayed(const Duration(seconds: 1), () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const PainelAdm()),
-          );
-        });
-        return;
-      }
-
-      // Se não for admin, tenta como subadmin
-      response = await http.post(
-        Uri.parse('$baseUrl/api/subadmin/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'password': senha}),
-      );
-
-      data = json.decode(response.body);
+      debugPrint('-- Resposta do login: ${response.statusCode}');
+      debugPrint('-- Corpo da resposta: ${response.body}');
 
       if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        debugPrint('-- Login bem sucedido: $data');
+
+        final estadoUsuario = Provider.of<EstadoUsuario>(context, listen: false);
+        await estadoUsuario.login(emailSelecionado!, senha);
+
+        // Fecha o popup e retorna os dados
+        Navigator.pop(context, data);
+      } else if (response.statusCode == 401) {
+        final data = json.decode(response.body);
         setState(() {
-          mensagemErro = "Login realizado com sucesso!";
+          mensagemErro = "Senha incorreta. Verifique e tente novamente.";
           isLoading = false;
         });
-        
-        if (lembrarSenha) {
-          // TODO: Implementar armazenamento seguro do token
-        }
-
-        Future.delayed(const Duration(seconds: 1), () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const PainelAdm()),
-          );
+        debugPrint('-- SENHA ENVIADA: "$senha"');
+      } else {
+        setState(() {
+          mensagemErro = "Erro ao fazer login. Tente novamente.";
+          isLoading = false;
         });
-        return;
       }
-
-      setState(() {
-        mensagemErro = "Senha incorreta.";
-        isLoading = false;
-      });
     } catch (e) {
+      debugPrint('-- ERRO no login: $e');
       setState(() {
-        mensagemErro = "Erro ao realizar login. Tente novamente.";
+        mensagemErro = "Erro ao fazer login. Verifique a conexão.";
         isLoading = false;
       });
     }
@@ -173,13 +156,9 @@ class _LoginPopupState extends State<LoginPopup> {
 
   @override
   Widget build(BuildContext context) {
-    // Texto de instrução dinâmico
-    String textoInstrucao;
-    if (etapaEmail) {
-      textoInstrucao = "Coloque seu e-mail para entrar na sua conta";
-    } else {
-      textoInstrucao = "Digite sua senha para continuar";
-    }
+    String textoInstrucao = etapaEmail
+        ? "Coloque seu e-mail para entrar na sua conta"
+        : "Digite sua senha para continuar";
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -187,11 +166,10 @@ class _LoginPopupState extends State<LoginPopup> {
       contentPadding: const EdgeInsets.all(20),
       content: SizedBox(
         width: 350,
-        height: 450,
+        height: etapaEmail ? 400 : 450,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Título
             const Text(
               "Login",
               style: TextStyle(
@@ -203,7 +181,6 @@ class _LoginPopupState extends State<LoginPopup> {
             ),
             const SizedBox(height: 10),
 
-            // Texto de instrução
             Flexible(
               child: Text(
                 textoInstrucao,
@@ -219,7 +196,6 @@ class _LoginPopupState extends State<LoginPopup> {
             ),
             const SizedBox(height: 20),
 
-            // Campo email ou senha
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -232,34 +208,71 @@ class _LoginPopupState extends State<LoginPopup> {
                   ),
                 ),
                 const SizedBox(height: 5),
-                TextField(
-                  controller: etapaEmail ? emailController : senhaController,
-                  obscureText: !etapaEmail,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.grey),
+                if (etapaEmail)
+                  TextField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      hintText: "Digite seu email @fmabc.net",
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
+                        fontFamily: 'Arial',
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.grey),
+                    onSubmitted: (_) => verificarEmail(),
+                  )
+                else
+                  TextField(
+                    controller: senhaController,
+                    obscureText: !mostrarSenha,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      hintText: "Digite sua senha",
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
+                        fontFamily: 'Arial',
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          mostrarSenha ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            mostrarSenha = !mostrarSenha;
+                          });
+                        },
+                      ),
                     ),
-                    hintText:
-                        etapaEmail ? "Digite seu email" : "Digite sua senha",
-                    hintStyle: const TextStyle(
-                      color: Colors.grey,
-                      fontFamily: 'Arial',
-                    ),
+                    onSubmitted: (_) => fazerLogin(),
                   ),
-                ),
               ],
             ),
 
             const SizedBox(height: 10),
 
-            // Checkbox "Lembrar senha" (apenas na tela de senha)
             if (!etapaEmail)
               Column(
                 children: [
@@ -285,48 +298,50 @@ class _LoginPopupState extends State<LoginPopup> {
                     "Ao clicar em Entrar, você aceita automaticamente nossos termos & condições",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.black,
-                        fontFamily: 'Arial'),
+                      fontSize: 10,
+                      color: Colors.black,
+                      fontFamily: 'Arial',
+                    ),
                   ),
                 ],
               ),
 
             const SizedBox(height: 10),
 
-            // Mensagem de erro ou sucesso
             if (mensagemErro != null)
               Text(
                 mensagemErro!,
                 style: TextStyle(
-                  color: mensagemErro!.contains("sucesso")
-                      ? Colors.green
-                      : Colors.red,
+                  color: mensagemErro!.contains("sucesso") ? Colors.green : Colors.red,
                   fontFamily: 'Arial',
                 ),
+                textAlign: TextAlign.center,
               ),
 
             const SizedBox(height: 15),
 
-            // Botões expansíveis
             Row(
               children: [
                 if (!etapaEmail)
                   Expanded(
                     child: TextButton(
-                      onPressed: () {
-                        setState(() {
-                          etapaEmail = true;
-                          emailSelecionado = null;
-                          mensagemErro = null;
-                          senhaController.clear();
-                        });
-                      },
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                etapaEmail = true;
+                                emailSelecionado = null;
+                                mensagemErro = null;
+                                senhaController.clear();
+                                mostrarSenha = false;
+                              });
+                            },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: const Text(
@@ -338,20 +353,32 @@ class _LoginPopupState extends State<LoginPopup> {
                 if (!etapaEmail) const SizedBox(width: 28),
                 Expanded(
                   child: TextButton(
-                    onPressed: etapaEmail
-                        ? verificarEmail
-                        : verificarOuCadastrarSenha,
+                    onPressed: isLoading
+                        ? null
+                        : (etapaEmail ? verificarEmail : fazerLogin),
                     style: TextButton.styleFrom(
-                      backgroundColor: AppColors.brandGreen,
+                      backgroundColor: isLoading ? Colors.grey : AppColors.brandGreen,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: Text(
-                      etapaEmail ? "Próximo" : "Entrar",
-                      style: const TextStyle(fontFamily: 'Arial'),
-                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            etapaEmail ? "Próximo" : "Entrar",
+                            style: const TextStyle(fontFamily: 'Arial'),
+                          ),
                   ),
                 ),
               ],
@@ -359,7 +386,6 @@ class _LoginPopupState extends State<LoginPopup> {
 
             const SizedBox(height: 15),
 
-            // Indicador de etapas
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -369,14 +395,6 @@ class _LoginPopupState extends State<LoginPopup> {
                   decoration: BoxDecoration(
                     color: etapaEmail ? AppColors.brandGreen : Colors.grey[800],
                     borderRadius: BorderRadius.circular(4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 0),
-                      ),
-                    ],
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -384,18 +402,8 @@ class _LoginPopupState extends State<LoginPopup> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: etapaEmail
-                        ? const Color.fromARGB(255, 124, 124, 124)
-                        : Colors.green,
+                    color: etapaEmail ? const Color.fromARGB(255, 124, 124, 124) : Colors.green,
                     borderRadius: BorderRadius.circular(4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 0),
-                      ),
-                    ],
                   ),
                 ),
               ],
