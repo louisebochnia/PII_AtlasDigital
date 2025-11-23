@@ -371,9 +371,9 @@ app.post('/images', upload.single('imagem'), async (req, res) => {
     const tilesDir = await imagem.preGerarTilesPrincipais(resultado.mrxsFile, resultado.mrxsPath);
 
     const novaImagem = new ImagemModel({
-      nomeArquivo: resultado.mrxsFile,
+      nomeArquivo: resultado.nomeArquivoMrxs,
       nomeImagem: nomeImagem,
-      enderecoPastaMrxs: resultado.enderecoPastaMrxs,
+      enderecoPastaMrxs: resultado.mrxsDir,
       enderecoThumbnail: enderecoThumbnail,
       enderecoTiles: tilesDir,
       topico: topico,
@@ -473,77 +473,50 @@ app.get('/:imageId/meta.json', async (req, res) => {
 app.get('/tiles/:imageId/:level/:x/:y', async (req, res) => {
     try {
         const { imageId, level, x, y } = req.params;
-        const imagem
-        const tilesDir = imagem.
-        const tilePath = path.join(tilesDir, `level_${level}`, `${x}_${y}.jpg`);
+
+        const imagem = new Imagem();
         
-        console.log(`🔍 Buscando tile: ${tilePath}`);
-        
-        // Se o tile já existe, serve diretamente
-        if (await fs.existsSync(tilePath)) {
-            console.log('Tile pré-gerado encontrado');
-            res.sendFile(path.resolve(tilePath));
-            return;
+        const imagemMrxs = await ImagemModel.findById(imageId);
+        if (!imagemMrxs) {
+            return res.status(404).json({ error: 'Imagem não encontrada' });
         }
+
+        const tilesDir = imagemMrxs.enderecoTiles;
+        const cleanY = y.replace('.jpg', '');
+        const tilePath = path.join(tilesDir, `level_${level}`, `${x}_${cleanY}.jpg`);
+                
+        console.log(`Buscando tile: ${tilePath}`);
         
-        // Se não existe, gera sob demanda
-        console.log('Tile não encontrado, gerando sob demanda...');
-        const mrxsPath = path.join('uploads', 'images', imageId, `${imageId}.mrxs`);
-        
-        if (fs.existsSync(mrxsPath)) {
-            console.log('Arquivo MRXS não encontrado:', mrxsPath);
+        if (fs.existsSync(tilePath)) {
+            console.log('Tile pré-gerado encontrado');
+            res.setHeader('Content-Type', 'image/jpeg');
+            return res.sendFile(path.resolve(tilePath));
+        }
+
+        // Verifica MRXS
+        const mrxsPath = path.join(imagemMrxs.enderecoPastaMrxs, imagemMrxs.nomeArquivo);
+        if (!fs.existsSync(mrxsPath)) {
+            console.log('❌ Arquivo MRXS não encontrado:', mrxsPath);
             return res.status(404).json({ error: 'Imagem MRXS não encontrada' });
         }
         
-        console.log(`Chamando Python para gerar tile: level=${level}, x=${x}, y=${y}`);
+        console.log(`Chamando Python: level=${level}, x=${x}, y=${cleanY}`);
         
-        // Chama o Python para gerar o tile
-        const pythonProcess = spawn('python', [
-            'python/gerar_tiles.py',
-            'tile',
-            mrxsPath,
-            tilesDir,
-            level,
-            x,
-            y
-        ]);
+        // CORREÇÃO: Aguarda o resultado e envia o tile
+        const generatedPath = await imagem.gerarTile(mrxsPath, tilesDir, level, x, cleanY);
         
-        let tileOutput = '';
-        let errorOutput = '';
-
-        pythonProcess.stdout.on('data', (data) => {
-            tileOutput += data.toString();
-        });
+        console.log(`Tile gerado: ${generatedPath}`);
         
-        pythonProcess.stderr.on('data', (data) => {
-            errorOutput += data.toString();
-            console.error('Erro Python:', data.toString());
-        });
-        
-        pythonProcess.on('close', (code) => {
-            if (code === 0 && tileOutput.includes('TILE_PATH:')) {
-                const generatedPath = tileOutput.split('TILE_PATH:')[1].trim();
-                console.log('Tile gerado com sucesso:', generatedPath);
-                
-                if (fs.existsSync(generatedPath)) {
-                    res.sendFile(path.resolve(generatedPath));
-                } else {
-                    console.log('Arquivo gerado não encontrado:', generatedPath);
-                    res.status(500).json({ error: 'Falha ao gerar tile' });
-                }
-            } else {
-                console.log('Falha no processo Python. Código:', code);
-                console.log('Saída:', tileOutput);
-                console.log('Erros:', errorOutput);
-                res.status(500).json({ 
-                    error: 'Falha ao gerar tile',
-                    details: errorOutput 
-                });
-            }
-        });
+        if (fs.existsSync(generatedPath)) {
+            res.setHeader('Content-Type', 'image/jpeg');
+            res.sendFile(path.resolve(generatedPath));
+        } else {
+            console.log('Arquivo gerado não encontrado:', generatedPath);
+            res.status(500).json({ error: 'Falha ao gerar tile - arquivo não criado' });
+        }
         
     } catch (error) {
-        console.error('❌ Erro ao processar tile:', error);
+        console.error('Erro:', error);
         res.status(500).json({ error: error.message });
     }
 });

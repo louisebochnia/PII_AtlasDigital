@@ -1,6 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math';
 import '../estado/estado_visualizador.dart';
 import '../modelos/tile.dart';
 
@@ -29,8 +30,13 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       tilesBaseUrl: widget.tilesBaseUrl
     );
     
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _estadoVisualizador.carregarMetadados();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final sucesso = await _estadoVisualizador.carregarMetadados();
+      if (sucesso) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+            _estadoVisualizador.centralizarVisualizacaoInicialmente();
+        });
+      }
     });
   }
 
@@ -39,7 +45,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return ChangeNotifierProvider.value(
       value: _estadoVisualizador,
       child: Container(
-        color: Colors.black,
+        color: Colors.black, // Fundo preto do widget principal
         child: Consumer<EstadoVisualizadorMRXS>(
           builder: (context, estado, child) {
             if(estado.carregando) {
@@ -67,11 +73,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
           Text(
             'Carregando imagem...',
             style: TextStyle(color: Colors.white70, fontSize: 16),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Isso pode levar alguns segundos',
-            style: TextStyle(color: Colors.white54, fontSize: 12),
           ),
         ],
       ),
@@ -104,7 +105,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text('Tentar Novamente'),
             ),
@@ -118,10 +118,8 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return Stack(
       children: [
         _buildAreaVisualizacao(estado),
-        
         _buildOverlayControls(estado),
-        
-        if (estado.carregando) _buildTileLoadingOverlay(),
+        _buildAnotacoes(estado),
       ],
     );
   }
@@ -132,10 +130,10 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         estado.iniciarZoom(details.localFocalPoint);
       },
       onScaleUpdate: (details) {
-        if (details.scale != 1.0) {
-          final scale = max(1.0, details.scale);
+        if (details.pointerCount > 1 || details.scale != 1.0) {
+          final scale = details.scale;
           estado.atualizarZoomPinch(scale, details.localFocalPoint);
-        } else if (details.pointerCount == 1) {
+        } else if (details.pointerCount == 1 && details.scale == 1.0) {
           estado.arrastar(details.focalPointDelta);
         }
       },
@@ -146,7 +144,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         estado.aplicarZoomIn();
       },
       child: Container(
-        color: Colors.black,
+        color: Colors.white, // Fundo branco para a área de tiles
         child: _buildTiles(estado),
       ),
     );
@@ -156,6 +154,9 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final viewportSize = Size(constraints.maxWidth, constraints.maxHeight);
+        
+        estado.atualizarViewportSize(viewportSize); 
+        
         final tiles = estado.obterTilesVisiveis(viewportSize);
 
         return Stack(
@@ -166,41 +167,71 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   }
 
   Widget _buildTileWidget(TileInfo tile, EstadoVisualizadorMRXS estado) {
-    final scalePython = estado.obterEscalaPython(tile.level);
-    final tileSize = 256.0; // Ou use o tileSize da layer se disponível
-    final scaledTileSize = tileSize / scalePython;
+    final layer = estado.layers.firstWhere(
+      (l) => l.level == tile.level,
+      orElse: () => estado.layers.first,
+    );
+    
+    final tileSize = 256.0;
+    
+    final left = tile.x * tileSize - estado.posicao.dx;
+    final top = tile.y * tileSize - estado.posicao.dy;
 
     return Positioned(
-      left: tile.x * scaledTileSize - estado.posicao.dx,
-      top: tile.y * scaledTileSize - estado.posicao.dy,
+      left: left,
+      top: top,
       child: SizedBox(
-        width: scaledTileSize,
-        height: scaledTileSize,
-        child: Image.network(
-          tile.url!,
-          fit: BoxFit.cover,
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (wasSynchronouslyLoaded || frame != null) {
-              return child;
-            }
-            return Container(
-              color: Colors.grey[900],
-              child: Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
-                ),
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey[900],
-              child: Icon(Icons.broken_image, color: Colors.grey[700], size: 32),
-            );
-          },
-        ),
+        width: tileSize,
+        height: tileSize,
+        child: _buildTileContent(tile),
       ),
+    );
+  }
+
+  Widget _buildTileContent(TileInfo tile) {
+    if (tile.url == null) {
+      return Container(
+        color: Colors.white, // Cor sólida em vez de gradiente
+      );
+    }
+
+    return Image.network(
+      tile.url!,
+      fit: BoxFit.cover,
+
+      filterQuality: FilterQuality.high,
+      
+      isAntiAlias: true,
+      
+      cacheHeight: 256,
+      cacheWidth: 256,
+      
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) {
+          return child;
+        }
+        return Container(
+          color: Colors.white,
+          child: Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5, // Mais fino
+              valueColor: AlwaysStoppedAnimation(Colors.black26),
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.white,
+          child: Center(
+            child: Icon(
+              Icons.broken_image,
+              color: Colors.black26,
+              size: 32,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -209,14 +240,16 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       bottom: 20,
       left: 20,
       right: 20,
-      child: Column(
-        children: [
-          _buildZoomControl(estado),
-          
-          SizedBox(height: 16),
-          
-          if (estado.zoom == 1.0) _buildInstrucoes(),
-        ],
+      child: Container(
+        child: Column(
+          children: [
+            _buildZoomControl(estado),
+            
+            SizedBox(height: 16),
+                      
+            if (estado.zoom == 1.0) _buildInstrucoes(),
+          ],
+        )
       ),
     );
   }
@@ -267,22 +300,44 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     );
   }
 
+  Widget _buildAnotacoes(EstadoVisualizadorMRXS estado) {
+    return Positioned(
+      top: 20,
+      bottom: 20,
+      right: 20,
+      child: Container(
+        width: 400,
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F1F1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text("Anotações"),
+            
+            SizedBox(height: 16),
+
+            SizedBox(height: 8),
+            
+          ],
+        )
+      ),
+    );
+  }
+
+
   Widget _buildQuickActions(EstadoVisualizadorMRXS estado) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           icon: Icon(Icons.zoom_out, color: Colors.white),
-          onPressed: estado.zoom > estado.minZoom ? () {
-            final novoZoom = max(estado.minZoom, estado.zoom / 1.5);
-            estado.definirZoom(novoZoom);
-          } : null,
+          onPressed: estado.zoom > estado.minZoom ? estado.aplicarZoomOut : null,
         ),
         IconButton(
           icon: Icon(Icons.zoom_in, color: Colors.white),
-          onPressed: estado.zoom < estado.maxZoom ? () {
-            estado.aplicarZoomIn();
-          } : null,
+          onPressed: estado.zoom < estado.maxZoom ? estado.aplicarZoomIn : null,
         ),
         IconButton(
           icon: Icon(Icons.center_focus_strong, color: Colors.white),
@@ -344,36 +399,14 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     );
   }
 
-  Widget _buildTileLoadingOverlay() {
-    return Positioned(
-      top: 20,
-      right: 20,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(Colors.white),
-              ),
-            ),
-            SizedBox(width: 8),
-            Text(
-              'Carregando...',
-              style: TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
+  FilterQuality _getFilterQualityForLevel(int level) {
+    if (level <= -4) { // 400% ou mais
+      return FilterQuality.high;
+    } else if (level <= -2) { // 200% a 399%
+      return FilterQuality.medium;
+    } else {
+      return FilterQuality.low;
+    }
   }
 
   @override
