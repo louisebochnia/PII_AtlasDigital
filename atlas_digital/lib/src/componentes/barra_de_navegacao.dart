@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import '../../temas.dart';
 import 'sub_componentes/popup_login.dart';
 
@@ -19,6 +21,12 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(72);
 
+  // Verifica se é desktop/web
+  bool get isDesktopOrWeb {
+    if (kIsWeb) return true;
+    return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = const ['Início', 'Conteúdo', 'Galeria'];
@@ -38,7 +46,7 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                 children: [
                   Image.asset(
                     'assets/logo_fmabc.png',
-                    height: 36, // ajuste o tamanho da logo aqui
+                    height: 36,
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -46,38 +54,54 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
 
               const SizedBox(width: 24),
 
-              // ---- MENU CENTRAL ----
-              Wrap(
-                spacing: 28,
-                children: List.generate(items.length, (i) {
-                  return _NavItem(
-                    label: items[i],
-                    selected: selectedIndex == i,
-                    onTap: () => onItemTap(i),
-                  );
-                }),
-              ),
-
-              const Spacer(),
-              const SizedBox(width: 12),
-
-              // ---- BOTÃO "LOGIN" (cinza escuro) ----
-              FilledButton(
-                onPressed: onLogin,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.brandGray90,
-                  foregroundColor: AppColors.white,
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
+              // ---- MENU: Dropdown no mobile, Menu normal no desktop ----
+              if (isDesktopOrWeb) 
+                // MENU DESKTOP/WEB
+                Wrap(
+                  spacing: 28,
+                  children: List.generate(items.length, (i) {
+                    return _NavItem(
+                      label: items[i],
+                      selected: selectedIndex == i,
+                      onTap: () => onItemTap(i),
+                    );
+                  }),
+                )
+              else
+                // DROPDOWN MOBILE
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _MobileDropdown(
+                      items: items,
+                      selectedIndex: selectedIndex,
+                      onItemSelected: onItemTap,
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'LOGIN',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+
+              const Spacer(),
+
+              // ---- BOTÃO "LOGIN" (só aparece no desktop/web) ----
+              if (isDesktopOrWeb) ...[
+                const SizedBox(width: 12),
+                FilledButton(
+                  onPressed: onLogin,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.brandGray90,
+                    foregroundColor: AppColors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'LOGIN',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -86,6 +110,58 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+// ---- COMPONENTE DROPDOWN PARA MOBILE ----
+class _MobileDropdown extends StatefulWidget {
+  final List<String> items;
+  final int selectedIndex;
+  final ValueChanged<int> onItemSelected;
+
+  const _MobileDropdown({
+    required this.items,
+    required this.selectedIndex,
+    required this.onItemSelected,
+  });
+
+  @override
+  State<_MobileDropdown> createState() => _MobileDropdownState();
+}
+
+class _MobileDropdownState extends State<_MobileDropdown> {
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<String>(
+      value: widget.items[widget.selectedIndex],
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          final index = widget.items.indexOf(newValue);
+          widget.onItemSelected(index);
+        }
+      },
+      items: widget.items.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        );
+      }).toList(),
+      underline: Container(), // Remove a linha padrão
+      icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
+      isExpanded: false,
+      elevation: 4,
+      style: TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 16,
+      ),
+    );
+  }
+}
+
+// ---- COMPONENTE ORIGINAL DO ITEM DE MENU (para desktop) ----
 class _NavItem extends StatefulWidget {
   final String label;
   final bool selected;
