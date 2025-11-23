@@ -1,15 +1,16 @@
+import 'package:atlas_digital/src/modelos/subtopicos.dart';
 import 'package:flutter/material.dart';
 
 class SecaoHorizontal extends StatelessWidget {
   final String titulo;
   final String descricao;
-  final List<Map<String, String>> itens;
+  final List<Subtopico> subtopicos;
 
   const SecaoHorizontal({
     super.key,
     required this.titulo,
     required this.descricao,
-    required this.itens,
+    required this.subtopicos,
   });
 
   @override
@@ -67,9 +68,9 @@ class SecaoHorizontal extends StatelessWidget {
             child: ListView.builder(
               controller: controller,
               scrollDirection: Axis.horizontal,
-              itemCount: itens.length,
+              itemCount: subtopicos.length,
               itemBuilder: (context, index) {
-                final item = itens[index];
+                final item = subtopicos[index];
 
                 return Container(
                   margin: const EdgeInsets.fromLTRB(0, 0, 24, 8),
@@ -93,7 +94,7 @@ class SecaoHorizontal extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          item['url']!,
+                          item.capaUrl!,
                           height: 120,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -108,7 +109,7 @@ class SecaoHorizontal extends StatelessWidget {
                         children: [
                           // Capítulo
                           Text(
-                            'Capítulo ${item['capitulo']}',
+                            'Capítulo ${item.indice}',
                             style: const TextStyle(
                               fontSize: 10,
                               color: Colors.black,
@@ -122,7 +123,7 @@ class SecaoHorizontal extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  item['titulo']!,
+                                  item.titulo!,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
