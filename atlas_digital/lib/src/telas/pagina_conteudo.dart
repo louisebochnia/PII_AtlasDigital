@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../componentes/sub_componentes/componenteTopicoshorizontais.dart';
 
+// O ponto de quebra deve ser definido consistentemente com a TopNavBar
+const double kBreakpoint = 1000;
+
 class telaConteudo extends StatefulWidget {
   const telaConteudo({super.key});
 
@@ -110,9 +113,16 @@ class _telaConteudoState extends State<telaConteudo> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. LÓGICA RESPONSIVA DE MARGEM
+    final double screenWidth = MediaQuery.of(context).size.width;
+    // 80px para telas largas, 20px para telas estreitas
+    final double horizontalPadding = screenWidth > kBreakpoint ? 80 : 20; 
+
     return SingleChildScrollView(
-      child: Container(
-        margin: const EdgeInsets.all(20),
+      // 2. APLICAÇÃO DA MARGEM RESPONSIVA
+      child: Padding(
+        // Substituí o Container e o margin por Padding
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 30), 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -158,7 +158,7 @@ class _AppShellState extends State<AppShell> {
                 'Sede: Av. Príncipe de Gales, 821 –   Bairro Príncipe de Gales – Santo André, SP –  CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes,  2000 – Vila Sacadura Cabral – Santo André / SP   – CEP: 09060-870 (Portaria 2) Telefone: (11)  4993-5400',
             site: 'www.fmabc.br',
             onTermosUso: _paginaEspecial == null
-                ? (context) {
+                ? () {
                     _navegarParaPaginaEspecial(const PaginaTermosUso());
                   }
                 : null,

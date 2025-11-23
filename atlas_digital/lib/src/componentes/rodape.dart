@@ -1,63 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../temas.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
-import 'package:flutter/material.dart';
-
-bool get isDesktopOrWeb {
-  if (kIsWeb) return true;
-  return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-}
 
 class Rodape extends StatelessWidget {
+  final VoidCallback? onTermosUso;
   final List<FooterColumnData> colunas;
   final String endereco;
   final String site;
   final String logoAsset;
   final double borderRadius;
-  final Function(BuildContext)? onTermosUso;
 
   const Rodape({
     super.key,
+    this.onTermosUso,
     required this.colunas,
     required this.endereco,
     required this.site,
     required this.logoAsset,
     this.borderRadius = 22,
-    this.onTermosUso,
   });
 
   @override
   Widget build(BuildContext context) {
-    // LÓGICA RESPONSIVA DE BORDA
     final double screenWidth = MediaQuery.of(context).size.width;
     final double horizontalPadding = screenWidth > 1000 ? 160 : 20;
 
     return Padding(
       padding: const EdgeInsets.only(top: 24),
-      // Container Cinza que ocupa largura total
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F1F1), // fundo cinza claro do bloco
+          color: const Color(0xFFF1F1F1),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(borderRadius),
             topRight: Radius.circular(borderRadius),
           ),
         ),
-        // Centraliza o conteúdo limitado a 1100px
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 2000),
             child: Padding(
-              // Aplica a margem de 80px (Desktop) ou 20px (Mobile)
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                40,
-                horizontalPadding,
-                20,
-              ),
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 40, horizontalPadding, 20),
               child: LayoutBuilder(
                 builder: (context, c) {
                   final isNarrow = c.maxWidth < 900;
@@ -65,44 +48,50 @@ class Rodape extends StatelessWidget {
 
                   final main = isNarrow
                       ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          // O alinhamento horizontal principal é CENTER no modo estreito
+                          crossAxisAlignment: CrossAxisAlignment.center, 
                           children: [
-                            _Topo(logoAsset: logoAsset),
-                            const SizedBox(height: 20),
-                            _RedesSociais(),
-                            const SizedBox(height: 20),
-                            _ColunasLinks(
-                              colunas: colunas,
-                              compact: isVeryNarrow,
-                              onTermosUso: onTermosUso,
+                            // 1. LOGO
+                            _Topo(
+                              logoAsset: logoAsset,
+                              isNarrow: isNarrow,
                             ),
+                            const SizedBox(height: 30),
+                            
+                            // 2. COLUNAS DE LINKS
+                            _ColunasLinks(colunas: colunas, compact: isVeryNarrow),
+                            const SizedBox(height: 30), 
+
+                            // 3. REDES SOCIAIS
+                            _RedesSociais(isNarrow: isNarrow), // Passamos o estado Narrow
+                            const SizedBox(height: 20),
                           ],
                         )
                       : Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            //logo e redes sociais
+                            // 1 & 3. Logo e Redes (Wide View)
                             Expanded(
                               flex: 5,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _Topo(logoAsset: logoAsset),
+                                  _Topo(
+                                    logoAsset: logoAsset,
+                                    isNarrow: isNarrow,
+                                  ),
                                   const SizedBox(height: 20),
-                                  _RedesSociais(),
+                                  _RedesSociais(isNarrow: isNarrow),
                                 ],
                               ),
                             ),
 
                             const SizedBox(width: 32),
 
-                            // colunas de links
+                            // 2. Colunas de Links
                             Expanded(
                               flex: 6,
-                              child: _ColunasLinks(
-                                colunas: colunas,
-                                onTermosUso: onTermosUso,
-                              ),
+                              child: _ColunasLinks(colunas: colunas),
                             ),
                           ],
                         );
@@ -110,22 +99,10 @@ class Rodape extends StatelessWidget {
                   return Column(
                     children: [
                       main,
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 40), 
                       const Divider(height: 1, color: Color(0x14000000)),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 20),
                       _RodapeLegal(endereco: endereco, site: site),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Ao acessar o conteúdo, você automaticamente concorda com os Termos e Condições de Uso',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          fontStyle: FontStyle.italic,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      // Espaço a mais no final para dispositivos mobile
-                      if (!isDesktopOrWeb) const SizedBox(height: 50),
                     ],
                   );
                 },
@@ -138,10 +115,20 @@ class Rodape extends StatelessWidget {
   }
 }
 
+// --- WIDGETS AUXILIARES CORRIGIDOS ---
+
 class _Topo extends StatelessWidget {
   final String logoAsset;
+  final VoidCallback? onFaq;
+  final bool showFaqRight; 
+  final bool isNarrow; // USADO PARA CENTRALIZAÇÃO
 
-  const _Topo({required this.logoAsset});
+  const _Topo({
+    required this.logoAsset,
+    this.onFaq, // Mantido apenas para compatibilidade, mas removido do uso
+    this.showFaqRight = false, // Mantido para compatibilidade
+    required this.isNarrow,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -150,14 +137,26 @@ class _Topo extends StatelessWidget {
       children: [Image.asset(logoAsset, height: 54), const SizedBox(width: 12)],
     );
 
+    // Se a tela for estreita, usamos Center para centralizar a logo.
+    if (isNarrow) {
+      return Center(child: logo);
+    }
+
+    // Se for larga, mantemos a estrutura original do Row
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: logo)],
+      children: [
+        Expanded(child: logo),
+      ],
     );
   }
 }
 
 class _RedesSociais extends StatelessWidget {
+  final bool isNarrow;
+
+  const _RedesSociais({this.isNarrow = false});
+
   @override
   Widget build(BuildContext context) {
     final icons = <Widget>[
@@ -168,7 +167,8 @@ class _RedesSociais extends StatelessWidget {
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      // Se for estreito, centraliza o título e os ícones
+      crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start, 
       children: [
         const Text(
           'Nossas redes:',
@@ -179,7 +179,11 @@ class _RedesSociais extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Wrap(spacing: 14, runSpacing: 8, children: icons),
+        Wrap(
+          spacing: 14,
+          runSpacing: 8,
+          children: icons,
+        ),
       ],
     );
   }
@@ -225,29 +229,19 @@ class _SocialIcon extends StatelessWidget {
 class _ColunasLinks extends StatelessWidget {
   final List<FooterColumnData> colunas;
   final bool compact;
-  final Function(BuildContext)? onTermosUso;
 
-  const _ColunasLinks({
-    required this.colunas,
-    this.compact = false,
-    this.onTermosUso,
-  });
+  const _ColunasLinks({required this.colunas, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
     final children = colunas
-        .map(
-          (c) => _FooterColumn(
-            title: c.titulo,
-            items: c.itens,
-            onTermosUso: onTermosUso,
-          ),
-        )
+        .map((c) => _FooterColumn(title: c.titulo, items: c.itens))
         .toList();
 
     if (compact) {
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        // FIX: Centraliza os blocos de link quando empilhados
+        crossAxisAlignment: CrossAxisAlignment.center, 
         children: [
           for (final w in children) ...[w, const SizedBox(height: 16)],
         ],
@@ -261,13 +255,8 @@ class _ColunasLinks extends StatelessWidget {
 class _FooterColumn extends StatelessWidget {
   final String title;
   final List<FooterItem> items;
-  final Function(BuildContext)? onTermosUso;
 
-  const _FooterColumn({
-    required this.title,
-    required this.items,
-    this.onTermosUso,
-  });
+  const _FooterColumn({required this.title, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -276,6 +265,7 @@ class _FooterColumn extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 220),
       child: Column(
+        // Mantido o START aqui, pois a centralização é feita no widget PARENT (_ColunasLinks)
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -291,14 +281,7 @@ class _FooterColumn extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: InkWell(
-                onTap: () {
-                  // Se for "Termos de uso" e o callback estiver disponível
-                  if (item.label == 'Termos de uso' && onTermosUso != null) {
-                    onTermosUso!(context);
-                  } else if (item.onTap != null) {
-                    item.onTap!();
-                  }
-                },
+                onTap: item.onTap,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -308,24 +291,10 @@ class _FooterColumn extends StatelessWidget {
                         child: Icon(
                           item.icon,
                           size: 18,
-                          color:
-                              onTermosUso == null &&
-                                  item.label == 'Termos de uso'
-                              ? Colors
-                                    .grey // Cor cinza quando desativado
-                              : AppColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                    Text(
-                      item.label,
-                      style: textStyle?.copyWith(
-                        color:
-                            onTermosUso == null && item.label == 'Termos de uso'
-                            ? Colors
-                                  .grey // Cor cinza quando desativado
-                            : textStyle.color,
-                      ),
-                    ),
+                    Text(item.label, style: textStyle),
                   ],
                 ),
               ),
@@ -372,7 +341,6 @@ class _RodapeLegal extends StatelessWidget {
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       formattedUrl = 'https://$url';
     }
-
     final uri = Uri.parse(formattedUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

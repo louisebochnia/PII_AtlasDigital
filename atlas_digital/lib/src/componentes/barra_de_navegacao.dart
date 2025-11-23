@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../../temas.dart';
 import '../estado/estado_usuario.dart'; 
 
+// Ponto de quebra para mobile/tablet
+const double kBreakpoint = 1000;
+
 class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final int selectedIndex;
   final ValueChanged<int> onItemTap;
@@ -20,9 +23,8 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(72);
+  Size get preferredSize => const Size.fromHeight(80);
 
-  // Verifica se é desktop/web
   bool get isDesktopOrWeb {
     if (kIsWeb) return true;
     return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
@@ -32,6 +34,10 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final estadoUsuario = Provider.of<EstadoUsuario>(context); 
     final items = const ['Início', 'Conteúdo', 'Galeria'];
+    
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWideScreen = screenWidth > kBreakpoint;
+    final double horizontalPadding = isWideScreen ? 80 : 20;
 
     return Material(
       elevation: 0,
@@ -40,87 +46,68 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
         bottom: false,
         child: Container(
           height: preferredSize.height,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              // LOGO
-              GestureDetector(
-                onTap: onAtlas,
-                child: Row(
-                  children: [
-                    Image.asset('assets/logo_fmabc.png', height: 36),
-                    const SizedBox(width: 8),
-                  ],
-                ),
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 2000), 
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Row(
+                children: [
+                  // 1. LOGO
+                  GestureDetector(
+                    onTap: onAtlas,
+                    child: Row(
+                      children: [
+                        Image.asset('assets/logo_fmabc.png', height: 36),
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 24),
+
+                  // 2. MENU PRINCIPAL (Desktop)
+                  if (isWideScreen) 
+                    Wrap(
+                      spacing: 28,
+                      children: List.generate(items.length, (i) {
+                        return _NavItem(
+                          label: items[i],
+                          selected: selectedIndex == i,
+                          onTap: () => onItemTap(i),
+                        );
+                      }),
+                    )
+                  else 
+                    // 2b. Ocupa espaço para empurrar o Login/Hamburger
+                    const Spacer(),
+
+                  const Spacer(), // Empurra os elementos de controle para a direita
+
+                  // 3. BOTÕES DE CONTROLE (Responsivo)
+                  if (isWideScreen) 
+                    // DESKTOP: Apenas o botão de Login/Admin, Menu visível
+                    _LoginAdminButton(estadoUsuario: estadoUsuario, onLogin: onLogin, isMobile: false)
+                  else
+                    // MOBILE: [Login/Admin Button, 20px Gap, Hamburger Menu]
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _LoginAdminButton(estadoUsuario: estadoUsuario, onLogin: onLogin, isMobile: true), // Botão visível
+                        const SizedBox(width: 20), // GAP de 20px
+                        _MobileMenuButton( // Hamburger na extrema direita
+                          items: items,
+                          selectedIndex: selectedIndex,
+                          onItemSelected: onItemTap,
+                        ),
+                      ],
+                    ),
+                ],
               ),
-
-              const SizedBox(width: 24),
-
-              // ---- MENU: Dropdown no mobile, Menu normal no desktop ----
-              if (isDesktopOrWeb) 
-                // MENU DESKTOP/WEB
-                Wrap(
-                  spacing: 28,
-                  children: List.generate(items.length, (i) {
-                    return _NavItem(
-                      label: items[i],
-                      selected: selectedIndex == i,
-                      onTap: () => onItemTap(i),
-                    );
-                  }),
-                )
-              else
-                // DROPDOWN MOBILE
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _MobileDropdown(
-                      items: items,
-                      selectedIndex: selectedIndex,
-                      onItemSelected: onItemTap,
-                    ),
-                  ),
-                ),
-
-              const Spacer(),
-              const SizedBox(width: 12),
-
-              //LOGIN ou ÁREA ADMINISTRATIVA
-              if (!estadoUsuario.estaLogado && isDesktopOrWeb)
-                FilledButton(
-                  onPressed: onLogin,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
-                    foregroundColor: AppColors.white,
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text(
-                    'LOGIN',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                )
-              else
-                FilledButton(
-                  onPressed: onLogin,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
-                    foregroundColor: AppColors.white,
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text(
-                    'ÁREA ADMINISTRATIVA',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-            ],
+            ),
           ),
         ),
       ),
@@ -128,53 +115,76 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// ---- COMPONENTE DROPDOWN PARA MOBILE ----
-class _MobileDropdown extends StatefulWidget {
+// --- WIDGET AUXILIAR: BOTÃO LOGIN/ADMIN (Consolidado) ---
+class _LoginAdminButton extends StatelessWidget {
+  final EstadoUsuario estadoUsuario;
+  final VoidCallback? onLogin;
+  final bool isMobile;
+
+  const _LoginAdminButton({required this.estadoUsuario, this.onLogin, required this.isMobile});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = estadoUsuario.estaLogado ? 'ÁREA ADMINISTRATIVA' : 'LOGIN';
+    
+    return FilledButton(
+      onPressed: onLogin,
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+        foregroundColor: AppColors.white,
+        shape: const StadiumBorder(),
+        padding: EdgeInsets.symmetric(
+          horizontal: 18,
+          // Ajusta o padding para ser mais amigável ou seguir o padrão
+          vertical: isMobile ? 10 : 14, 
+        ),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+}
+
+// --- WIDGET AUXILIAR: BOTÃO HAMBÚRGUER MOBILE/TABLET ---
+class _MobileMenuButton extends StatelessWidget {
   final List<String> items;
   final int selectedIndex;
   final ValueChanged<int> onItemSelected;
 
-  const _MobileDropdown({
+  const _MobileMenuButton({
     required this.items,
     required this.selectedIndex,
     required this.onItemSelected,
   });
 
   @override
-  State<_MobileDropdown> createState() => _MobileDropdownState();
-}
-
-class _MobileDropdownState extends State<_MobileDropdown> {
-  @override
   Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: widget.items[widget.selectedIndex],
-      onChanged: (String? newValue) {
-        if (newValue != null) {
-          final index = widget.items.indexOf(newValue);
-          widget.onItemSelected(index);
-        }
-      },
-      items: widget.items.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(
-            value,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        );
-      }).toList(),
-      underline: Container(), // Remove a linha padrão
-      icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
-      isExpanded: false,
-      elevation: 4,
-      style: TextStyle(
+    return PopupMenuButton<int>(
+      icon: Icon(
+        Icons.menu,
         color: AppColors.textPrimary,
-        fontSize: 16,
+        size: 30,
       ),
+      onSelected: (int index) {
+        onItemSelected(index);
+      },
+      itemBuilder: (BuildContext context) {
+        return List.generate(items.length, (i) {
+          final isSelected = selectedIndex == i;
+          return PopupMenuItem<int>(
+            value: i,
+            child: Text(
+              items[i],
+              style: TextStyle(
+                color: isSelected ? AppColors.brandGreen : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          );
+        });
+      },
     );
   }
 }
