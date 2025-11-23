@@ -1,178 +1,174 @@
 import 'package:flutter/material.dart';
+import '../../modelos/subtopicos.dart';
 
 class SecaoHorizontal extends StatelessWidget {
   final String titulo;
   final String descricao;
-  final List<Map<String, String>> itens;
+  final List<Subtopico> subtopicos;
 
   const SecaoHorizontal({
     super.key,
     required this.titulo,
     required this.descricao,
-    required this.itens,
+    required this.subtopicos,
   });
 
   @override
   Widget build(BuildContext context) {
-    final controller = ScrollController(); // controla a rolagem
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Título da seção
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
-          child: Row(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cabeçalho
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                titulo,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              Expanded(
+                child: Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Text(
-                'Capítulos: 1-7',
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                _calcularRangeCapitulos(),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 8),
+
+          // Descrição
+          Text(
+            descricao,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          
+          const SizedBox(height: 16),
+
+          // Carrossel com altura FIXA
+          SizedBox(
+            height: 220,
+            child: _buildCarrossel(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarrossel() {
+    if (subtopicos.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.collections, size: 48, color: Colors.grey[400]),
+            const SizedBox(height: 8),
+            Text(
+              'Nenhum subtópico disponível',
+              style: TextStyle(color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: subtopicos.length,
+      itemBuilder: (context, index) {
+        return _buildCardItem(subtopicos[index]);
+      },
+    );
+  }
+
+  Widget _buildCardItem(Subtopico subtopico) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 16),
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Imagem com altura fixa
+              Container(
+                height: 100,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey[200],
+                  image: subtopico.capaUrl != null && subtopico.capaUrl!.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(subtopico.capaUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: subtopico.capaUrl == null || subtopico.capaUrl!.isEmpty
+                    ? Icon(Icons.image, color: Colors.grey[400], size: 40)
+                    : null,
+              ),
+              
+              const SizedBox(height: 8),
+              
+              // Capítulo
+              Text(
+                'Cap. ${subtopico.indice}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              
+              const SizedBox(height: 4),
+              
+              // Título
+              Text(
+                subtopico.titulo,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
-
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
-          child: Text(
-            descricao,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-              fontFamily: "Arial",
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Carrossel horizontal com Scrollbar
-        SizedBox(
-          height: 194, // altura do card
-          child: Scrollbar(
-            controller: controller,
-            thumbVisibility: true,
-            trackVisibility: true,
-            thickness: 6,
-            radius: const Radius.circular(10),
-            child: ListView.builder(
-              controller: controller,
-              scrollDirection: Axis.horizontal,
-              itemCount: itens.length,
-              itemBuilder: (context, index) {
-                final item = itens[index];
-
-                return Container(
-                  margin: const EdgeInsets.fromLTRB(0, 0, 24, 8),
-                  padding: const EdgeInsets.all(6),
-                  width: 240,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 231, 230, 230),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Imagem
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          item['url']!,
-                          height: 120,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-
-                      const SizedBox(height: 6),
-
-                      // Capítulo + título + botão
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Capítulo
-                          Text(
-                            'Capítulo ${item['capitulo']}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.black,
-                            ),
-                          ),
-
-
-                          // Título + botão
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  item['titulo']!,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                  overflow:
-                                      TextOverflow.ellipsis, // evita estourar
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  print('Clicou no botão!');
-                                },
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Text(
-                                      'Acessar',
-                                      style: TextStyle(
-                                        color: Color.fromARGB(
-                                          255,
-                                          170,
-                                          14,
-                                          170,
-                                        ),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    SizedBox(width: 2),
-                                    Icon(
-                                      Icons.arrow_right_alt_sharp,
-                                      color: Color.fromARGB(255, 170, 14, 170),
-                                      size: 24,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
+      ),
     );
+  }
+
+  String _calcularRangeCapitulos() {
+    if (subtopicos.isEmpty) return 'Capítulos: 0';
+    
+    final indices = subtopicos.map((e) => e.indice).toList();
+    indices.sort();
+    
+    final primeiro = indices.first;
+    final ultimo = indices.last;
+    
+    return primeiro == ultimo 
+        ? 'Cap. $primeiro'
+        : 'Cap. $primeiro-$ultimo';
   }
 }
