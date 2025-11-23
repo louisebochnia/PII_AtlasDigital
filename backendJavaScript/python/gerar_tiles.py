@@ -7,21 +7,6 @@ import traceback
 
 TILE_SIZE = 256
 
-# def carregar_mrxs(path):
-#     try:
-#         print(f"Tentando carregar MRXS: {path}")
-#         if not os.path.exists(path):
-#             print(f"Arquivo não existe: {path}")
-#             sys.exit(1)
-            
-#         img = pyvips.Image.new_from_file(path)
-#         print(f"MRXS carregado: {img.width}x{img.height}")
-#         return img
-#     except Exception as e:
-#         print(f"Erro ao carregar MRXS: {str(e)}")
-#         traceback.print_exc()
-#         sys.exit(1)
-
 def carregar_mrxs(path):
     try:
         print(f"Tentando carregar MRXS: {path}")
@@ -31,25 +16,6 @@ def carregar_mrxs(path):
             
         img = pyvips.Image.new_from_file(path)
         print(f"MRXS carregado: {img.width}x{img.height}")
-        
-        # DEBUG CRÍTICO: Verifica resolução real
-        print("=== ANÁLISE DE RESOLUÇÃO ===")
-        print(f"Resolução original: {img.width}x{img.height} pixels")
-        print(f"Resolução por nível:")
-        
-        escalas = {8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.5, 1.0, 0.8}
-        for escala in sorted(escalas, reverse=True):
-            width_scaled = int(img.width * escala)
-            height_scaled = int(img.height * escala)
-            ppi_estimate = (width_scaled / 10) * 2.54  # Estimativa grosseira de PPI
-            print(f"  {escala:.1f}x -> {width_scaled}x{height_scaled} (~{ppi_estimate:.0f} PPI)")
-        
-        print("=============================")
-        
-        # Se a imagem for muito pequena, avisa
-        if img.width < 1000 or img.height < 1000:
-            print("AVISO: Imagem de baixa resolução. Zoom alto pode ficar pixelado.")
-        
         return img
     except Exception as e:
         print(f"Erro ao carregar MRXS: {str(e)}")
@@ -160,7 +126,6 @@ def gerar_tile_sob_demanda(mrxs_path, level, tx, ty, output_dir):
     try:
         print(f"Iniciando geração de tile: level={level}, x={tx}, y={ty}")
         
-        # Converte para caminhos absolutos
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         mrxs_abs_path = os.path.join(base_dir, mrxs_path)
         output_abs_dir = os.path.join(base_dir, output_dir)
@@ -170,11 +135,9 @@ def gerar_tile_sob_demanda(mrxs_path, level, tx, ty, output_dir):
 
         tile_path = os.path.join(level_dir, f"{tx}_{ty}.jpg")
 
-        # ✅ VERIFICA SE JÁ EXISTE - não gera novamente
         if os.path.exists(tile_path):
             print("Tile já existe")
             
-            # Retorna caminho relativo
             relative_path = os.path.join(output_dir, f"level_{level}", f"{tx}_{ty}.jpg")
             relative_path = relative_path.replace('\\', '/')
             
@@ -205,7 +168,6 @@ def gerar_tile_sob_demanda(mrxs_path, level, tx, ty, output_dir):
 
         print(f"Aplicando escala: {escala}x")
         
-        # Interpolação básica - evita Lanczos que pode ser pesado
         img_resized = img.resize(escala, kernel='cubic')
             
         print(f"Imagem redimensionada: {img_resized.width}x{img_resized.height}")
@@ -234,14 +196,12 @@ def gerar_tile_sob_demanda(mrxs_path, level, tx, ty, output_dir):
         
         print(f"Salvando tile: {tile_path}")
         
-        # ✅ QUALIDADE BÁSICA - sem parâmetros extras
-        qualidade = 85  # Qualidade padrão boa
+        qualidade = 85
         tile.write_to_file(tile_path, Q=qualidade)
         
         if os.path.exists(tile_path):
             print(f"Tile salvo com sucesso")
             
-            # Retorna caminho relativo
             relative_path = os.path.join(output_dir, f"level_{level}", f"{tx}_{ty}.jpg")
             relative_path = relative_path.replace('\\', '/')
             
