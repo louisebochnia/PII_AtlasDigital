@@ -1,8 +1,18 @@
+import 'package:atlas_digital/src/estado/estado_subtopicos.dart';
+import 'package:atlas_digital/src/estado/estado_topicos.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../modelos/topico.dart';
 import '../modelos/subtopicos.dart';
-import '../servicos/ServConteudo.dart'; // Você precisará criar isso
 import '../componentes/sub_componentes/componenteTopicoshorizontais.dart';
+
+// Classe para agrupar tópico com seus subtópicos (fora da classe principal)
+class TopicoComSubtopicos {
+  final Topico topico;
+  final List<Subtopico> subtopicos;
+  
+  TopicoComSubtopicos({required this.topico, required this.subtopicos});
+}
 
 class PaginaConteudo extends StatefulWidget {
   const PaginaConteudo({super.key});
@@ -12,30 +22,47 @@ class PaginaConteudo extends StatefulWidget {
 }
 
 class _PaginaConteudoState extends State<PaginaConteudo> {
-  late Future<List<Topico>> _topicosFuture;
-  final ServicoApi _servicoApi = ServicoApi();
+  late Future<void> _carregamentoFuture;
 
   @override
   void initState() {
     super.initState();
-    _topicosFuture = _buscarTopicosComSubtopicos();
+    _carregamentoFuture = _carregarTopicos();
   }
 
-  Future<List<Topico>> _buscarTopicosComSubtopicos() async {
+  Future<void> _carregarTopicos() async {
+    final estadoTopicos = context.read<EstadoTopicos>();
+    final estadoSubtopicos = context.read<EstadoSubtopicos>();
+
     try {
-      // Buscar todos os tópicos
-      final topicos = await _servicoApi.getTopicos();
+      await estadoTopicos.carregarBanco();
+      await estadoSubtopicos.carregarBanco();
 
-      // Para cada tópico, buscar seus subtópicos
-      for (final topico in topicos) {
-        final subtopicos = await _servicoApi.getSubtopicosPorTopico(topico.id);
-        // Você pode querer armazenar em algum lugar ou modificar seu modelo
+      if (estadoTopicos.topicos.isEmpty) {
+        await estadoTopicos.carregarLocal();
+        estadoTopicos.carregarMockSeVazio();
       }
-
-      return topicos;
     } catch (e) {
-      throw Exception('Falha ao carregar tópicos: $e');
+      debugPrint("Erro ao carregar dados: $e");
     }
+  }
+
+  List<Topico> carregarTopicos() {
+    final estadoTopicos = context.read<EstadoTopicos>();
+    return estadoTopicos.topicos.map((topico) => topico).toList();
+  }
+
+  List<TopicoComSubtopicos> carregarTopicosComSubtopicos() {
+    final estadoTopicos = context.read<EstadoTopicos>();
+    final estadoSubtopicos = context.read<EstadoSubtopicos>();
+
+    return estadoTopicos.topicos.map((topico) {
+      final subtopicos = estadoSubtopicos.filtrarPorTopico(topico.id);
+      return TopicoComSubtopicos(
+        topico: topico,
+        subtopicos: subtopicos,
+      );
+    }).toList();
   }
 
   @override
@@ -61,9 +88,9 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
             ),
             const SizedBox(height: 30),
 
-            // Usando seus modelos de dados reais
-            FutureBuilder<List<Topico>>(
-              future: _topicosFuture,
+            // Usando os dados carregados localmente
+            FutureBuilder<void>(
+              future: _carregamentoFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -83,27 +110,20 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
                   );
                 }
 
-                final topicos = snapshot.data ?? [];
+                final topicosComSubtopicos = carregarTopicosComSubtopicos();
 
-                if (topicos.isEmpty) {
+                if (topicosComSubtopicos.isEmpty) {
                   return const Center(
                     child: Text("Nenhum conteúdo disponível"),
                   );
                 }
 
                 return Column(
-                  children: topicos.map((topico) {
-                    return FutureBuilder<List<Subtopico>>(
-                      future: _servicoApi.getSubtopicosPorTopico(topico.id),
-                      builder: (context, subtopicoSnapshot) {
-                        final subtopicos = subtopicoSnapshot.data ?? [];
-
-                        return SecaoHorizontal(
-                          titulo: topico.titulo,
-                          descricao: topico.resumo,
-                          subtopicos: subtopicos,
-                        );
-                      },
+                  children: topicosComSubtopicos.map((item) {
+                    return SecaoHorizontal(
+                      titulo: item.topico.titulo,
+                      descricao: item.topico.resumo,
+                      subtopicos: item.subtopicos,
                     );
                   }).toList(),
                 );
