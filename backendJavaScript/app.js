@@ -493,16 +493,13 @@ app.get('/tiles/:imageId/:level/:x/:y', async (req, res) => {
             return res.sendFile(path.resolve(tilePath));
         }
 
-        // Verifica MRXS
         const mrxsPath = path.join(imagemMrxs.enderecoPastaMrxs, imagemMrxs.nomeArquivo);
         if (!fs.existsSync(mrxsPath)) {
-            console.log('❌ Arquivo MRXS não encontrado:', mrxsPath);
-            return res.status(404).json({ error: 'Imagem MRXS não encontrada' });
+          return res.status(404).json({ error: 'Imagem MRXS não encontrada' });
         }
         
         console.log(`Chamando Python: level=${level}, x=${x}, y=${cleanY}`);
         
-        // CORREÇÃO: Aguarda o resultado e envia o tile
         const generatedPath = await imagem.gerarTile(mrxsPath, tilesDir, level, x, cleanY);
         
         console.log(`Tile gerado: ${generatedPath}`);

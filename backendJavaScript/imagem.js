@@ -109,7 +109,6 @@ class Imagem {
             }
         }
 
-        // Remove o diretório original se for diferente do final
         if (mrxsDir !== pastaFinal && await fs.pathExists(mrxsDir)) {
             await fs.remove(mrxsDir);
         }
@@ -191,7 +190,6 @@ class Imagem {
                     const generatedPath = stdout.split('TILE_PATH:')[1].trim();
                     console.log('Tile path extraido: ' + generatedPath);
                     
-                    // ✅ CORREÇÃO: Converte caminho absoluto para relativo
                     const baseDir = process.cwd();
                     let relativePath = generatedPath;
                     
@@ -200,7 +198,6 @@ class Imagem {
                         console.log('Caminho convertido para relativo: ' + relativePath);
                     }
                     
-                    // ✅ CORREÇÃO: Usa caminhos com / em vez de \
                     relativePath = relativePath.replace(/\\/g, '/');
                     console.log('Caminho final: ' + relativePath);
                     
