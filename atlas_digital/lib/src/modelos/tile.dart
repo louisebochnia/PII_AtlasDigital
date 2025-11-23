@@ -7,7 +7,7 @@ class TileInfo {
   final int y;
   final String? url;
 
-  TileInfo({
+  const TileInfo({
     required this.level,
     required this.x,
     required this.y,
@@ -24,7 +24,7 @@ class TileLayer {
   final int tileSize;
   final double scale;
 
-  TileLayer({
+  const TileLayer({
     required this.level,
     required this.width,
     required this.height,

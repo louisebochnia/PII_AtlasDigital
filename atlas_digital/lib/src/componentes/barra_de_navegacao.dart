@@ -3,8 +3,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:provider/provider.dart'; 
 import '../../temas.dart';
-import '../componentes/sub_componentes/popup_login.dart';
-import '../telas/painelAdm.dart';
 import '../estado/estado_usuario.dart'; 
 
 class TopNavBar extends StatelessWidget implements PreferredSizeWidget {

@@ -212,7 +212,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                 ),
                                 const SizedBox(height: 6),
                                 DropdownButtonFormField<String>(
-                                  value: topicoSelecionado,
+                                  initialValue: topicoSelecionado,
                                   isExpanded:
                                       true, // Importante para telas pequenas
                                   decoration: InputDecoration(
@@ -235,7 +235,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                         value: value,
                                         child: Text(value),
                                       );
-                                    }).toList(),
+                                    }),
                                   ],
                                   onChanged: (String? newValue) {
                                     setStateDialog(() {
@@ -263,7 +263,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                 ),
                                 const SizedBox(height: 6),
                                 DropdownButtonFormField<String>(
-                                  value: subtopicoSelecionado,
+                                  initialValue: subtopicoSelecionado,
                                   isExpanded:
                                       true, // Importante para telas pequenas
                                   decoration: InputDecoration(
@@ -301,7 +301,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                               value: value,
                                               child: Text(value),
                                             );
-                                          }).toList(),
+                                          }),
                                         ],
                                   onChanged:
                                       topicoSelecionado == null ||
@@ -336,7 +336,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
-                                    value: topicoSelecionado,
+                                    initialValue: topicoSelecionado,
                                     decoration: InputDecoration(
                                       hintText: 'Selecione o tópico',
                                       border: OutlineInputBorder(
@@ -358,7 +358,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                           value: value,
                                           child: Text(value),
                                         );
-                                      }).toList(),
+                                      }),
                                     ],
                                     onChanged: (String? newValue) {
                                       setStateDialog(() {
@@ -388,7 +388,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
-                                    value: subtopicoSelecionado,
+                                    initialValue: subtopicoSelecionado,
                                     decoration: InputDecoration(
                                       hintText: topicoSelecionado == null
                                           ? 'Selecione primeiro o tópico'
@@ -425,7 +425,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                                 value: value,
                                                 child: Text(value),
                                               );
-                                            }).toList(),
+                                            }),
                                           ],
                                     onChanged:
                                         topicoSelecionado == null ||
@@ -581,7 +581,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
 
   // CÓDIGO PARA ENVIAR AS INFORMAÇÕES PARA O BACKEND
   Future<void> salvarImagem() async {
-    final uri = '${protocolo}${baseURL}/images';
+    final uri = '$protocolo$baseURL/images';
 
     final uploadState = widget.uploadState;
 
@@ -754,7 +754,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
 
       final imagemOriginal = estadoImagem.imagens[index];
 
-      final imagemAlterada = new Imagem(
+      final imagemAlterada = Imagem(
         id: imagemOriginal.id,
         nome_arquivo: imagemOriginal.nome_arquivo,
         nome_imagem: nomeController.text,

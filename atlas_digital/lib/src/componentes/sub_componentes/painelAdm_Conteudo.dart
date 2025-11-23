@@ -43,7 +43,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
 
     // Preencher informações existentes se estiver editando
     if (isEditando) {
-      for (var informacao in subtopicoExistente!.informacoes) {
+      for (var informacao in subtopicoExistente.informacoes) {
         informacoesControllers.add(
           TextEditingController(text: informacao.informacao),
         );
@@ -264,7 +264,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
 
                           if (isEditando) {
                             final subtopicoAtualizado = Subtopico(
-                              id: subtopicoExistente!.id,
+                              id: subtopicoExistente.id,
                               indice: indiceNumero,
                               titulo: titulo,
                               topicoId: topicoId,

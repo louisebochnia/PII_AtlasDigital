@@ -8,13 +8,12 @@ import 'src/telas/pagina_conteudo.dart';
 import 'src/telas/pagina_galeria.dart';
 import 'src/estado/estado_estatisticas.dart';
 import 'src/estado/estado_usuario.dart';
-import 'src/telas/painelAdm.dart'; 
+import 'src/telas/painelAdm.dart';
 import 'src/telas/pagina_termosUso.dart';
 
 //button de login aparece só em desktop/web
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
-import 'package:flutter/material.dart';
 
 bool get isDesktopOrWeb {
   if (kIsWeb) return true;
@@ -31,8 +30,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _index = 0;
   bool _visitaRegistrada = false;
-  Widget?
-  _paginaEspecial; // Para controlar páginas como Termos de Uso e de Direito de Imagem
+  Widget? _paginaEspecial;
 
   final List<Widget> _pages = [
     const PaginaInicial(),
@@ -63,14 +61,12 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
-  // Função para navegar para páginas especiais (como Termos de Uso)
   void _navegarParaPaginaEspecial(Widget pagina) {
     setState(() {
       _paginaEspecial = pagina;
     });
   }
 
-  // Função para voltar para a navegação normal
   void _voltarParaNavegacaoNormal() {
     setState(() {
       _paginaEspecial = null;
@@ -80,34 +76,33 @@ class _AppShellState extends State<AppShell> {
   void _irParaAreaAdmin(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => PainelAdm()), 
+      MaterialPageRoute(builder: (context) => const PainelAdm()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize( 
+      appBar: PreferredSize(
         preferredSize: const Size.fromHeight(72),
         child: Consumer<EstadoUsuario>(
           builder: (context, estadoUsuario, child) {
             return TopNavBar(
               selectedIndex: _paginaEspecial == null ? _index : 0,
               onItemTap: _paginaEspecial == null
-            ? (i) => setState(() => _index = i)
-            : (i) =>
-                  _voltarParaNavegacaoNormal(), // Volta ao clicar em qualquer item
+                  ? (i) => setState(() => _index = i)
+                  : (i) => _voltarParaNavegacaoNormal(),
               onAtlas: () {
                 debugPrint('Acessar ATLAS');
               },
-              onLogin: estadoUsuario.estaLogado 
+              onLogin: estadoUsuario.estaLogado
                   ? () => _irParaAreaAdmin(context)
                   : () {
                       showDialog(
                         context: context,
                         barrierDismissible: true,
                         builder: (BuildContext context) {
-                          return const LoginPopup(); 
+                          return const LoginPopup();
                         },
                       );
                     },
@@ -115,52 +110,61 @@ class _AppShellState extends State<AppShell> {
           },
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
-          // Conteúdo principal - mostra página especial ou páginas normais
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child:
-                _paginaEspecial ??
-                IndexedStack(index: _index, children: _pages),
-          ),
+      body: _buildBody(),
+    );
+  }
 
-          // Rodapé - SEMPRE visível, mesmo na página especial
-          SliverToBoxAdapter(
-            child: Rodape(
-              logoAsset: 'assets/logo_fmabc.png',
-              colunas: const [
-                FooterColumnData(
-                  titulo: 'Coluna 1',
-                  itens: [
-                    FooterItem('Sobre o Atlas'),
-                    FooterItem('Equipe'),
-                    FooterItem('Política de privacidade'),
-                    FooterItem('Termos de uso'),
-                  ],
-                ),
-                FooterColumnData(
-                  titulo: 'Coluna 2',
-                  itens: [
-                    FooterItem('Tutorial de uso'),
-                    FooterItem('Perguntas frequentes'),
-                    FooterItem('Contato'),
-                    FooterItem('Acessibilidade'),
-                  ],
-                ),
-              ],
-              endereco:
-                  'Sede: Av. Príncipe de Gales, 821 –   Bairro Príncipe de Gales – Santo André, SP –  CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes,  2000 – Vila Sacadura Cabral – Santo André / SP   – CEP: 09060-870 (Portaria 2) Telefone: (11)  4993-5400',
-              site: 'www.fmabc.br',
-              onTermosUso: _paginaEspecial == null
-                  ? (context) {
-                      _navegarParaPaginaEspecial(const PaginaTermosUso());
-                    }
-                  : null, // Desativa o clique se já estiver na página especial
-            ),
+  Widget _buildBody() {
+    // Se temos uma página especial, mostra ela
+    if (_paginaEspecial != null) {
+      return _buildCustomScrollView(_paginaEspecial!);
+    }
+
+    // Senão, mostra a página normal baseada no índice
+    return _buildCustomScrollView(_pages[_index]);
+  }
+
+  Widget _buildCustomScrollView(Widget conteudo) {
+    return CustomScrollView(
+      slivers: [
+        // Conteúdo principal
+        SliverToBoxAdapter(child: conteudo),
+
+        // Rodapé
+        SliverToBoxAdapter(
+          child: Rodape(
+            logoAsset: 'assets/logo_fmabc.png',
+            colunas: const [
+              FooterColumnData(
+                titulo: 'Coluna 1',
+                itens: [
+                  FooterItem('Sobre o Atlas'),
+                  FooterItem('Equipe'),
+                  FooterItem('Política de privacidade'),
+                  FooterItem('Termos de uso'),
+                ],
+              ),
+              FooterColumnData(
+                titulo: 'Coluna 2',
+                itens: [
+                  FooterItem('Tutorial de uso'),
+                  FooterItem('Perguntas frequentes'),
+                  FooterItem('Contato'),
+                  FooterItem('Acessibilidade'),
+                ],
+              ),
+            ],
+            endereco:
+                'Sede: Av. Príncipe de Gales, 821 –   Bairro Príncipe de Gales – Santo André, SP –  CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes,  2000 – Vila Sacadura Cabral – Santo André / SP   – CEP: 09060-870 (Portaria 2) Telefone: (11)  4993-5400',
+            site: 'www.fmabc.br',
+            onTermosUso: _paginaEspecial == null
+                ? (context) {
+                    _navegarParaPaginaEspecial(const PaginaTermosUso());
+                  }
+                : null,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

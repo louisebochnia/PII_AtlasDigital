@@ -205,7 +205,7 @@ class _AdministradoresPageState extends State<AdministradoresPage> {
                     try {
                       if (isEditando) {
                         // Editar administrador existente
-                        final usuarioAtualizado = usuario!.copyWith(
+                        final usuarioAtualizado = usuario.copyWith(
                           email: email,
                           tipo: tipoSelecionado!,
                         );

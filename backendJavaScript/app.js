@@ -473,9 +473,9 @@ app.get('/:imageId/meta.json', async (req, res) => {
 app.get('/tiles/:imageId/:level/:x/:y', async (req, res) => {
     try {
         const { imageId, level, x, y } = req.params;
-        const imagem
-        const tilesDir = imagem.
-        const tilePath = path.join(tilesDir, `level_${level}`, `${x}_${y}.jpg`);
+        //const imagem
+        // const tilesDir = imagem.
+        // const tilePath = path.join(tilesDir, `level_${level}`, `${x}_${y}.jpg`);
         
         console.log(`🔍 Buscando tile: ${tilePath}`);
         
