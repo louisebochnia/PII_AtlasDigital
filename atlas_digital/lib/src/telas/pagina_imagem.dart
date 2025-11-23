@@ -10,13 +10,13 @@ class PaginaImagem extends StatelessWidget {
   final String? thumbnailUrl;
 
   const PaginaImagem({
-    Key? key,
+    super.key,
     required this.imagemId,
     required this.nomeImagem,
     required this.topico,
     required this.subtopico,
     this.thumbnailUrl,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

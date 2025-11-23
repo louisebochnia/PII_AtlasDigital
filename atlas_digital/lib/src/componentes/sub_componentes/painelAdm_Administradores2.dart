@@ -56,7 +56,7 @@ class _AdministradoresPageState extends State<AdministradoresPage> {
     );
     final senhaController = TextEditingController();
     String? tipoSelecionado = isEditando ? usuario.tipo : TiposUsuario.subadmin;
-    bool mostrarSenha = false; 
+    bool mostrarSenha = false;
 
     showDialog(
       context: context,
@@ -89,8 +89,7 @@ class _AdministradoresPageState extends State<AdministradoresPage> {
                     if (!isEditando) ...[
                       TextField(
                         controller: senhaController,
-                        obscureText:
-                            !mostrarSenha, 
+                        obscureText: !mostrarSenha,
                         style: const TextStyle(fontFamily: "Arial"),
                         decoration: InputDecoration(
                           labelText: "Senha",
@@ -206,7 +205,7 @@ class _AdministradoresPageState extends State<AdministradoresPage> {
                     try {
                       if (isEditando) {
                         // Editar administrador existente
-                        final usuarioAtualizado = usuario!.copyWith(
+                        final usuarioAtualizado = usuario.copyWith(
                           email: email,
                           tipo: tipoSelecionado!,
                         );
@@ -308,10 +307,29 @@ class _AdministradoresPageState extends State<AdministradoresPage> {
               style: TextStyle(fontFamily: "Arial"),
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Deletar", style: TextStyle(fontFamily: "Arial")),
+          StatefulBuilder(
+            builder: (context, setState) {
+              bool isHovered = false;
+
+              return MouseRegion(
+                onEnter: (_) => setState(() => isHovered = true),
+                onExit: (_) => setState(() => isHovered = false),
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.red, 
+                  ),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text(
+                    "Deletar",
+                    style: TextStyle(
+                      fontFamily: "Arial",
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 node_modules/
 package-lock.json
 uploads/
+.vscode
 
 # Miscellaneous
 *.class
@@ -44,7 +45,6 @@ app.*.symbols
 app.*.map.json
 
 # Android, ios, linux e macos
-atlas_digital/android
 atlas_digital/ios
 atlas_digital/linux
 atlas_digital/macos

@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../temas.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
+import 'package:flutter/material.dart';
+
+bool get isDesktopOrWeb {
+  if (kIsWeb) return true;
+  return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+}
 
 class Rodape extends StatelessWidget {
-  final VoidCallback? onFaq;
   final List<FooterColumnData> colunas;
   final String endereco;
   final String site;
   final String logoAsset;
   final double borderRadius;
+  final Function(BuildContext)? onTermosUso;
 
   const Rodape({
     super.key,
-    this.onFaq,
     required this.colunas,
     required this.endereco,
     required this.site,
     required this.logoAsset,
     this.borderRadius = 22,
+    this.onTermosUso,
   });
 
   @override
@@ -44,7 +52,12 @@ class Rodape extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 2000),
             child: Padding(
               // Aplica a margem de 80px (Desktop) ou 20px (Mobile)
-              padding: EdgeInsets.fromLTRB(horizontalPadding, 40, horizontalPadding, 20),
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                40,
+                horizontalPadding,
+                20,
+              ),
               child: LayoutBuilder(
                 builder: (context, c) {
                   final isNarrow = c.maxWidth < 900;
@@ -54,15 +67,15 @@ class Rodape extends StatelessWidget {
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _Topo(
-                              logoAsset: logoAsset,
-                              onFaq: onFaq,
-                              showFaqRight: false,
-                            ),
+                            _Topo(logoAsset: logoAsset),
                             const SizedBox(height: 20),
                             _RedesSociais(),
                             const SizedBox(height: 20),
-                            _ColunasLinks(colunas: colunas, compact: isVeryNarrow),
+                            _ColunasLinks(
+                              colunas: colunas,
+                              compact: isVeryNarrow,
+                              onTermosUso: onTermosUso,
+                            ),
                           ],
                         )
                       : Row(
@@ -74,11 +87,7 @@ class Rodape extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _Topo(
-                                    logoAsset: logoAsset,
-                                    onFaq: onFaq,
-                                    showFaqRight: true,
-                                  ),
+                                  _Topo(logoAsset: logoAsset),
                                   const SizedBox(height: 20),
                                   _RedesSociais(),
                                 ],
@@ -90,7 +99,10 @@ class Rodape extends StatelessWidget {
                             // colunas de links
                             Expanded(
                               flex: 6,
-                              child: _ColunasLinks(colunas: colunas),
+                              child: _ColunasLinks(
+                                colunas: colunas,
+                                onTermosUso: onTermosUso,
+                              ),
                             ),
                           ],
                         );
@@ -98,10 +110,22 @@ class Rodape extends StatelessWidget {
                   return Column(
                     children: [
                       main,
-                      const SizedBox(height: 40),
-                      const Divider(height: 1, color: Color(0x14000000)),
                       const SizedBox(height: 20),
+                      const Divider(height: 1, color: Color(0x14000000)),
+                      const SizedBox(height: 10),
                       _RodapeLegal(endereco: endereco, site: site),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Ao acessar o conteúdo, você automaticamente concorda com os Termos e Condições de Uso',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      // Espaço a mais no final para dispositivos mobile
+                      if (!isDesktopOrWeb) const SizedBox(height: 50),
                     ],
                   );
                 },
@@ -116,42 +140,19 @@ class Rodape extends StatelessWidget {
 
 class _Topo extends StatelessWidget {
   final String logoAsset;
-  final VoidCallback? onFaq;
-  final bool showFaqRight;
 
-  const _Topo({
-    required this.logoAsset,
-    required this.onFaq,
-    required this.showFaqRight,
-  });
+  const _Topo({required this.logoAsset});
 
   @override
   Widget build(BuildContext context) {
     final logo = Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(logoAsset, height: 54),
-        const SizedBox(width: 12),
-      ],
-    );
-
-    final faqButton = FilledButton(
-      onPressed: onFaq,
-      style: FilledButton.styleFrom(
-        backgroundColor: AppColors.brandGreen,
-        foregroundColor: AppColors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-        shape: const StadiumBorder(),
-      ),
-      child: const Text('FAQ', style: TextStyle(fontWeight: FontWeight.w900)),
+      children: [Image.asset(logoAsset, height: 54), const SizedBox(width: 12)],
     );
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: logo),
-        if (showFaqRight) faqButton,
-      ],
+      children: [Expanded(child: logo)],
     );
   }
 }
@@ -178,11 +179,7 @@ class _RedesSociais extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 14,
-          runSpacing: 8,
-          children: icons,
-        ),
+        Wrap(spacing: 14, runSpacing: 8, children: icons),
       ],
     );
   }
@@ -202,11 +199,7 @@ class _SocialIcon extends StatelessWidget {
   final String tooltip;
   final VoidCallback? onTap;
 
-  const _SocialIcon({
-    required this.icon,
-    required this.tooltip,
-    this.onTap,
-  });
+  const _SocialIcon({required this.icon, required this.tooltip, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -232,40 +225,49 @@ class _SocialIcon extends StatelessWidget {
 class _ColunasLinks extends StatelessWidget {
   final List<FooterColumnData> colunas;
   final bool compact;
+  final Function(BuildContext)? onTermosUso;
 
-  const _ColunasLinks({required this.colunas, this.compact = false});
+  const _ColunasLinks({
+    required this.colunas,
+    this.compact = false,
+    this.onTermosUso,
+  });
 
   @override
   Widget build(BuildContext context) {
     final children = colunas
-        .map((c) => _FooterColumn(title: c.titulo, items: c.itens))
+        .map(
+          (c) => _FooterColumn(
+            title: c.titulo,
+            items: c.itens,
+            onTermosUso: onTermosUso,
+          ),
+        )
         .toList();
 
     if (compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final w in children) ...[
-            w,
-            const SizedBox(height: 16),
-          ]
+          for (final w in children) ...[w, const SizedBox(height: 16)],
         ],
       );
     }
 
-    return Wrap(
-      spacing: 32,
-      runSpacing: 8,
-      children: children,
-    );
+    return Wrap(spacing: 32, runSpacing: 8, children: children);
   }
 }
 
 class _FooterColumn extends StatelessWidget {
   final String title;
   final List<FooterItem> items;
+  final Function(BuildContext)? onTermosUso;
 
-  const _FooterColumn({required this.title, required this.items});
+  const _FooterColumn({
+    required this.title,
+    required this.items,
+    this.onTermosUso,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -289,16 +291,41 @@ class _FooterColumn extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: InkWell(
-                onTap: item.onTap,
+                onTap: () {
+                  // Se for "Termos de uso" e o callback estiver disponível
+                  if (item.label == 'Termos de uso' && onTermosUso != null) {
+                    onTermosUso!(context);
+                  } else if (item.onTap != null) {
+                    item.onTap!();
+                  }
+                },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (item.icon != null)
                       Padding(
                         padding: const EdgeInsets.only(right: 6),
-                        child: Icon(item.icon, size: 18, color: AppColors.textPrimary),
+                        child: Icon(
+                          item.icon,
+                          size: 18,
+                          color:
+                              onTermosUso == null &&
+                                  item.label == 'Termos de uso'
+                              ? Colors
+                                    .grey // Cor cinza quando desativado
+                              : AppColors.textPrimary,
+                        ),
                       ),
-                    Text(item.label, style: textStyle),
+                    Text(
+                      item.label,
+                      style: textStyle?.copyWith(
+                        color:
+                            onTermosUso == null && item.label == 'Termos de uso'
+                            ? Colors
+                                  .grey // Cor cinza quando desativado
+                            : textStyle.color,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -322,10 +349,7 @@ class _RodapeLegal extends StatelessWidget {
         Text(
           endereco,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF1E7A3A),
-          ),
+          style: const TextStyle(fontSize: 12, color: Color(0xFF1E7A3A)),
         ),
         const SizedBox(height: 4),
         InkWell(
@@ -348,6 +372,7 @@ class _RodapeLegal extends StatelessWidget {
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       formattedUrl = 'https://$url';
     }
+
     final uri = Uri.parse(formattedUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

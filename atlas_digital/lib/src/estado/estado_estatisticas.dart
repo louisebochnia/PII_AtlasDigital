@@ -5,6 +5,7 @@ class EstadoEstatisticas with ChangeNotifier {
   Map<String, dynamic>? _estatisticas;
   bool _carregando = false;
   String? _erro;
+  bool _disposed = false;
 
   Map<String, dynamic>? get estatisticas => _estatisticas;
   bool get carregando => _carregando;
@@ -13,30 +14,29 @@ class EstadoEstatisticas with ChangeNotifier {
   // Registrar visita
   Future<void> registrarVisita({String? userId, String? pagina}) async {
     try {
-      print('--Iniciando registro de visita...');
-      
+      print(' [REGISTRO] Iniciando registro de visita...');
+      print(' [REGISTRO] User: $userId, Página: $pagina');
+
       final sucesso = await ServicoEstatisticas.registrarVisita(
-        userId: userId, 
-        pagina: pagina
+        userId: userId,
+        pagina: pagina,
       );
-      
+
       if (sucesso) {
-        print(' Visita registrada no servidor, aguardando para atualizar...');
-        
-        //Aguardar um pouco e depois atualizar
+        print(' [REGISTRO] Visita registrada COM SUCESSO!');
+
         await Future.delayed(const Duration(milliseconds: 800));
-        
-        // Recarregar estatísticas atualizadas
         await carregarEstatisticas();
-        
-        print('Estatísticas atualizadas após visita');
+
+        print(' [REGISTRO] Estatísticas atualizadas após visita');
       } else {
+        print(' [REGISTRO] Falha ao registrar visita');
         _erro = 'Falha ao registrar visita no servidor';
         _scheduleNotifyListeners();
       }
     } catch (error) {
+      print(' [REGISTRO] Erro: $error');
       _erro = 'Erro ao registrar visita: $error';
-      print('Erro ao registrar visita: $error');
       _scheduleNotifyListeners();
     }
   }
@@ -48,13 +48,28 @@ class EstadoEstatisticas with ChangeNotifier {
     _scheduleNotifyListeners();
 
     try {
-      print('Buscando estatísticas atualizadas...');
+      print(' [ESTADO] Buscando estatísticas atualizadas...');
       _estatisticas = await ServicoEstatisticas.buscarEstatisticas();
       _erro = null;
-      print('Estatísticas carregadas: ${_estatisticas?['totalAcessos']} acessos');
+
+      // DEBUG DETALHADO
+      print(' [ESTADO] Estatísticas carregadas!');
+      print(' [ESTADO] Total de acessos: ${_estatisticas?['totalAcessos']}');
+
+      final acessosPorDia = _estatisticas?['acessosPorDia'] ?? {};
+      print(' [ESTADO] Dias com dados: ${acessosPorDia.length}');
+      print(' [ESTADO] Estrutura acessosPorDia: $acessosPorDia');
+
+      // Verifica se tem dados de HOJE
+      final DateTime agora = DateTime.now();
+      final String hojeStr =
+          '${agora.year}-${agora.month.toString().padLeft(2, '0')}-${agora.day.toString().padLeft(2, '0')}';
+      print(
+        ' [ESTADO] Tem dados de hoje ($hojeStr)? ${acessosPorDia.containsKey(hojeStr)}',
+      );
     } catch (e) {
       _erro = 'Erro ao carregar estatísticas: $e';
-      print('Erro ao carregar estatísticas: $e');
+      print(' [ESTADO] Erro ao carregar estatísticas: $e');
     } finally {
       _carregando = false;
       _scheduleNotifyListeners();
@@ -63,11 +78,27 @@ class EstadoEstatisticas with ChangeNotifier {
 
   // Evitar conflito de notificação durante build
   void _scheduleNotifyListeners() {
-    Future.microtask(() => notifyListeners());
+    if (!_disposed) {
+      Future.microtask(() {
+        if (!_disposed) {
+          notifyListeners();
+        }
+      });
+    }
   }
+
+   @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  
 
   void limparErro() {
     _erro = null;
     _scheduleNotifyListeners();
   }
 }
+
+

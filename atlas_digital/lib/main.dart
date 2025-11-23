@@ -1,5 +1,4 @@
 import 'package:atlas_digital/app_shell.dart';
-import 'package:atlas_digital/src/telas/pagina_capitulo.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'temas.dart';
@@ -10,7 +9,13 @@ import 'src/estado/estado_estatisticas.dart';
 import 'src/estado/estado_imagem.dart';
 import 'src/estado/estado_usuario.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+
+  final estadoUsuario = EstadoUsuario();
+  await estadoUsuario.carregarDadosSalvos();
+
   runApp(
     MultiProvider(
       providers: [
@@ -25,7 +30,6 @@ void main() {
   );
 }
 
-
 class AtlasApp extends StatelessWidget {
   const AtlasApp({super.key});
 
@@ -35,9 +39,16 @@ class AtlasApp extends StatelessWidget {
       title: 'Atlas Digital',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: const AppShell(),
-      // home: const PainelAdm(),
-      // home: const telaCapitulo(),
+      home: Consumer<EstadoUsuario>(
+        builder: (context, estadoUsuario, child) {
+          // Se estiver logado, vai direto para o PainelAdm
+          if (estadoUsuario.estaLogado) {
+            return const PainelAdm();
+          }
+          // Se não estiver logado, vai para o AppShell (site normal)
+          return const AppShell();
+        },
+      ),
     );
   }
 }
