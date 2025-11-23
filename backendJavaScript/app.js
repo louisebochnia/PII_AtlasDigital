@@ -392,9 +392,9 @@ app.post('/images', upload.single('imagem'), async (req, res) => {
 });
 
 app.get('/images', async (req, res) => {
-  try{
+  try {
     dadosImagens = await ImagemModel.find();
-    res.status(200).json(dadosImagens); 
+    res.status(200).json(dadosImagens);
   } catch (erro) {
     res.status(500).json({ message: erro.message });
   }
@@ -418,15 +418,15 @@ app.delete('/images/:id', async (req, res) => {
     }
     else {
       if (fs.existsSync(imagem.enderecoPastaMrxs)) {
-        fs.rmSync(imagem.enderecoPastaMrxs, {recursive: true, force: true});
+        fs.rmSync(imagem.enderecoPastaMrxs, { recursive: true, force: true });
       }
 
       if (imagem.enderecoThumbnail && fs.existsSync(imagem.enderecoThumbnail)) {
         fs.unlinkSync(imagem.enderecoThumbnail);
       }
 
-      if (imagem.enderecoTiles && fs.existsSync(imagem.enderecoTiles)){
-        fs.rmSync(imagem.enderecoTiles, {recursive: true, force: true});
+      if (imagem.enderecoTiles && fs.existsSync(imagem.enderecoTiles)) {
+        fs.rmSync(imagem.enderecoTiles, { recursive: true, force: true });
       }
 
       await ImagemModel.findByIdAndDelete(imagem.id);
@@ -444,20 +444,147 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // FIM CRUD DE IMAGENS! ------------------------------------------------------------------
 
+// CÓDIGO PARA EXIBIR OS TILES -----------------------------------------------------------
+
+// Código para pegar os metadados da imagem
+app.get('/:imageId/meta.json', async (req, res) => {
+    try {
+        const { imageId } = req.params;
+        const tilesDir = path.join('uploads', 'tiles', imageId);
+        const metaPath = path.join(tilesDir, 'meta.json');
+        
+        console.log(`Buscando metadados: ${metaPath}`);
+        
+        if (await fs.pathExists(metaPath)) {
+            const meta = await fs.readJson(metaPath);
+            console.log('Metadados encontrados:', Object.keys(meta.level_metas || {}).length, 'níveis');
+            res.json(meta);
+        } else {
+            console.log('Metadados não encontrados');
+            res.status(404).json({ error: 'Metadados não encontrados' });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar metadados:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Código para os tiles
+app.get('/tiles/:imageId/:level/:x/:y', async (req, res) => {
+    try {
+        const { imageId, level, x, y } = req.params;
+        const imagem
+        const tilesDir = imagem.
+        const tilePath = path.join(tilesDir, `level_${level}`, `${x}_${y}.jpg`);
+        
+        console.log(`🔍 Buscando tile: ${tilePath}`);
+        
+        // Se o tile já existe, serve diretamente
+        if (await fs.existsSync(tilePath)) {
+            console.log('Tile pré-gerado encontrado');
+            res.sendFile(path.resolve(tilePath));
+            return;
+        }
+        
+        // Se não existe, gera sob demanda
+        console.log('Tile não encontrado, gerando sob demanda...');
+        const mrxsPath = path.join('uploads', 'images', imageId, `${imageId}.mrxs`);
+        
+        if (fs.existsSync(mrxsPath)) {
+            console.log('Arquivo MRXS não encontrado:', mrxsPath);
+            return res.status(404).json({ error: 'Imagem MRXS não encontrada' });
+        }
+        
+        console.log(`Chamando Python para gerar tile: level=${level}, x=${x}, y=${y}`);
+        
+        // Chama o Python para gerar o tile
+        const pythonProcess = spawn('python', [
+            'python/gerar_tiles.py',
+            'tile',
+            mrxsPath,
+            tilesDir,
+            level,
+            x,
+            y
+        ]);
+        
+        let tileOutput = '';
+        let errorOutput = '';
+
+        pythonProcess.stdout.on('data', (data) => {
+            tileOutput += data.toString();
+        });
+        
+        pythonProcess.stderr.on('data', (data) => {
+            errorOutput += data.toString();
+            console.error('Erro Python:', data.toString());
+        });
+        
+        pythonProcess.on('close', (code) => {
+            if (code === 0 && tileOutput.includes('TILE_PATH:')) {
+                const generatedPath = tileOutput.split('TILE_PATH:')[1].trim();
+                console.log('Tile gerado com sucesso:', generatedPath);
+                
+                if (fs.existsSync(generatedPath)) {
+                    res.sendFile(path.resolve(generatedPath));
+                } else {
+                    console.log('Arquivo gerado não encontrado:', generatedPath);
+                    res.status(500).json({ error: 'Falha ao gerar tile' });
+                }
+            } else {
+                console.log('Falha no processo Python. Código:', code);
+                console.log('Saída:', tileOutput);
+                console.log('Erros:', errorOutput);
+                res.status(500).json({ 
+                    error: 'Falha ao gerar tile',
+                    details: errorOutput 
+                });
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao processar tile:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Código para ver se uma imagem tem tiles
+app.get('/tiles/:imageId/status', async (req, res) => {
+    try {
+        const { imageId } = req.params;
+        const tilesDir = path.join('uploads', 'tiles', imageId);
+        const metaPath = path.join(tilesDir, 'meta.json');
+        
+        const exists = await fs.existsSync(metaPath);
+        res.json({ 
+            hasTiles: exists,
+            imageId: imageId
+        });
+        
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// FIM DO CÓDIGO PARA EXIBIR OS TILES ----------------------------------------------------
+
 // CRUD DE USUÁRIOS! ---------------------------------------------------------------------
 
 app.post('/signup', async (req, res) => {
   try {
     const email = req.body.email;
     const senha = req.body.senha;
-    const cargo = req.body.cargo
+    const cargo = req.body.cargo;
 
     if (!email.endsWith('@fmabc.net')) {
       return res.status(403).json({ message: 'Apenas e-mails @fmabc.net são permitidos.' });
     }
 
-    const senhaCriptografada = await bcrypt.hash(senha, 10);
-    const usuario = new Usuario({ email: email, senha: senhaCriptografada, cargo: cargo });
+    const usuario = new Usuario({ 
+      email: email, 
+      senha: senha, 
+      cargo: cargo 
+    });
 
     const respMongo = await usuario.save();
     console.log(respMongo)
@@ -477,7 +604,7 @@ app.post('/login', async (req, res) => {
     return res.status(401).json({ mensagem: "Email inválido!" });
   }
 
-  const senhaValida = await bcrypt.compare(senha, usuarioExiste.senha);
+  const senhaValida = (senha === usuarioExiste.senha); 
 
   if (!senhaValida) {
     return res.status(401).json({ mensagem: "Senha inválida!" });

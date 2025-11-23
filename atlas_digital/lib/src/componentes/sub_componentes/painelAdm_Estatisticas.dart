@@ -13,13 +13,27 @@ class EstatisticasPage extends StatefulWidget {
 }
 
 class _EstatisticasPageState extends State<EstatisticasPage> {
+  bool _isDisposed = false;
+
   @override
   void initState() {
     super.initState();
-    _carregarEstatisticas();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isDisposed) {
+        _carregarEstatisticas();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 
   void _carregarEstatisticas() {
+    if (_isDisposed) return;
+
     final estadoEstatisticas = Provider.of<EstadoEstatisticas>(
       context,
       listen: false,
@@ -41,6 +55,10 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
       ),
       body: Consumer<EstadoEstatisticas>(
         builder: (context, estadoEstatisticas, child) {
+          if (!mounted) {
+            return const SizedBox.shrink();
+          }
+
           if (estadoEstatisticas.carregando) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.brandGreen),
@@ -72,17 +90,18 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
 
           final estatisticas = estadoEstatisticas.estatisticas!;
           final int totalAcessos = estatisticas['totalAcessos'] ?? 0;
+          final acessosPorDia = estatisticas['acessosPorDia'] ?? {};
+
           final List<double> dailyData =
-              ServicoEstatisticas.prepararDadosUltimos7Dias(
-                estatisticas['acessosPorDia'] ?? {},
-              );
+              ServicoEstatisticas.prepararDadosUltimos7Dias(acessosPorDia);
+          final List<String> dias = _gerarRotulosUltimos7Dias();
 
           return ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
               _buildTotalAcessosCard(totalAcessos),
               const SizedBox(height: 24),
-              _buildAcessosChart(dailyData),
+              _buildAcessosChart(dailyData, dias),
               const SizedBox(height: 24),
             ],
           );
@@ -121,16 +140,14 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
     );
   }
 
-  Widget _buildAcessosChart(List<double> dailyData) {
+  Widget _buildAcessosChart(List<double> dailyData, List<String> dias) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
 
-    //fica estranho, mas mudei pra apagar o retangulo
     final bool isVerySmallScreen = screenWidth < 800 || screenHeight < 800;
     final bool isSmallScreen = screenWidth < 400;
     final bool isMediumScreen = screenWidth < 600;
 
-    final List<String> dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
     final double maxY = dailyData.isNotEmpty
         ? dailyData.reduce((a, b) => a > b ? a : b).ceilToDouble()
         : 10.0;
@@ -191,8 +208,7 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
                             reservedSize: isVerySmallScreen
                                 ? 25
                                 : (isSmallScreen ? 30 : 40),
-                            interval:
-                                1,
+                            interval: 1,
                             getTitlesWidget: (value, meta) {
                               if (yAxisValues.contains(value)) {
                                 return Padding(
@@ -245,9 +261,7 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
                         ),
                       ),
                       barTouchData: BarTouchData(
-                        enabled:
-                            screenWidth >
-                            1000, // Só ativa em telas muito grandes
+                        enabled: screenWidth > 1000,
                         touchTooltipData: BarTouchTooltipData(
                           getTooltipColor: (group) => Colors.black87,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -291,38 +305,55 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
     );
   }
 
-  // FUNÇÃO CALCULAR EIXO Y DINAMICAMENTE --------------------------------------------------------------------
+  List<String> _gerarRotulosUltimos7Dias() {
+    final List<String> rotulos = [];
+    final DateTime agora = DateTime.now();
+    final DateTime hoje = DateTime(agora.year, agora.month, agora.day);
+    final List<String> nomesDias = [
+      'Seg',
+      'Ter',
+      'Qua',
+      'Qui',
+      'Sex',
+      'Sáb',
+      'Dom',
+    ];
+
+    for (int i = 6; i >= 0; i--) {
+      final DateTime data = hoje.subtract(Duration(days: i));
+      final String diaSemana = nomesDias[data.weekday - 1];
+      final String diaMes = data.day.toString();
+      rotulos.add('$diaSemana\n($diaMes)');
+    }
+
+    return rotulos;
+  }
+
   List<double> _calculateYAxisValues(double maxY) {
     final List<double> values = [];
 
     if (maxY <= 5) {
-      // Para valores muito pequenos
       for (double i = 0; i <= maxY; i += 1) {
         values.add(i);
       }
     } else if (maxY <= 10) {
-      // Para valores pequenos
       for (double i = 0; i <= maxY; i += 2) {
         values.add(i);
       }
     } else if (maxY <= 20) {
-      // Para valores médios
       for (double i = 0; i <= maxY; i += 5) {
         values.add(i);
       }
     } else if (maxY <= 50) {
-      // Para valores maiores
       for (double i = 0; i <= maxY; i += 10) {
         values.add(i);
       }
     } else {
-      // Para valores muito grandes
       for (double i = 0; i <= maxY; i += 25) {
         values.add(i);
       }
     }
 
-    // Garante que o valor máximo sempre apareça
     if (values.isEmpty || values.last < maxY) {
       values.add(maxY);
     }

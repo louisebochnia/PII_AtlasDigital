@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'src/componentes/barra_de_navegacao.dart';
+import 'src/componentes/rodape.dart';
+import 'src/componentes/sub_componentes/popup_login.dart';
 import 'src/telas/pagina_inicial.dart';
-import 'src/componentes/telaConteudo.dart';
+import 'src/telas/pagina_conteudo.dart';
 import 'src/telas/pagina_galeria.dart';
 import 'src/estado/estado_estatisticas.dart';
-import 'src/componentes/sub_componentes/popup_login.dart';
-import 'src/componentes/rodape.dart';
+import 'src/estado/estado_usuario.dart';
+import 'src/telas/painelAdm.dart'; 
 import 'src/telas/pagina_termosUso.dart';
 
 //button de login aparece só em desktop/web
@@ -28,11 +30,15 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
-  bool _visitaRegistrada = false; //EVITAR REGISTRAR MÚLTIPLAS VEZES---
+  bool _visitaRegistrada = false;
   Widget?
   _paginaEspecial; // Para controlar páginas como Termos de Uso e de Direito de Imagem
 
-  final _pages = const [PaginaInicial(), telaConteudo(), GalleryPage()];
+  final List<Widget> _pages = [
+    const PaginaInicial(),
+    const telaConteudo(),
+    const PaginaGaleria(),
+  ];
 
   @override
   void initState() {
@@ -42,14 +48,13 @@ class _AppShellState extends State<AppShell> {
 
   void _registrarVisitaApp() {
     if (!_visitaRegistrada) {
-      // USA Future.microtask PARA EVITAR ERROS DE CONTEXTO-------------
       Future.microtask(() {
         final estadoEstatisticas = Provider.of<EstadoEstatisticas>(
           context,
           listen: false,
         );
         estadoEstatisticas.registrarVisita(
-          userId: 'visitante_app', // SISTEMA DE USUÁRIO ---------------
+          userId: 'visitante_app',
           pagina: 'app_shell',
         );
         _visitaRegistrada = true;
@@ -72,21 +77,43 @@ class _AppShellState extends State<AppShell> {
     });
   }
 
+  void _irParaAreaAdmin(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => PainelAdm()), 
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavBar(
-        selectedIndex: _paginaEspecial == null ? _index : 0,
-        onItemTap: _paginaEspecial == null
+      appBar: PreferredSize( 
+        preferredSize: const Size.fromHeight(72),
+        child: Consumer<EstadoUsuario>(
+          builder: (context, estadoUsuario, child) {
+            return TopNavBar(
+              selectedIndex: _paginaEspecial == null ? _index : 0,
+              onItemTap: _paginaEspecial == null
             ? (i) => setState(() => _index = i)
             : (i) =>
                   _voltarParaNavegacaoNormal(), // Volta ao clicar em qualquer item
-        onAtlas: () {
-          debugPrint('Acessar ATLAS');
-        },
-        onLogin: () {
-          debugPrint('LOGIN');
-        },
+              onAtlas: () {
+                debugPrint('Acessar ATLAS');
+              },
+              onLogin: estadoUsuario.estaLogado 
+                  ? () => _irParaAreaAdmin(context)
+                  : () {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (BuildContext context) {
+                          return const LoginPopup(); 
+                        },
+                      );
+                    },
+            );
+          },
+        ),
       ),
       body: CustomScrollView(
         slivers: [

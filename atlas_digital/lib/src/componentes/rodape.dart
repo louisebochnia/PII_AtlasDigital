@@ -30,90 +30,108 @@ class Rodape extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // LÓGICA RESPONSIVA DE BORDA
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double horizontalPadding = screenWidth > 1000 ? 160 : 20;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
+      padding: const EdgeInsets.only(top: 24),
+      // Container Cinza que ocupa largura total
       child: Container(
+        width: double.infinity,
         decoration: BoxDecoration(
           color: const Color(0xFFF1F1F1), // fundo cinza claro do bloco
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(borderRadius),
+            topRight: Radius.circular(borderRadius),
+          ),
         ),
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final isNarrow = c.maxWidth < 900;
-            final isVeryNarrow = c.maxWidth < 620;
+        // Centraliza o conteúdo limitado a 1100px
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 2000),
+            child: Padding(
+              // Aplica a margem de 80px (Desktop) ou 20px (Mobile)
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                40,
+                horizontalPadding,
+                20,
+              ),
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final isNarrow = c.maxWidth < 900;
+                  final isVeryNarrow = c.maxWidth < 620;
 
-            final main = isNarrow
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _Topo(logoAsset: logoAsset),
-                      const SizedBox(height: 20),
-                      _RedesSociais(),
-                      const SizedBox(height: 20),
-                      _ColunasLinks(
-                        colunas: colunas,
-                        compact: isVeryNarrow,
-                        onTermosUso: onTermosUso,
-                      ),
-                    ],
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      //logo e redes sociais
-                      Expanded(
-                        flex: 5,
-                        child: Column(
+                  final main = isNarrow
+                      ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _Topo(logoAsset: logoAsset),
                             const SizedBox(height: 20),
                             _RedesSociais(),
+                            const SizedBox(height: 20),
+                            _ColunasLinks(
+                              colunas: colunas,
+                              compact: isVeryNarrow,
+                              onTermosUso: onTermosUso,
+                            ),
                           ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //logo e redes sociais
+                            Expanded(
+                              flex: 5,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _Topo(logoAsset: logoAsset),
+                                  const SizedBox(height: 20),
+                                  _RedesSociais(),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(width: 32),
+
+                            // colunas de links
+                            Expanded(
+                              flex: 6,
+                              child: _ColunasLinks(
+                                colunas: colunas,
+                                onTermosUso: onTermosUso,
+                              ),
+                            ),
+                          ],
+                        );
+
+                  return Column(
+                    children: [
+                      main,
+                      const SizedBox(height: 20),
+                      const Divider(height: 1, color: Color(0x14000000)),
+                      const SizedBox(height: 10),
+                      _RodapeLegal(endereco: endereco, site: site),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Ao acessar o conteúdo, você automaticamente concorda com os Termos e Condições de Uso',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                          fontStyle: FontStyle.italic,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-
-                      const SizedBox(width: 32),
-
-                      // colunas de links
-                      Expanded(
-                        flex: 6,
-                        child: _ColunasLinks(
-                          colunas: colunas,
-                          onTermosUso: onTermosUso,
-                        ),
-                      ),
-
-                      const SizedBox(width: 32),
-
-                      // bloco direito: CTA (apenas em telas largas – já aparece no topo)
-                      if (false) const SizedBox.shrink(),
+                      // Espaço a mais no final para dispositivos mobile
+                      if (!isDesktopOrWeb) const SizedBox(height: 50),
                     ],
                   );
-
-            return Column(
-              children: [
-                main,
-                const SizedBox(height: 20),
-                const Divider(height: 1, color: Color(0x14000000)),
-                const SizedBox(height: 10),
-                _RodapeLegal(endereco: endereco, site: site),
-                const SizedBox(height: 10),
-                Text(
-                  'Ao acessar o conteúdo, você automaticamente concorda com os Termos e Condições de Uso',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                // Espaço a mais no final para dispositivos mobile
-                if (!isDesktopOrWeb) const SizedBox(height: 50),
-              ],
-            );
-          },
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -142,7 +160,6 @@ class _Topo extends StatelessWidget {
 class _RedesSociais extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Ícones default do Material (você pode trocar por assets SVG/PNG)
     final icons = <Widget>[
       _SocialIcon(icon: Icons.photo_camera_outlined, tooltip: 'Instagram'),
       _SocialIcon(icon: Icons.facebook, tooltip: 'Facebook'),
@@ -332,10 +349,7 @@ class _RodapeLegal extends StatelessWidget {
         Text(
           endereco,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF1E7A3A), // verde do print
-          ),
+          style: const TextStyle(fontSize: 12, color: Color(0xFF1E7A3A)),
         ),
         const SizedBox(height: 4),
         InkWell(
@@ -354,7 +368,6 @@ class _RodapeLegal extends StatelessWidget {
   }
 
   Future<void> _launchSite(String url) async {
-    // Adiciona https:// se não tiver protocolo
     String formattedUrl = url;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       formattedUrl = 'https://$url';
@@ -369,11 +382,8 @@ class _RodapeLegal extends StatelessWidget {
   }
 }
 
-// -----------------------------
-// Tipos de dados do Rodapé
-// -----------------------------
 class FooterColumnData {
-  final String titulo; // não exibido (só para referência)
+  final String titulo;
   final List<FooterItem> itens;
   const FooterColumnData({required this.titulo, required this.itens});
 }

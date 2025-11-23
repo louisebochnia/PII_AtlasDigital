@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
+import 'package:provider/provider.dart'; 
 import '../../temas.dart';
-import 'sub_componentes/popup_login.dart';
+import '../componentes/sub_componentes/popup_login.dart';
+import '../telas/painelAdm.dart';
+import '../estado/estado_usuario.dart'; 
 
 class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final int selectedIndex;
   final ValueChanged<int> onItemTap;
   final VoidCallback onAtlas;
-  final VoidCallback onLogin;
+  final VoidCallback? onLogin;
 
   const TopNavBar({
     super.key,
     required this.selectedIndex,
     required this.onItemTap,
     required this.onAtlas,
-    required this.onLogin,
+    this.onLogin,
   });
 
   @override
@@ -29,6 +32,7 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final estadoUsuario = Provider.of<EstadoUsuario>(context); 
     final items = const ['Início', 'Conteúdo', 'Galeria'];
 
     return Material(
@@ -41,15 +45,15 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // ---- LOGO ----
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/logo_fmabc.png',
-                    height: 36,
-                  ),
-                  const SizedBox(width: 8),
-                ],
+              // LOGO
+              GestureDetector(
+                onTap: onAtlas,
+                child: Row(
+                  children: [
+                    Image.asset('assets/logo_fmabc.png', height: 36),
+                    const SizedBox(width: 8),
+                  ],
+                ),
               ),
 
               const SizedBox(width: 24),
@@ -81,14 +85,14 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
               const Spacer(),
+              const SizedBox(width: 12),
 
-              // ---- BOTÃO "LOGIN" (só aparece no desktop/web) ----
-              if (isDesktopOrWeb) ...[
-                const SizedBox(width: 12),
+              //LOGIN ou ÁREA ADMINISTRATIVA
+              if (!estadoUsuario.estaLogado && isDesktopOrWeb)
                 FilledButton(
                   onPressed: onLogin,
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.brandGray90,
+                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
                     foregroundColor: AppColors.white,
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(
@@ -100,8 +104,24 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                     'LOGIN',
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
+                )
+              else
+                FilledButton(
+                  onPressed: onLogin,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+                    foregroundColor: AppColors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'ÁREA ADMINISTRATIVA',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
                 ),
-              ],
             ],
           ),
         ),
@@ -203,7 +223,6 @@ class _NavItemState extends State<_NavItem> {
               ),
             ),
             const SizedBox(height: 6),
-            // Sublinhado amarelo
             AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               curve: Curves.easeOut,

@@ -81,22 +81,29 @@ class ServicoEstatisticas {
     }
   }
 
-  // Helper para dados dos últimos 7 dias (opcional)
+  // Helper para dados dos últimos 7 dias
   static List<double> prepararDadosUltimos7Dias(
     Map<String, dynamic> acessosPorDia,
   ) {
-    final List<double> dailyData = List.filled(7, 0.0);
-    final hoje = DateTime.now();
+    final List<double> dailyData = [];
+    final DateTime agora = DateTime.now();
+    final DateTime hoje = DateTime(agora.year, agora.month, agora.day);
 
-    for (int i = 0; i < 7; i++) {
-      final data = DateTime(hoje.year, hoje.month, hoje.day - (6 - i));
-      final dataStr = _formatarData(data);
-      final acessos = acessosPorDia[dataStr] ?? 0;
-      dailyData[i] = (acessos is int)
-          ? acessos.toDouble()
-          : (acessos as num).toDouble();
+    for (int i = 6; i >= 0; i--) {
+      final DateTime data = hoje.subtract(Duration(days: i));
+      final String dataStr = _formatarData(data);
+      final dynamic acessos = acessosPorDia[dataStr] ?? 0;
+
+      dailyData.add(
+        (acessos is int) ? acessos.toDouble() : (acessos as num).toDouble(),
+      );
+
+      final bool ehHoje = data.day == hoje.day;
+      print(
+        '${6 - i + 1}. $dataStr = ${dailyData.last} ${ehHoje ? "← HOJE" : ""}',
+      );
     }
-
+    
     return dailyData;
   }
 

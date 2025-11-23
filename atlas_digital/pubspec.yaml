@@ -62,6 +62,9 @@ dev_dependencies:
 flutter:
   assets:
     - assets/logo_fmabc.png
+    - assets/foto_equipe.png
+    - assets/banner_texture.png
+    - assets/ilustracao_quiz.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

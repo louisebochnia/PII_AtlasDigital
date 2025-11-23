@@ -1,43 +1,171 @@
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import '../estado/estado_topicos.dart';
-// import '../estado/estado_estatisticas.dart';
-// import '../componentes/cartao_topico.dart';
+import 'package:flutter/material.dart';
+import '../componentes/sub_componentes/componenteTopicoshorizontais.dart';
 
-// class PaginaConteudo extends StatefulWidget {
-//   const PaginaConteudo({super.key});
+class telaConteudo extends StatefulWidget {
+  const telaConteudo({super.key});
 
-//   @override
-//   State<PaginaConteudo> createState() => _PaginaConteudoState();
-// }
+  @override
+  State<telaConteudo> createState() => _telaConteudoState();
+}
 
-// class _PaginaConteudoState extends State<PaginaConteudo> {
+class _telaConteudoState extends State<telaConteudo> {
+  // Simula buscar dados de um banco (poderia ser uma API real)
+  Future<List<Map<String, dynamic>>> buscarDadosDoBanco() async {
+    await Future.delayed(
+      const Duration(seconds: 2),
+    ); // simula o tempo da requisição
 
-//   @override
-//   void initState() {
-//     super.initState();
-   
-//   }
+    return [
+      {
+        "titulo": "Lugares Recomendados",
+        "descricao":
+            "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
+        "itens": [
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+        ],
+      },
+      {
+        "titulo": "Comidas Populares",
+        "descricao":
+            "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
+        "itens": [
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+          {
+            "url": "https://picsum.photos/300/200?1",
+            "titulo": "Montanha",
+            "capitulo": "01",
+          },
+        ],
+      },
+    ];
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final estado = context.watch<EstadoTopicos>();
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        margin: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Conteúdo',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.',
+              style: TextStyle(fontSize: 16, color: Colors.black),
+            ),
+            const SizedBox(height: 20),
 
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Conteúdos')),
-//       body: estado.topicos.isEmpty
-//           ? const Center(child: CircularProgressIndicator())
-//           : ListView.builder(
-//               padding: const EdgeInsets.all(16),
-//               itemCount: estado.topicos.length,
-//               itemBuilder: (context, i) {
-//                 final topico = estado.topicos[i];
-//                 return Padding(
-//                   padding: const EdgeInsets.only(bottom: 16),
-//                   child: CartaoTopico(topico: topico),
-//                 );
-//               },
-//             ),
-//     );
-//   }
-// }
+            // FutureBuilder que carrega as seções
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: buscarDadosDoBanco(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 50),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text("Erro ao carregar dados: ${snapshot.error}"),
+                  );
+                }
+
+                final secoes = snapshot.data ?? [];
+
+                return Column(
+                  children: secoes.map((secao) {
+                    return SecaoHorizontal(
+                      titulo: secao["titulo"],
+                      descricao: secao["descricao"],
+                      itens: List<Map<String, String>>.from(secao["itens"]),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

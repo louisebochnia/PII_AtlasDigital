@@ -1,6 +1,4 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:atlas_digital/src/componentes/painelAdm.dart';
+import 'package:atlas_digital/src/telas/painelAdm.dart';
 import 'package:atlas_digital/src/estado/estado_imagem.dart';
 import 'package:atlas_digital/src/estado/estado_subtopicos.dart';
 import 'package:atlas_digital/src/estado/estado_topicos.dart';
