@@ -7,6 +7,7 @@ import 'package:atlas_digital/src/componentes/sub_componentes/painelAdm_Galeria.
 import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../estado/estado_usuario.dart'; 
 
 // Classe para gerenciar o estado do upload globalmente
 class UploadState with ChangeNotifier {
@@ -76,11 +77,98 @@ class _PainelAdmState extends State<PainelAdm> {
     Icons.auto_graph_rounded,
   ];
 
+  //  FUNÇÃO DE LOGOUT
+  Future<void> _fazerLogout(BuildContext context) async {
+    final estadoUsuario = Provider.of<EstadoUsuario>(context, listen: false);
+    await estadoUsuario.logout();
+    
+    // Voltar para o AppShell (site normal)
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const AppShell()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _uploadState,
       child: Scaffold(
+        appBar: AppBar( //  APP BAR ADICIONADO COM LOGOUT
+          backgroundColor: AppColors.brandGreen,
+          foregroundColor: Colors.white,
+          title: const Text(
+            'Painel Administrativo',
+            style: TextStyle(
+              fontFamily: "Arial",
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            Consumer<EstadoUsuario>(
+              builder: (context, estadoUsuario, child) {
+                return PopupMenuButton<String>(
+                  icon: const Icon(Icons.account_circle, color: Colors.white),
+                  onSelected: (value) {
+                    if (value == 'logout') {
+                      _fazerLogout(context);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    PopupMenuItem<String>(
+                      value: 'info',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                estadoUsuario.usuario?.email ?? 'Usuário',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: "Arial",
+                                ),
+                              ),
+                              Text(
+                                estadoUsuario.usuario?.tipo == 'admin' 
+                                    ? 'Admin Geral' 
+                                    : 'Subadmin',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontFamily: "Arial",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.logout, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text(
+                            'Sair',
+                            style: TextStyle(
+                              fontFamily: "Arial",
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
         body: Stack(
           children: [
             Container(

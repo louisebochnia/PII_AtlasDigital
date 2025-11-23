@@ -1,7 +1,9 @@
-import 'package:atlas_digital/src/telas/painelAdm.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; 
 import '../../temas.dart';
-import 'sub_componentes/popup_login.dart';
+import '../componentes/sub_componentes/popup_login.dart';
+import '../telas/painelAdm.dart';
+import '../estado/estado_usuario.dart'; 
 
 class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final int selectedIndex;
@@ -20,22 +22,9 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(72);
 
-  void _abrirPopupLogin(BuildContext context) {
-    showDialog(context: context, builder: (context) => const LoginPopup()).then(
-      (loginData) {
-        if (loginData != null) {
-          // Redireciona para o PainelAdm SEM a NavBar
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const PainelAdm()),
-          );
-        }
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final estadoUsuario = Provider.of<EstadoUsuario>(context); 
     final items = const ['Início', 'Conteúdo', 'Galeria'];
 
     return Material(
@@ -76,26 +65,41 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
               const Spacer(),
               const SizedBox(width: 12),
 
-              // BOTÃO LOGIN
-              FilledButton(
-                onPressed: () {
-                  debugPrint('🎯 BOTÃO LOGIN CLICADO 🎯');
-                  _abrirPopupLogin(context);
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.brandGray90,
-                  foregroundColor: AppColors.white,
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
+              //LOGIN ou ÁREA ADMINISTRATIVA
+              if (!estadoUsuario.estaLogado)
+                FilledButton(
+                  onPressed: onLogin,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+                    foregroundColor: AppColors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'LOGIN',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                )
+              else
+                FilledButton(
+                  onPressed: onLogin,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+                    foregroundColor: AppColors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'ÁREA ADMINISTRATIVA',
+                    style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
-                child: const Text(
-                  'LOGIN',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../modelos/usuario.dart';
 
 class EstadoUsuario with ChangeNotifier {
@@ -10,12 +11,63 @@ class EstadoUsuario with ChangeNotifier {
   String? _erro;
   String _baseUrl = 'http://localhost:3000';
 
+  // Chaves para shared_preferences
+  static const String _keyToken = 'auth_token';
+  static const String _keyUsuario = 'user_data';
+
   // Getters
   Usuario? get usuario => _usuario;
   String? get token => _token;
   bool get carregando => _carregando;
   String? get erro => _erro;
   bool get estaLogado => _usuario != null && _token != null;
+
+  // Carregar dados salvos ao inicializar
+  Future<void> carregarDadosSalvos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? tokenSalvo = prefs.getString(_keyToken);
+      final String? usuarioJson = prefs.getString(_keyUsuario);
+
+      if (tokenSalvo != null && usuarioJson != null) {
+        _token = tokenSalvo;
+        final Map<String, dynamic> usuarioData = json.decode(usuarioJson);
+        _usuario = Usuario.fromJson(usuarioData);
+        
+        print(' Sessão restaurada: ${_usuario?.email}');
+        notifyListeners();
+      }
+    } catch (e) {
+      print(' Erro ao carregar sessão: $e');
+      await _limparDadosSalvos();
+    }
+  }
+
+  // Salvar dados de login
+  Future<void> _salvarDadosLogin(String token, Usuario usuario) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyToken, token);
+      await prefs.setString(_keyUsuario, json.encode(usuario.toJson()));
+      
+      print(' Sessão salva: ${usuario.email}');
+    } catch (e) {
+      print(' Erro ao salvar sessão: $e');
+    }
+  }
+
+  // Limpar dados de login (logout)
+  Future<void> _limparDadosSalvos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyToken);
+      await prefs.remove(_keyUsuario);
+      
+      print(' Sessão removida');
+    } catch (e) {
+      print(' Erro ao limpar sessão: $e');
+    }
+  }
 
   // Setters privados
   void _setCarregando(bool carregando) {
@@ -69,7 +121,6 @@ class EstadoUsuario with ChangeNotifier {
         }
       }
 
-
       if (response.statusCode == 200) {
         print('-- Email EXISTE - login bem sucedido');
         _setCarregando(false);
@@ -110,6 +161,10 @@ class EstadoUsuario with ChangeNotifier {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         await _processarLoginSucesso(data, email);
+        
+        // SALVAR DADOS PARA PERSISTÊNCIA
+        await _salvarDadosLogin(data['token'], _usuario!);
+        
         return true;
       } else if (response.statusCode == 401) {
         final data = json.decode(response.body);
@@ -138,7 +193,7 @@ class EstadoUsuario with ChangeNotifier {
       id: data['id'] ?? data['_id'],
       email: email,
       senha: '',
-      tipo: data['cargo'] ?? 'subadmin', // Usa 'cargo' do backend
+      tipo: data['cargo'] ?? 'subadmin',
     );
     _setCarregando(false);
   }
@@ -182,11 +237,15 @@ class EstadoUsuario with ChangeNotifier {
     }
   }
 
+  // LOGOUT ATUALIZADO
   Future<void> logout() async {
     _usuario = null;
     _token = null;
     _erro = null;
+    await _limparDadosSalvos();
     notifyListeners();
+    
+    print('Usuário deslogado');
   }
 
   // Buscar lista de usuários
@@ -261,6 +320,8 @@ class EstadoUsuario with ChangeNotifier {
       if (response.statusCode == 200) {
         if (_usuario?.id == id) {
           _usuario = usuarioAtualizado;
+          //  ATUALIZAR DADOS SALVOS
+          await _salvarDadosLogin(_token!, _usuario!);
         }
         _setCarregando(false);
         return true;
@@ -313,8 +374,7 @@ class EstadoUsuario with ChangeNotifier {
       case 'admin':
         return true; // Admin tem todas as permissões
       case 'subadmin':
-        return permissaoRequerida !=
-            'admin'; // Subadmin não pode gerenciar admins
+        return permissaoRequerida != 'admin'; // Subadmin não pode gerenciar admins
       default:
         return false;
     }
