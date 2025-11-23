@@ -54,7 +54,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             const Text(
               'Esta galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.',
               style: TextStyle(fontSize: 14, color: Colors.black54),

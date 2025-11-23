@@ -41,7 +41,7 @@ class _PaginaGaleriaState extends State<PaginaGaleria> {
             "Galeria",
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           const Text(
             "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
             style: TextStyle(fontSize: 14, color: Colors.black54),
