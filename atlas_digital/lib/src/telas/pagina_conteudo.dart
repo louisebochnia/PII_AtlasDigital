@@ -1,139 +1,69 @@
 import 'package:flutter/material.dart';
+import '../modelos/topico.dart';
+import '../modelos/subtopicos.dart';
+import '../servicos/ServConteudo.dart'; // Você precisará criar isso
 import '../componentes/sub_componentes/componenteTopicoshorizontais.dart';
 
-class telaConteudo extends StatefulWidget {
-  const telaConteudo({super.key});
+class PaginaConteudo extends StatefulWidget {
+  const PaginaConteudo({super.key});
 
   @override
-  State<telaConteudo> createState() => _telaConteudoState();
+  State<PaginaConteudo> createState() => _PaginaConteudoState();
 }
 
-class _telaConteudoState extends State<telaConteudo> {
-  // Simula buscar dados de um banco (poderia ser uma API real)
-  Future<List<Map<String, dynamic>>> buscarDadosDoBanco() async {
-    await Future.delayed(
-      const Duration(seconds: 2),
-    ); // simula o tempo da requisição
+class _PaginaConteudoState extends State<PaginaConteudo> {
+  late Future<List<Topico>> _topicosFuture;
+  final ServicoApi _servicoApi = ServicoApi();
 
-    return [
-      {
-        "titulo": "Lugares Recomendados",
-        "descricao":
-            "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-        "itens": [
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-        ],
-      },
-      {
-        "titulo": "Comidas Populares",
-        "descricao":
-            "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-        "itens": [
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-          {
-            "url": "https://picsum.photos/300/200?1",
-            "titulo": "Montanha",
-            "capitulo": "01",
-          },
-        ],
-      },
-    ];
+  @override
+  void initState() {
+    super.initState();
+    _topicosFuture = _buscarTopicosComSubtopicos();
+  }
+
+  Future<List<Topico>> _buscarTopicosComSubtopicos() async {
+    try {
+      // Buscar todos os tópicos
+      final topicos = await _servicoApi.getTopicos();
+
+      // Para cada tópico, buscar seus subtópicos
+      for (final topico in topicos) {
+        final subtopicos = await _servicoApi.getSubtopicosPorTopico(topico.id);
+        // Você pode querer armazenar em algum lugar ou modificar seu modelo
+      }
+
+      return topicos;
+    } catch (e) {
+      throw Exception('Falha ao carregar tópicos: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        margin: const EdgeInsets.all(20),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Conteúdo',
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             const Text(
-              'Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.',
-              style: TextStyle(fontSize: 16, color: Colors.black),
+              'Esta galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.',
+              style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
-            // FutureBuilder que carrega as seções
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: buscarDadosDoBanco(),
+            // Usando seus modelos de dados reais
+            FutureBuilder<List<Topico>>(
+              future: _topicosFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -146,18 +76,34 @@ class _telaConteudoState extends State<telaConteudo> {
 
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text("Erro ao carregar dados: ${snapshot.error}"),
+                    child: Text(
+                      "Erro ao carregar conteúdo: ${snapshot.error}",
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   );
                 }
 
-                final secoes = snapshot.data ?? [];
+                final topicos = snapshot.data ?? [];
+
+                if (topicos.isEmpty) {
+                  return const Center(
+                    child: Text("Nenhum conteúdo disponível"),
+                  );
+                }
 
                 return Column(
-                  children: secoes.map((secao) {
-                    return SecaoHorizontal(
-                      titulo: secao["titulo"],
-                      descricao: secao["descricao"],
-                      itens: List<Map<String, String>>.from(secao["itens"]),
+                  children: topicos.map((topico) {
+                    return FutureBuilder<List<Subtopico>>(
+                      future: _servicoApi.getSubtopicosPorTopico(topico.id),
+                      builder: (context, subtopicoSnapshot) {
+                        final subtopicos = subtopicoSnapshot.data ?? [];
+
+                        return SecaoHorizontal(
+                          titulo: topico.titulo,
+                          descricao: topico.resumo,
+                          subtopicos: subtopicos,
+                        );
+                      },
                     );
                   }).toList(),
                 );
