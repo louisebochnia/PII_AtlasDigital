@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'src/componentes/barra_de_navegacao.dart';
 import 'src/componentes/rodape.dart';
 import 'src/componentes/sub_componentes/popup_login.dart';
@@ -80,6 +81,75 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
+  // Função para abrir site FMABC
+  void _abrirSiteFMABC() async {
+    const url = 'https://www.fmabc.br';
+    await _launchUrl(url);
+  }
+
+  // Função para abrir quizzes
+  void _abrirQuizzes() async {
+    const url =
+        'https://kahoot.it/challenge/01222478?challenge-id=0d7865cd-feea-4485-8785-64eda4afebed_1762430282515';
+    await _launchUrl(url);
+  }
+
+  // Função genérica para lançar URLs
+  Future<void> _launchUrl(String urlString) async {
+    try {
+      final uri = Uri.parse(urlString);
+
+      // Verifica se pode lançar a URL
+      if (!await canLaunchUrl(uri)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível abrir: $urlString')),
+        );
+        return;
+      }
+
+      // Tenta abrir no modo external application
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        // Se não conseguiu abrir externamente, tenta de outras formas
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao abrir link: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _launchUrlUniversal(String urlString) async {
+    try {
+      if (!urlString.startsWith('http')) {
+        urlString = 'https://$urlString';
+      }
+
+      final uri = Uri.parse(urlString);
+
+      // Tenta abrir de várias formas
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else if (await canLaunch(urlString)) {
+        // Método legado como fallback
+        await launch(urlString);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Nenhum aplicativo pode abrir este link')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro: ${e.toString()}')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,46 +195,69 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _buildCustomScrollView(Widget conteudo) {
-    return CustomScrollView(
-      slivers: [
-        // Conteúdo principal
-        SliverToBoxAdapter(child: conteudo),
+    return Consumer<EstadoUsuario>(
+      builder: (context, estadoUsuario, child) {
+        return CustomScrollView(
+          slivers: [
+            // Conteúdo principal
+            SliverToBoxAdapter(child: conteudo),
 
-        // Rodapé
-        SliverToBoxAdapter(
-          child: Rodape(
-            logoAsset: 'assets/logo_fmabc.png',
-            colunas: const [
-              FooterColumnData(
-                titulo: 'Coluna 1',
-                itens: [
-                  FooterItem('Sobre o Atlas'),
-                  FooterItem('Equipe'),
-                  FooterItem('Política de privacidade'),
-                  FooterItem('Termos de uso'),
+            // Rodapé
+            SliverToBoxAdapter(
+              child: Rodape(
+                logoAsset: 'assets/logo_fmabc.png',
+                colunas: [
+                  FooterColumnData(
+                    titulo: 'Coluna 1',
+                    itens: [
+                      FooterItem(
+                        'Sobre o Atlas',
+                        onTap: () =>
+                            _navegarParaPaginaEspecial(const PaginaInicial()),
+                      ),
+                      FooterItem(
+                        'Conteúdo',
+                        onTap: () =>
+                            _navegarParaPaginaEspecial(const PaginaConteudo()),
+                      ),
+                      FooterItem(
+                        'Galeria',
+                        onTap: () =>
+                            _navegarParaPaginaEspecial(const PaginaGaleria()),
+                      ),
+                    ],
+                  ),
+                  FooterColumnData(
+                    titulo: 'Coluna 2',
+                    itens: [
+                      FooterItem('Quizzes', onTap: _abrirQuizzes),
+                      if (estadoUsuario.estaLogado && isDesktopOrWeb)
+                        FooterItem(
+                          'Painel Administrativo',
+                          onTap: () => _irParaAreaAdmin(context),
+                        ),
+                      FooterItem(
+                        'Termos de Uso',
+                        onTap: () =>
+                            _navegarParaPaginaEspecial(const PaginaTermosUso()),
+                      ),
+                    ],
+                  ),
                 ],
+                endereco:
+                    'Sede: Av. Príncipe de Gales, 821 –   Bairro Príncipe de Gales – Santo André, SP –  CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes,  2000 – Vila Sacadura Cabral – Santo André / SP   – CEP: 09060-870 (Portaria 2) Telefone: (11)  4993-5400',
+                site: 'www.fmabc.br',
+                onSiteTap: _abrirSiteFMABC,
+                onTermosUso: _paginaEspecial == null
+                    ? (context) {
+                        _navegarParaPaginaEspecial(const PaginaTermosUso());
+                      }
+                    : null,
               ),
-              FooterColumnData(
-                titulo: 'Coluna 2',
-                itens: [
-                  FooterItem('Tutorial de uso'),
-                  FooterItem('Perguntas frequentes'),
-                  FooterItem('Contato'),
-                  FooterItem('Acessibilidade'),
-                ],
-              ),
-            ],
-            endereco:
-                'Sede: Av. Príncipe de Gales, 821 –   Bairro Príncipe de Gales – Santo André, SP –  CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes,  2000 – Vila Sacadura Cabral – Santo André / SP   – CEP: 09060-870 (Portaria 2) Telefone: (11)  4993-5400',
-            site: 'www.fmabc.br',
-            onTermosUso: _paginaEspecial == null
-                ? (context) {
-                    _navegarParaPaginaEspecial(const PaginaTermosUso());
-                  }
-                : null,
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

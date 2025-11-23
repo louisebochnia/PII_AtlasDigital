@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
-import 'package:provider/provider.dart'; 
+import 'package:provider/provider.dart';
 import '../../temas.dart';
-import '../estado/estado_usuario.dart'; 
+import '../estado/estado_usuario.dart';
 
 class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final int selectedIndex;
@@ -30,7 +30,7 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final estadoUsuario = Provider.of<EstadoUsuario>(context); 
+    final estadoUsuario = Provider.of<EstadoUsuario>(context);
     final items = const ['Início', 'Conteúdo', 'Galeria'];
 
     return Material(
@@ -57,9 +57,10 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
               const SizedBox(width: 24),
 
               // ---- MENU: Dropdown no mobile, Menu normal no desktop ----
-              if (isDesktopOrWeb) 
+              if (isDesktopOrWeb)
                 // MENU DESKTOP/WEB
                 Wrap(
+                  alignment: WrapAlignment.end,
                   spacing: 28,
                   children: List.generate(items.length, (i) {
                     return _NavItem(
@@ -85,41 +86,42 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
               const Spacer(),
               const SizedBox(width: 12),
 
-              //LOGIN ou ÁREA ADMINISTRATIVA
-              if (!estadoUsuario.estaLogado && isDesktopOrWeb)
-                FilledButton(
-                  onPressed: onLogin,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
-                    foregroundColor: AppColors.white,
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
+              // LOGIN ou ÁREA ADMINISTRATIVA - SÓ APARECE NO DESKTOP/WEB
+              if (isDesktopOrWeb)
+                if (!estadoUsuario.estaLogado)
+                  FilledButton(
+                    onPressed: onLogin,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+                      foregroundColor: AppColors.white,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text(
+                      'LOGIN',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  )
+                else
+                  FilledButton(
+                    onPressed: onLogin,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+                      foregroundColor: AppColors.white,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text(
+                      'ÁREA ADMINISTRATIVA',
+                      style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  child: const Text(
-                    'LOGIN',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                )
-              else
-                FilledButton(
-                  onPressed: onLogin,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 61, 61, 61),
-                    foregroundColor: AppColors.white,
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text(
-                    'ÁREA ADMINISTRATIVA',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
             ],
           ),
         ),
@@ -171,10 +173,7 @@ class _MobileDropdownState extends State<_MobileDropdown> {
       icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
       isExpanded: false,
       elevation: 4,
-      style: TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 16,
-      ),
+      style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
     );
   }
 }

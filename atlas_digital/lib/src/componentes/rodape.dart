@@ -3,7 +3,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../temas.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
-import 'package:flutter/material.dart';
 
 bool get isDesktopOrWeb {
   if (kIsWeb) return true;
@@ -26,32 +25,30 @@ class Rodape extends StatelessWidget {
     required this.logoAsset,
     this.borderRadius = 22,
     this.onTermosUso,
+    required void Function() onSiteTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    // LÓGICA RESPONSIVA DE BORDA
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double horizontalPadding = screenWidth > 1000 ? 160 : 20;
+    final bool isMobile = screenWidth < 1100;
+    final double horizontalPadding = isMobile ? 20 : 160;
 
     return Padding(
       padding: const EdgeInsets.only(top: 24),
-      // Container Cinza que ocupa largura total
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F1F1), // fundo cinza claro do bloco
+          color: const Color(0xFFF1F1F1),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(borderRadius),
             topRight: Radius.circular(borderRadius),
           ),
         ),
-        // Centraliza o conteúdo limitado a 1100px
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 2000),
             child: Padding(
-              // Aplica a margem de 80px (Desktop) ou 20px (Mobile)
               padding: EdgeInsets.fromLTRB(
                 horizontalPadding,
                 40,
@@ -65,43 +62,43 @@ class Rodape extends StatelessWidget {
 
                   final main = isNarrow
                       ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: isMobile
+                              ? CrossAxisAlignment.center
+                              : CrossAxisAlignment.start,
                           children: [
-                            _Topo(logoAsset: logoAsset),
+                            _Topo(logoAsset: logoAsset, isMobile: isMobile),
                             const SizedBox(height: 20),
-                            _RedesSociais(),
+                            _RedesSociais(isMobile: isMobile),
                             const SizedBox(height: 20),
                             _ColunasLinks(
                               colunas: colunas,
                               compact: isVeryNarrow,
                               onTermosUso: onTermosUso,
+                              isMobile: isMobile,
                             ),
                           ],
                         )
                       : Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            //logo e redes sociais
                             Expanded(
                               flex: 5,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _Topo(logoAsset: logoAsset),
+                                  _Topo(logoAsset: logoAsset, isMobile: false),
                                   const SizedBox(height: 20),
-                                  _RedesSociais(),
+                                  _RedesSociais(isMobile: false),
                                 ],
                               ),
                             ),
-
                             const SizedBox(width: 32),
-
-                            // colunas de links
                             Expanded(
                               flex: 6,
                               child: _ColunasLinks(
                                 colunas: colunas,
                                 onTermosUso: onTermosUso,
+                                isMobile: false,
                               ),
                             ),
                           ],
@@ -113,18 +110,21 @@ class Rodape extends StatelessWidget {
                       const SizedBox(height: 20),
                       const Divider(height: 1, color: Color(0x14000000)),
                       const SizedBox(height: 10),
-                      _RodapeLegal(endereco: endereco, site: site),
+                      _RodapeLegal(
+                        endereco: endereco,
+                        site: site,
+                        isMobile: isMobile,
+                      ),
                       const SizedBox(height: 10),
                       Text(
                         'Ao acessar o conteúdo, você automaticamente concorda com os Termos e Condições de Uso',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: isMobile ? 10 : 12,
                           color: Colors.grey[600],
                           fontStyle: FontStyle.italic,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      // Espaço a mais no final para dispositivos mobile
                       if (!isDesktopOrWeb) const SizedBox(height: 50),
                     ],
                   );
@@ -140,24 +140,37 @@ class Rodape extends StatelessWidget {
 
 class _Topo extends StatelessWidget {
   final String logoAsset;
+  final bool isMobile;
 
-  const _Topo({required this.logoAsset});
+  const _Topo({required this.logoAsset, required this.isMobile});
 
   @override
   Widget build(BuildContext context) {
     final logo = Row(
       mainAxisSize: MainAxisSize.min,
-      children: [Image.asset(logoAsset, height: 54), const SizedBox(width: 12)],
+      mainAxisAlignment: isMobile
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.start,
+      children: [
+        Image.asset(logoAsset, height: isMobile ? 48 : 54),
+        if (!isMobile) const SizedBox(width: 12),
+      ],
     );
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: logo)],
-    );
+    return isMobile
+        ? Center(child: logo)
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [Expanded(child: logo)],
+          );
   }
 }
 
 class _RedesSociais extends StatelessWidget {
+  final bool isMobile;
+
+  const _RedesSociais({required this.isMobile});
+
   @override
   Widget build(BuildContext context) {
     final icons = <Widget>[
@@ -168,29 +181,28 @@ class _RedesSociais extends StatelessWidget {
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: isMobile
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Nossas redes:',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: isMobile ? 18 : 20,
             fontWeight: FontWeight.w800,
             color: AppColors.textPrimary,
           ),
+          textAlign: isMobile ? TextAlign.center : TextAlign.left,
         ),
         const SizedBox(height: 10),
-        Wrap(spacing: 14, runSpacing: 8, children: icons),
+        Wrap(
+          spacing: 14,
+          runSpacing: 8,
+          alignment: isMobile ? WrapAlignment.center : WrapAlignment.start,
+          children: icons,
+        ),
       ],
     );
-  }
-
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 }
 
@@ -226,11 +238,13 @@ class _ColunasLinks extends StatelessWidget {
   final List<FooterColumnData> colunas;
   final bool compact;
   final Function(BuildContext)? onTermosUso;
+  final bool isMobile;
 
   const _ColunasLinks({
     required this.colunas,
     this.compact = false,
     this.onTermosUso,
+    required this.isMobile,
   });
 
   @override
@@ -241,20 +255,28 @@ class _ColunasLinks extends StatelessWidget {
             title: c.titulo,
             items: c.itens,
             onTermosUso: onTermosUso,
+            isMobile: isMobile,
           ),
         )
         .toList();
 
     if (compact) {
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: isMobile
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
         children: [
           for (final w in children) ...[w, const SizedBox(height: 16)],
         ],
       );
     }
 
-    return Wrap(spacing: 32, runSpacing: 8, children: children);
+    return Wrap(
+      spacing: 32,
+      runSpacing: 8,
+      alignment: isMobile ? WrapAlignment.center : WrapAlignment.start,
+      children: children,
+    );
   }
 }
 
@@ -262,11 +284,13 @@ class _FooterColumn extends StatelessWidget {
   final String title;
   final List<FooterItem> items;
   final Function(BuildContext)? onTermosUso;
+  final bool isMobile;
 
   const _FooterColumn({
     required this.title,
     required this.items,
     this.onTermosUso,
+    required this.isMobile,
   });
 
   @override
@@ -274,33 +298,35 @@ class _FooterColumn extends StatelessWidget {
     final textStyle = Theme.of(context).textTheme.bodyMedium;
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 220),
+      constraints: BoxConstraints(
+        minWidth: isMobile ? 180 : 220,
+        maxWidth: isMobile ? 250 : 220,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: isMobile
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 12,
-            width: 220,
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: AppColors.brandGreen.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(20),
+          if (!isMobile)
+            Container(
+              height: 12,
+              width: 220,
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: AppColors.brandGreen.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
-          ),
           for (final item in items)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: InkWell(
-                onTap: () {
-                  // Se for "Termos de uso" e o callback estiver disponível
-                  if (item.label == 'Termos de uso' && onTermosUso != null) {
-                    onTermosUso!(context);
-                  } else if (item.onTap != null) {
-                    item.onTap!();
-                  }
-                },
+                onTap: item.onTap,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: isMobile
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.start,
                   children: [
                     if (item.icon != null)
                       Padding(
@@ -308,23 +334,13 @@ class _FooterColumn extends StatelessWidget {
                         child: Icon(
                           item.icon,
                           size: 18,
-                          color:
-                              onTermosUso == null &&
-                                  item.label == 'Termos de uso'
-                              ? Colors
-                                    .grey // Cor cinza quando desativado
-                              : AppColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     Text(
                       item.label,
-                      style: textStyle?.copyWith(
-                        color:
-                            onTermosUso == null && item.label == 'Termos de uso'
-                            ? Colors
-                                  .grey // Cor cinza quando desativado
-                            : textStyle.color,
-                      ),
+                      style: textStyle,
+                      textAlign: isMobile ? TextAlign.center : TextAlign.left,
                     ),
                   ],
                 ),
@@ -339,8 +355,13 @@ class _FooterColumn extends StatelessWidget {
 class _RodapeLegal extends StatelessWidget {
   final String endereco;
   final String site;
+  final bool isMobile;
 
-  const _RodapeLegal({required this.endereco, required this.site});
+  const _RodapeLegal({
+    required this.endereco,
+    required this.site,
+    required this.isMobile,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -349,35 +370,56 @@ class _RodapeLegal extends StatelessWidget {
         Text(
           endereco,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12, color: Color(0xFF1E7A3A)),
+          style: TextStyle(
+            fontSize: isMobile ? 10 : 12,
+            color: const Color(0xFF1E7A3A),
+          ),
         ),
         const SizedBox(height: 4),
         InkWell(
-          onTap: () => _launchSite(site),
+          onTap: () => _launchSite(context, site),
           child: Text(
             site,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF1E7A3A),
+            style: TextStyle(
+              fontSize: isMobile ? 10 : 12,
+              color: const Color(0xFF1E7A3A),
               decoration: TextDecoration.underline,
             ),
+            textAlign: TextAlign.center,
           ),
         ),
       ],
     );
   }
 
-  Future<void> _launchSite(String url) async {
-    String formattedUrl = url;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      formattedUrl = 'https://$url';
-    }
+  Future<void> _launchSite(BuildContext context, String url) async {
+    try {
+      String formattedUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        formattedUrl = 'https://$url';
+      }
 
-    final uri = Uri.parse(formattedUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      throw 'Could not launch $formattedUrl';
+      final uri = Uri.parse(formattedUrl);
+
+      if (!await canLaunchUrl(uri)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível abrir: $formattedUrl')),
+        );
+        return;
+      }
+
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao abrir site: ${e.toString()}')),
+      );
     }
   }
 }
