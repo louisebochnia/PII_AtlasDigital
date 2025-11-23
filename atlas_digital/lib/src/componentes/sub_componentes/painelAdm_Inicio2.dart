@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class InicioPage extends StatefulWidget {
   const InicioPage({super.key});
@@ -12,7 +15,8 @@ class OpcaoItem {
   IconData icone;
   String texto;
   String link;
-  OpcaoItem({required this.icone, required this.texto, required this.link});
+  String? id;
+  OpcaoItem({required this.icone, required this.texto, required this.link, this.id});
 }
 
 class _InicioPageState extends State<InicioPage> {
@@ -20,13 +24,96 @@ class _InicioPageState extends State<InicioPage> {
   final TextEditingController controlador = TextEditingController(
       text: "Este é um texto longo. " * 20);
 
-  // Lista de redes sociais
+  // Lista de redes sociais (fallback hardcoded). Será atualizada ao carregar do banco.
   List<OpcaoItem> opcoes = [
-    OpcaoItem(icone: FontAwesomeIcons.facebook, texto: "Facebook", link: "hhhhhhhhhhh",),
-    OpcaoItem(icone: FontAwesomeIcons.instagram, texto: "Instagram", link: "hhhhhhhhhh"),
-    OpcaoItem(icone: FontAwesomeIcons.youtube, texto: "YouTube", link: "hhhhhhhhhh"),
-    OpcaoItem(icone: FontAwesomeIcons.linkedin, texto: "LinkedIn", link: "hhhhhhhhhh"),
+    OpcaoItem(icone: FontAwesomeIcons.facebook, texto: "Facebook", link: ""),
+    OpcaoItem(icone: FontAwesomeIcons.instagram, texto: "Instagram", link: ""),
+    OpcaoItem(icone: FontAwesomeIcons.youtube, texto: "YouTube", link: ""),
+    OpcaoItem(icone: FontAwesomeIcons.linkedin, texto: "LinkedIn", link: ""),
   ];
+  bool carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarOpcoesDoBanco();
+  }
+
+  Future<void> _carregarOpcoesDoBanco() async {
+    try {
+      final uri = Uri.parse('http://localhost:3000/hyperlink');
+      final resp = await http.get(uri).timeout(const Duration(seconds: 6));
+      if (resp.statusCode == 200) {
+        final List<dynamic> data = json.decode(resp.body);
+        setState(() {
+          opcoes = data.map<OpcaoItem>((item) {
+            final String nome = (item['nome'] as String?) ?? 'link';
+            final String link = (item['link'] as String?) ?? '';
+            final String? id = (item['_id'] as String?) ?? (item['id'] as String?);
+            return OpcaoItem(
+              icone: _iconePorNome(nome),
+              texto: _textoPorNome(nome),
+              link: link,
+              id: id,
+            );
+          }).toList();
+          carregando = false;
+        });
+      } else {
+        setState(() => carregando = false);
+      }
+    } catch (e) {
+      setState(() => carregando = false);
+    }
+  }
+
+  Future<String?> _salvarLinkNoBanco(OpcaoItem item, String novoLink) async {
+    try {
+      if (item.id == null || item.id!.isEmpty) {
+        return 'ID não encontrado. Execute seed.js no backend primeiro.';
+      }
+      final uri = Uri.parse('http://localhost:3000/hyperlink/${item.id}');
+      final resp = await http.put(uri,
+          body: json.encode({'nome': item.texto.toLowerCase(), 'link': novoLink}),
+          headers: {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 6));
+      if (resp.statusCode == 200) {
+        return null; // sucesso
+      } else {
+        // tentar extrair mensagem de erro do backend
+        try {
+          final body = json.decode(resp.body);
+          final msg = body['message'] ?? body['error'] ?? resp.body;
+          return '${resp.statusCode}: $msg';
+        } catch (e) {
+          return '${resp.statusCode}: ${resp.body}';
+        }
+      }
+    } catch (e) {
+      return 'Erro: $e';
+    }
+  }
+
+  IconData _iconePorNome(String nome) {
+    switch (nome.toLowerCase()) {
+      case 'facebook':
+        return FontAwesomeIcons.facebook;
+      case 'instagram':
+        return FontAwesomeIcons.instagram;
+      case 'youtube':
+        return FontAwesomeIcons.youtube;
+      case 'linkedin':
+        return FontAwesomeIcons.linkedin;
+      case 'quiz':
+        return FontAwesomeIcons.circleQuestion;
+      default:
+        return FontAwesomeIcons.link;
+    }
+  }
+
+  String _textoPorNome(String nome) {
+    if (nome.isEmpty) return '';
+    return nome[0].toUpperCase() + nome.substring(1);
+  }
 
   // Função para definir cor do ícone conforme a rede social
   Color corRedeSocial(IconData icone) {
@@ -171,9 +258,24 @@ class _InicioPageState extends State<InicioPage> {
                           onPressed: () async {
                             String? novo = await _mostrarDialog(context, item.link);
                             if (novo != null) {
-                              setState(() {
-                                item.link = novo;
-                              });
+                              // tenta salvar no banco
+                              final erroMsg = await _salvarLinkNoBanco(item, novo);
+                              if (erroMsg == null) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('✓ Alterações salvas no banco')),
+                                  );
+                                }
+                                setState(() {
+                                  item.link = novo;
+                                });
+                              } else {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('✗ Falha: $erroMsg')),
+                                  );
+                                }
+                              }
                             }
                           },
                         ),
