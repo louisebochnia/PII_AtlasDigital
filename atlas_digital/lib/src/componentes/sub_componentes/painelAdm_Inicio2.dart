@@ -11,7 +11,8 @@ class InicioPage extends StatefulWidget {
 class OpcaoItem {
   IconData icone;
   String texto;
-  OpcaoItem({required this.icone, required this.texto});
+  String link;
+  OpcaoItem({required this.icone, required this.texto, required this.link});
 }
 
 class _InicioPageState extends State<InicioPage> {
@@ -21,11 +22,10 @@ class _InicioPageState extends State<InicioPage> {
 
   // Lista de redes sociais
   List<OpcaoItem> opcoes = [
-    OpcaoItem(icone: FontAwesomeIcons.facebook, texto: "Facebook"),
-    OpcaoItem(icone: FontAwesomeIcons.instagram, texto: "Instagram"),
-    OpcaoItem(icone: FontAwesomeIcons.youtube, texto: "YouTube"),
-    OpcaoItem(icone: FontAwesomeIcons.linkedin, texto: "LinkedIn"),
-    OpcaoItem(icone: FontAwesomeIcons.twitter, texto: "Twitter"),
+    OpcaoItem(icone: FontAwesomeIcons.facebook, texto: "Facebook", link: "hhhhhhhhhhh",),
+    OpcaoItem(icone: FontAwesomeIcons.instagram, texto: "Instagram", link: "hhhhhhhhhh"),
+    OpcaoItem(icone: FontAwesomeIcons.youtube, texto: "YouTube", link: "hhhhhhhhhh"),
+    OpcaoItem(icone: FontAwesomeIcons.linkedin, texto: "LinkedIn", link: "hhhhhhhhhh"),
   ];
 
   // Função para definir cor do ícone conforme a rede social
@@ -34,7 +34,6 @@ class _InicioPageState extends State<InicioPage> {
     if (icone == FontAwesomeIcons.instagram) return Colors.pink;
     if (icone == FontAwesomeIcons.youtube) return Colors.red;
     if (icone == FontAwesomeIcons.linkedin) return Colors.blueAccent;
-    if (icone == FontAwesomeIcons.twitter) return Colors.lightBlue;
     return Colors.grey;
   }
 
@@ -43,7 +42,7 @@ class _InicioPageState extends State<InicioPage> {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Editar texto", style: TextStyle(fontFamily: "Arial")),
+        title: const Text("Editar link", style: TextStyle(fontFamily: "Arial")),
         content: TextField(controller: c, style: const TextStyle(fontFamily: "Arial")),
         actions: [
           TextButton(
@@ -170,10 +169,10 @@ class _InicioPageState extends State<InicioPage> {
                         IconButton(
                           icon: const Icon(Icons.edit, size: 20),
                           onPressed: () async {
-                            String? novo = await _mostrarDialog(context, item.texto);
+                            String? novo = await _mostrarDialog(context, item.link);
                             if (novo != null) {
                               setState(() {
-                                item.texto = novo;
+                                item.link = novo;
                               });
                             }
                           },
