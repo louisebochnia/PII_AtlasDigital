@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'src/componentes/barra_de_navegacao.dart';
 import 'src/componentes/rodape.dart';
 import 'src/componentes/sub_componentes/popup_login.dart';
@@ -33,6 +35,12 @@ class _AppShellState extends State<AppShell> {
   bool _visitaRegistrada = false;
   Widget? _paginaEspecial;
 
+  // URLs das redes sociais
+  String? _urlInstagram;
+  String? _urlFacebook;
+  String? _urlLinkedIn;
+  String? _urlYouTube;
+
   final List<Widget> _pages = [
     const PaginaInicial(),
     const PaginaConteudo(),
@@ -43,6 +51,28 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     _registrarVisitaApp();
+    _carregarRedesSociais();
+  }
+
+  Future<void> _carregarRedesSociais() async {
+    try {
+      final uri = Uri.parse('http://localhost:3000/hyperlink');
+      final resp = await http.get(uri).timeout(const Duration(seconds: 6));
+      if (resp.statusCode == 200) {
+        final List<dynamic> data = json.decode(resp.body);
+        for (final item in data) {
+          final nome = (item['nome'] as String?)?.toLowerCase();
+          final link = item['link'] as String?;
+          if (nome == 'instagram') _urlInstagram = link;
+          if (nome == 'facebook') _urlFacebook = link;
+          if (nome == 'linkedin') _urlLinkedIn = link;
+          if (nome == 'youtube') _urlYouTube = link;
+        }
+        setState(() {});
+      }
+    } catch (e) {
+      // ignore erro
+    }
   }
 
   void _registrarVisitaApp() {
@@ -96,22 +126,22 @@ class _AppShellState extends State<AppShell> {
 
   // Funções para redes sociais
   void _abrirInstagram() async {
-    const url = 'https://www.instagram.com/centrouniversitariofmabc/';
+    final url = _urlInstagram ?? 'https://www.instagram.com/centrouniversitariofmabc/';
     await _launchUrl(url);
   }
 
   void _abrirFacebook() async {
-    const url = 'https://www.facebook.com/CentroUniversitarioFMABC/';
+    final url = _urlFacebook ?? 'https://www.facebook.com/CentroUniversitarioFMABC/';
     await _launchUrl(url);
   }
 
   void _abrirLinkedIn() async {
-    const url = 'https://br.linkedin.com/school/fmabc/';
+    final url = _urlLinkedIn ?? 'https://br.linkedin.com/school/fmabc/';
     await _launchUrl(url);
   }
 
   void _abrirYouTube() async {
-    const url = 'https://www.youtube.com/channel/UCJ_wO9afToh1XyMoUcGY8qw';
+    final url = _urlYouTube ?? 'https://www.youtube.com/channel/UCJ_wO9afToh1XyMoUcGY8qw';
     await _launchUrl(url);
   }
 
