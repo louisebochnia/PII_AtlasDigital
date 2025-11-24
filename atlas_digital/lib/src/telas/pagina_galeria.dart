@@ -12,8 +12,7 @@ class PaginaGaleria extends StatefulWidget {
 }
 
 class _PaginaGaleriaState extends State<PaginaGaleria> {
-  final String protocolo = 'http://';
-  final String baseURL = 'localhost:3000';
+  late EstadoImagem _estadoImagem;
 
   String filtroLetra = 'TODAS';
   final TextEditingController _searchController = TextEditingController();
@@ -24,6 +23,7 @@ class _PaginaGaleriaState extends State<PaginaGaleria> {
   @override
   void initState() {
     super.initState();
+    _estadoImagem = context.read<EstadoImagem>();
     carregarImagens();
   }
 
@@ -321,13 +321,6 @@ class _PaginaGaleriaState extends State<PaginaGaleria> {
     );
   }
 
-  String converterParaUrl(String caminhoRelativo) {
-    if (caminhoRelativo.isEmpty) return '';
-
-    final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
-    return '$protocolo$baseURL/$caminhoNormalizado';
-  }
-
   Future<void> carregarImagens() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final estadoImagem = Provider.of<EstadoImagem>(context, listen: false);
@@ -359,7 +352,7 @@ class _PaginaGaleriaState extends State<PaginaGaleria> {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                converterParaUrl(imagem.enderecoThumbnail),
+                _estadoImagem.converterParaUrl(imagem.enderecoThumbnail),
                 height: 80, 
                 width: 80, 
                 fit: BoxFit.cover,
@@ -422,7 +415,7 @@ class _PaginaGaleriaState extends State<PaginaGaleria> {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                converterParaUrl(imagem.enderecoThumbnail),
+                _estadoImagem.converterParaUrl(imagem.enderecoThumbnail),
                 height: 120,
                 width: double.infinity,
                 fit: BoxFit.cover,

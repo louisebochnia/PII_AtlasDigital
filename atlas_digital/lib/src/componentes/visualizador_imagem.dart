@@ -23,9 +23,6 @@ class VisualizadorImagem extends StatefulWidget {
 }
 
 class _VisualidorImagemState extends State<VisualizadorImagem> {
-  final String protocolo = 'http://';
-  final String baseURL = 'localhost:3000';
-
   late EstadoVisualizadorMRXS _estadoVisualizador;
   late EstadoImagem _estadoImagem;
   late Imagem? imagem;
@@ -509,7 +506,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6.5),
                   child: Image.network(
-                    converterParaUrl(imagem!.enderecoThumbnail),
+                    _estadoImagem.converterParaUrl(imagem!.enderecoThumbnail),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -693,13 +690,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     } else {
       return FilterQuality.low;
     }
-  }
-
-  String converterParaUrl(String caminhoRelativo) {
-    if (caminhoRelativo.isEmpty) return '';
-
-    final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
-    return '$protocolo$baseURL/$caminhoNormalizado';
   }
 
   @override
