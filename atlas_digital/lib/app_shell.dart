@@ -67,9 +67,9 @@ class _AppShellState extends State<AppShell> {
       } else {
         print('Plataforma: Mobile - detectando host...');
 
-        // MODIFICADO: Use APENAS o IP do seu computador
         final hosts = [
-          'http://192.168.15.163:3000', // IP do seu computador - ALTERE SE PRECISAR
+          'http://192.168.15.163:3000',
+          'http://10.2.129.68:3000',
         ];
 
         String? foundHost;
