@@ -492,7 +492,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
                       },
                       child: const Text(
                         "Cancelar",
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(color: Color.fromARGB(255, 76, 175, 80)),
                       ),
                     ),
                     const SizedBox(width: 10),

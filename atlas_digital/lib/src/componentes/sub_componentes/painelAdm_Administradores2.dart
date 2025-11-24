@@ -309,15 +309,17 @@ class _AdministradoresPageState extends State<AdministradoresPage> {
           ),
           StatefulBuilder(
             builder: (context, setState) {
-              bool isHovered = false;
-
               return MouseRegion(
-                onEnter: (_) => setState(() => isHovered = true),
-                onExit: (_) => setState(() => isHovered = false),
+                
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.red, 
+                    backgroundColor:
+                        Colors.red, 
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
                   ),
                   onPressed: () => Navigator.pop(context, true),
                   child: const Text(
