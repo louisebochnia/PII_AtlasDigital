@@ -3,13 +3,11 @@ const mongoose = require('mongoose');
 const HyperlinkSchema = new mongoose.Schema({
   link: { 
     type: String, 
-    required: true,
-    match : /^https?:\/\/.+/ 
+    required: true
   },
     nome: { 
     type: String, 
-    required: true,
-    enum : ['linkedin','instagram','facebook','youtube','quiz'] 
+    required: true
   }
 }, {timestamps: true, _id: true });
 

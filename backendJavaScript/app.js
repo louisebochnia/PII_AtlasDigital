@@ -30,6 +30,32 @@ async function conectarAoMongo() {
   await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`)
 }
 
+// SEED HYPERLINKS
+async function seedHyperlinks() {
+  try {
+    const hyperlinksData = [
+      { nome: 'facebook', link: 'https://www.facebook.com/seu-pagina' },
+      { nome: 'instagram', link: 'https://www.instagram.com/seu-usuario' },
+      { nome: 'youtube', link: 'https://www.youtube.com/seu-canal' },
+      { nome: 'linkedin', link: 'https://www.linkedin.com/company/sua-empresa' },
+    ];
+
+    for (const hl of hyperlinksData) {
+      const existe = await hyperlink.findOne({ nome: hl.nome });
+      if (!existe) {
+        const novo = new hyperlink(hl);
+        await novo.save();
+        console.log(`✓ Hyperlink seed: Criado ${hl.nome}`);
+      } else {
+        console.log(`⊘ Hyperlink seed: Já existe ${hl.nome}`);
+      }
+    }
+    console.log('✓ Seed de hyperlinks concluído');
+  } catch (error) {
+    console.error('✗ Erro ao fazer seed de hyperlinks:', error.message);
+  }
+}
+
 // CRUD VISITANTES -----------------------------------------------------------------------------------------------
 
 // ROTA GET - Buscar estatísticas
@@ -647,9 +673,9 @@ app.delete('/usuario/:id', async (req, res) => {
 // Crud Hyperlinks
 app.post('/hyperlink', async (req, res) => {
   try {
-    const hyperlink = new hyperlink(req.body)
-    await hyperlink.save()
-    res.status(201).json(hyperlink)
+    const novoHyperlink = new hyperlink(req.body)
+    await novoHyperlink.save()
+    res.status(201).json(novoHyperlink)
   } catch (err) {
     res.status(400).json({ message: err.message })
   }
@@ -657,8 +683,8 @@ app.post('/hyperlink', async (req, res) => {
 
 app.get('/hyperlink', async (req, res) => {
   try {
-    const hyperlink = await hyperlink.find()
-    res.json(hyperlink)
+    const hyperlinks = await hyperlink.find()
+    res.json(hyperlinks)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -666,9 +692,9 @@ app.get('/hyperlink', async (req, res) => {
 
 app.get('/hyperlink/:id', async (req, res) => {
   try {
-    const info = await hyperlink.findById(req.params.id)
-    if (!info) return res.status(404).json({ message: 'Não encontrado' })
-    res.json(info)
+    const hyperlinks = await hyperlink.findById(req.params.id)
+    if (!hyperlinks) return res.status(404).json({ message: 'Não encontrado' })
+    res.json(hyperlinks)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -676,8 +702,8 @@ app.get('/hyperlink/:id', async (req, res) => {
 
 app.put('/hyperlink/:id', async (req, res) => {
   try {
-    const info = await hyperlink.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    res.json(info)
+    const hyperlinks = await hyperlink.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    res.json(hyperlinks)
   } catch (err) {
     res.status(400).json({ message: err.message })
   }
@@ -696,6 +722,10 @@ module.exports = app
 
 if (process.env.NODE_ENV !== 'test') {
   conectarAoMongo()
+    .then(async () => {
+      console.log('✓ Conectado ao MongoDB');
+      await seedHyperlinks();
+    })
     .catch(err => console.log("Erro conexão Mongo:", err))
 
   const PORT = 3000

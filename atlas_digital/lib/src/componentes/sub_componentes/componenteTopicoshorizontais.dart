@@ -1,39 +1,44 @@
-import 'package:atlas_digital/src/modelos/subtopicos.dart';
 import 'package:flutter/material.dart';
 
 class SecaoHorizontal extends StatelessWidget {
   final String titulo;
   final String descricao;
-  final List<Subtopico> subtopicos;
+  final List<Map<String, String>> itens;
 
   const SecaoHorizontal({
     super.key,
     required this.titulo,
     required this.descricao,
-    required this.subtopicos,
+    required this.itens,
   });
 
   @override
   Widget build(BuildContext context) {
-    final controller = ScrollController(); // controla a rolagem
+    final controller = ScrollController();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Título da seção
         Padding(
           padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
-                titulo,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              Expanded(
+                child: Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  maxLines:
+                      1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Capítulos: 1-7',
                 style: const TextStyle(fontSize: 16, color: Colors.black87),
@@ -56,9 +61,8 @@ class SecaoHorizontal extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Carrossel horizontal com Scrollbar
         SizedBox(
-          height: 194, // altura do card
+          height: 194,
           child: Scrollbar(
             controller: controller,
             thumbVisibility: true,
@@ -68,9 +72,9 @@ class SecaoHorizontal extends StatelessWidget {
             child: ListView.builder(
               controller: controller,
               scrollDirection: Axis.horizontal,
-              itemCount: subtopicos.length,
+              itemCount: itens.length,
               itemBuilder: (context, index) {
-                final item = subtopicos[index];
+                final item = itens[index];
 
                 return Container(
                   margin: const EdgeInsets.fromLTRB(0, 0, 24, 8),
@@ -94,7 +98,7 @@ class SecaoHorizontal extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          item.capaUrl!,
+                          item['url']!,
                           height: 120,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -109,13 +113,12 @@ class SecaoHorizontal extends StatelessWidget {
                         children: [
                           // Capítulo
                           Text(
-                            'Capítulo ${item.indice}',
+                            'Capítulo ${item['capitulo']}',
                             style: const TextStyle(
                               fontSize: 10,
                               color: Colors.black,
                             ),
                           ),
-
 
                           // Título + botão
                           Row(
@@ -123,7 +126,7 @@ class SecaoHorizontal extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  item.titulo!,
+                                  item['titulo']!,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -135,8 +138,17 @@ class SecaoHorizontal extends StatelessWidget {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  print('Clicou no botão!');
+                                  if (item['rota'] != null) {
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamed(item['rota']!);
+                                  } else {
+                                    print(
+                                      'Erro: Rota não definida para este item.',
+                                    );
+                                  }
                                 },
+                                // Mantenha o child (Texto 'Acessar' e ícone) inalterado:
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: const [
