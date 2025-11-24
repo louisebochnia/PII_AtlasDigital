@@ -10,7 +10,7 @@ class EstadoImagem extends ChangeNotifier {
   final List<Imagem> _imagens = [];
   List<Imagem> get imagens => List.unmodifiable(_imagens);
 
-  // MODIFICADO: Remove baseUrl fixa
+  // Remove baseUrl fixa
   String _getBaseUrl(String? baseUrl) => baseUrl ?? 'http://localhost:3000';
 
   bool _carregando = false;
@@ -18,7 +18,7 @@ class EstadoImagem extends ChangeNotifier {
   String? _erro;
   String? get erro => _erro;
 
-  // MODIFICADO: Aceita baseUrl como parâmetro
+  // Aceita baseUrl como parâmetro
   String converterParaUrl(String caminhoRelativo, {String? baseUrl}) {
     if (caminhoRelativo.isEmpty) return '';
 
@@ -35,7 +35,7 @@ class EstadoImagem extends ChangeNotifier {
     return '$urlBase/$caminhoLimpo';
   }
 
-  // MODIFICADO: Aceita baseUrl como parâmetro
+  // Aceita baseUrl como parâmetro
   String converterThumbnailParaUrl(
     String enderecoThumbnail, {
     String? baseUrl,
@@ -43,7 +43,7 @@ class EstadoImagem extends ChangeNotifier {
     return converterParaUrl(enderecoThumbnail, baseUrl: baseUrl);
   }
 
-  // MODIFICADO: Aceita baseUrl como parâmetro
+  // Aceita baseUrl como parâmetro
   Future<void> carregarImagens({String? baseUrl}) async {
     _carregando = true;
     _erro = null;
@@ -79,7 +79,7 @@ class EstadoImagem extends ChangeNotifier {
     }
   }
 
-  // MODIFICADO: Outros métodos também aceitam baseUrl
+  // Outros métodos também aceitam baseUrl
   Future<bool> atualizarImagem(
     String id,
     Imagem imagem, {
@@ -129,7 +129,6 @@ class EstadoImagem extends ChangeNotifier {
     }
   }
 
-  // ... resto dos métodos permanecem iguais
   Imagem? primeiraImagemPorSubtopico(String subtopicoNome) {
     final imagens = imagensPorSubtopico(subtopicoNome);
     return imagens.isNotEmpty ? imagens.first : null;
@@ -174,6 +173,14 @@ class EstadoImagem extends ChangeNotifier {
         ..clear()
         ..addAll(lista);
     }
+  }
+
+  List<Imagem> get todasAsImagens {
+    return List<Imagem>.from(_imagens);
+  }
+
+  List<Imagem> obterTodasImagens() {
+    return List<Imagem>.from(_imagens);
   }
 
   Imagem? encontrarPorId(String id) {

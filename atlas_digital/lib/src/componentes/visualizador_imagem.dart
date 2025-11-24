@@ -60,7 +60,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return ChangeNotifierProvider.value(
       value: _estadoVisualizador,
       child: Container(
-        color: Colors.black, // Fundo preto do widget principal
+        color: Colors.black, 
         child: Consumer<EstadoVisualizadorMRXS>(
           builder: (context, estado, child) {
             if(estado.carregando) {
@@ -130,11 +130,101 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   }
 
   Widget _buildVisualizador(EstadoVisualizadorMRXS estado) {
-    return Stack(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isSmallScreen = constraints.maxWidth < 768;
+
+        return Stack(
+          children: [
+            _buildAreaVisualizacao(estado),
+            _buildOverlayControls(estado, isSmallScreen),
+            if (!isSmallScreen) 
+              _buildAnotacoesDesktop(estado),
+            if (isSmallScreen)
+              _buildAnotacoesMobile(estado),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildOverlayControls(EstadoVisualizadorMRXS estado, bool isSmallScreen) {
+    if (isSmallScreen) {
+      return Positioned(
+        top: 20,
+        left: 20,
+        right: 20,
+        child: _buildZoomControlMobile(estado),
+      );
+    } else {
+      return Positioned(
+        bottom: 20,
+        left: 20,
+        right: 20,
+        child: Column(
+          children: [
+            _buildZoomControl(estado),
+            SizedBox(height: 16),
+            if (estado.zoom == 1.0) _buildInstrucoes(),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildZoomControlMobile(EstadoVisualizadorMRXS estado) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.brandGray90.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Zoom: ${(estado.zoom * 100).round()}%',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+              _buildQuickActionsCompact(estado),
+            ],
+          ),
+          SizedBox(height: 8),
+          Slider(
+            value: estado.zoom,
+            min: estado.minZoom,
+            max: estado.maxZoom,
+            onChanged: estado.definirZoom,
+            divisions: 11,
+            label: '${(estado.zoom * 100).round()}%',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsCompact(EstadoVisualizadorMRXS estado) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _buildAreaVisualizacao(estado),
-        _buildOverlayControls(estado),
-        _buildAnotacoes(estado),
+        IconButton(
+          icon: Icon(Icons.zoom_out, color: Colors.white, size: 20),
+          onPressed: estado.zoom > estado.minZoom ? estado.aplicarZoomOut : null,
+          padding: EdgeInsets.all(4),
+        ),
+        IconButton(
+          icon: Icon(Icons.center_focus_strong, color: Colors.white, size: 20),
+          onPressed: estado.resetarVisualizacao,
+          padding: EdgeInsets.all(4),
+        ),
+        IconButton(
+          icon: Icon(Icons.zoom_in, color: Colors.white, size: 20),
+          onPressed: estado.zoom < estado.maxZoom ? estado.aplicarZoomIn : null,
+          padding: EdgeInsets.all(4),
+        ),
       ],
     );
   }
@@ -159,7 +249,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         estado.aplicarZoomIn();
       },
       child: Container(
-        color: Colors.white, // Fundo branco para a área de tiles
+        color: Colors.white,
         child: _buildTiles(estado),
       ),
     );
@@ -186,13 +276,11 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   void _updateTileCache(List<TileInfo> newTiles, EstadoVisualizadorMRXS estado) {
     final newTileMap = <String, TileInfo>{};
     
-    // Mapear novos tiles por chave única
     for (final tile in newTiles) {
       final key = _getTileKey(tile);
       newTileMap[key] = tile;
     }
 
-    // Remover tiles que não estão mais visíveis do cache atual
     final keysToRemove = <String>[];
     for (final key in _currentTiles.keys) {
       if (!newTileMap.containsKey(key)) {
@@ -203,7 +291,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       _currentTiles.remove(key);
     }
 
-    // Adicionar novos tiles ao cache atual
     _currentTiles.addAll(newTileMap);
   }
 
@@ -213,11 +300,9 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     for (final tile in _currentTiles.values) {
       final key = _getTileKey(tile);
       
-      // Se o tile já está no cache de widgets, use-o
       if (_tileCache.containsKey(key)) {
         widgets.add(_buildCachedTileWidget(tile, estado, _tileCache[key]!));
       } else {
-        // Se não está no cache, crie um novo widget e adicione ao cache
         final widget = _buildTileContent(tile);
         _tileCache[key] = widget;
         widgets.add(_buildCachedTileWidget(tile, estado, widget));
@@ -256,7 +341,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   Widget _buildTileContent(TileInfo tile) {
     if (tile.url == null) {
       return Container(
-        color: Colors.white, // Cor sólida em vez de gradiente
+        color: Colors.white, 
       );
     }
 
@@ -275,7 +360,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
           color: Colors.white,
           child: Center(
             child: CircularProgressIndicator(
-              strokeWidth: 1.5, // Mais fino
+              strokeWidth: 1.5, 
               valueColor: AlwaysStoppedAnimation(Colors.black26),
             ),
           ),
@@ -293,25 +378,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildOverlayControls(EstadoVisualizadorMRXS estado) {
-    return Positioned(
-      bottom: 20,
-      left: 20,
-      right: 20,
-      child: Container(
-        child: Column(
-          children: [
-            _buildZoomControl(estado),
-            
-            SizedBox(height: 16),
-                      
-            if (estado.zoom == 1.0) _buildInstrucoes(),
-          ],
-        )
-      ),
     );
   }
 
@@ -362,161 +428,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     );
   }
 
-  Widget _buildAnotacoes(EstadoVisualizadorMRXS estado) {
-    return Positioned(
-      top: 20,
-      bottom: 20,
-      right: 20,
-      child: _ContainerRedimensionavel(
-        larguraInicial: 400,
-        larguraMinima: 250,
-        larguraMaxima: 500,
-        child: Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F1F1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 75,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppColors.brandGreen,
-                        width: 2.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(6.5),
-                      child: Image.network(
-                        converterParaUrl(imagem!.enderecoThumbnail),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          imagem!.nomeImagem,
-                          style: const TextStyle(
-                            fontFamily: "Arial",
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '${imagem!.topico} • ${imagem!.subtopico}',
-                          style: const TextStyle(
-                            fontFamily: "Arial",
-                            color: AppColors.textMuted
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              Divider(
-                color: AppColors.brandGray90,
-                height: 12,
-                thickness: 0.5,
-              ),
-              SizedBox(height: 10),
-              Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 3,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Anotações",
-                          style: const TextStyle(
-                            fontFamily: "Arial",
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          imagem!.anotacao,
-                          style: const TextStyle(
-                            fontFamily: "Arial",
-                            fontSize: 16,
-                          )
-                        ),
-                        SizedBox(height: 12),
-                        // Text(
-                        //   "Hiperlinks",
-                        //   style: const TextStyle(
-                        //     fontFamily: "Arial",
-                        //     fontSize: 22,
-                        //     fontWeight: FontWeight.bold,
-                        //   ),
-                        // ),
-                        // SizedBox(height: 8),
-                        // Text(
-                        //   "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-                        //   style: const TextStyle(
-                        //     fontFamily: "Arial",
-                        //     fontSize: 16,
-                        //   )
-                        // ),
-                      ],
-                    )
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AppShell()),
-                  );
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 220, 20, 20),
-                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.exit_to_app, color: Colors.white, size: 20),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        "Voltar para o site",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontFamily: "Arial",
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            ],
-          )
-        ),
-      ),
-    );
-  }
-
   Widget _buildQuickActions(EstadoVisualizadorMRXS estado) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -534,6 +445,190 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
           onPressed: estado.resetarVisualizacao,
         ),
       ],
+    );
+  }
+
+  Widget _buildAnotacoesDesktop(EstadoVisualizadorMRXS estado) {
+    return Positioned(
+      top: 20,
+      bottom: 20,
+      right: 20,
+      child: _ContainerRedimensionavel(
+        larguraInicial: 400,
+        larguraMinima: 250,
+        larguraMaxima: 500,
+        child: _buildConteudoAnotacoes(estado),
+      ),
+    );
+  }
+
+  Widget _buildAnotacoesMobile(EstadoVisualizadorMRXS estado) {
+    return Positioned(
+      left: 20,
+      right: 20,
+      bottom: 20,
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.4, 
+        ),
+        child: _buildConteudoAnotacoes(estado),
+      ),
+    );
+  }
+
+  Widget _buildConteudoAnotacoes(EstadoVisualizadorMRXS estado) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F1F1),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 100,
+                height: 75,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: AppColors.brandGreen,
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6.5),
+                  child: Image.network(
+                    converterParaUrl(imagem!.enderecoThumbnail),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      imagem!.nomeImagem,
+                      style: const TextStyle(
+                        fontFamily: "Arial",
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                    Text(
+                      '${imagem!.topico} • ${imagem!.subtopico}',
+                      style: const TextStyle(
+                        fontFamily: "Arial",
+                        color: AppColors.textMuted
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          Divider(
+            color: AppColors.brandGray90,
+            height: 12,
+            thickness: 0.5,
+          ),
+          SizedBox(height: 10),
+          Expanded(
+            child: Scrollbar(
+              thumbVisibility: true,
+              thickness: 3,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Anotações",
+                      style: const TextStyle(
+                        fontFamily: "Arial",
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      imagem!.anotacao,
+                      style: const TextStyle(
+                        fontFamily: "Arial",
+                        fontSize: 16,
+                      )
+                    ),
+                    SizedBox(height: 12),
+                    // Text(
+                    //   "Hiperlinks",
+                    //   style: const TextStyle(
+                    //     fontFamily: "Arial",
+                    //     fontSize: 22,
+                    //     fontWeight: FontWeight.bold,
+                    //   ),
+                    // ),
+                    // SizedBox(height: 8),
+                    // Text(
+                    //   "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
+                    //   style: const TextStyle(
+                    //     fontFamily: "Arial",
+                    //     fontSize: 16,
+                    //   )
+                    // ),
+                  ],
+                )
+              ),
+            ),
+          ),
+          SizedBox(height: 12),
+          TextButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const AppShell()),
+              );
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 220, 20, 20),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.exit_to_app, color: Colors.white, size: 20),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Voltar para o site",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: "Arial",
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      )
     );
   }
 
@@ -591,9 +686,9 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   }
 
   FilterQuality _getFilterQualityForLevel(int level) {
-    if (level <= -4) { // 400% ou mais
+    if (level <= -4) { 
       return FilterQuality.high;
-    } else if (level <= -2) { // 200% a 399%
+    } else if (level <= -2) { 
       return FilterQuality.medium;
     } else {
       return FilterQuality.low;
@@ -647,13 +742,11 @@ class _ContainerRedimensionavelState extends State<_ContainerRedimensionavel> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Container principal
         Container(
           width: _largura,
           child: widget.child,
         ),
         
-        // Alça de redimensionamento na borda esquerda
         Positioned(
           left: 0,
           top: 0,
@@ -670,7 +763,6 @@ class _ContainerRedimensionavelState extends State<_ContainerRedimensionavel> {
               onPanUpdate: (details) {
                 setState(() {
                   _largura -= details.delta.dx;
-                  // Limitar a largura entre os valores mínimo e máximo
                   if (_largura < widget.larguraMinima) {
                     _largura = widget.larguraMinima;
                   } else if (_largura > widget.larguraMaxima) {

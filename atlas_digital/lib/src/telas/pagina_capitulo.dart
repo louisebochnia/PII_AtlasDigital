@@ -292,6 +292,8 @@ class _TelaCapituloState extends State<TelaCapitulo> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       appBar: TopNavBar(
         selectedIndex: _indiceSelecionado,
@@ -304,7 +306,10 @@ class _TelaCapituloState extends State<TelaCapitulo> {
           // Conteúdo principal do capítulo
           SliverToBoxAdapter(
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 160, vertical: 40),
+              margin: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 160,
+                vertical: isMobile ? 20 : 40,
+              ),
               child: Column(
                 children: [
                   // Botão de voltar
@@ -314,16 +319,16 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
                         color: Colors.red,
-                        size: 16,
+                        size: isMobile ? 14 : 16,
                       ),
-                      label: const Text(
+                      label: Text(
                         'Voltar',
                         style: TextStyle(
                           color: Colors.red,
-                          fontSize: 16,
+                          fontSize: isMobile ? 14 : 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -333,11 +338,12 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                   // TÍTULO DO TÓPICO
                   Text(
                     _nomeTopico ?? 'Carregando...',
-                    style: const TextStyle(
-                      fontSize: 40,
+                    style: TextStyle(
+                      fontSize: isMobile ? 28 : 40,
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
+                    textAlign: isMobile ? TextAlign.center : TextAlign.left,
                   ),
 
                   const SizedBox(height: 16),
@@ -346,131 +352,97 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isMobile ? 8 : 16),
                     itemCount: widget.subtopico.informacoes.length,
                     itemBuilder: (context, index) {
                       final informacao = widget.subtopico.informacoes[index];
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Imagem do subtópico
-                              Flexible(
-                                flex: 6,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Image.network(
-                                    widget.subtopico.capaUrl ??
-                                        'https://picsum.photos/300/200?1',
+                          // LAYOUT RESPONSIVO: Coluna para mobile, linha para desktop
+                          if (isMobile) ...[
+                            // MOBILE: Imagem acima do conteúdo
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                widget.subtopico.capaUrl ??
+                                    'https://picsum.photos/300/200?1',
+                                width: double.infinity,
+                                height: 200,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
                                     width: double.infinity,
-                                    height: 400,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        width: double.infinity,
-                                        height: 400,
-                                        color: Colors.grey[300],
-                                        child: const Icon(
-                                          Icons.image,
-                                          size: 50,
-                                          color: Colors.grey,
-                                        ),
-                                      );
-                                    },
+                                    height: 200,
+                                    color: Colors.grey[300],
+                                    child: Icon(
+                                      Icons.image,
+                                      size: 40,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // TÍTULO DO SUBTÓPICO + CAPÍTULO (MOBILE)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.subtopico.titulo,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: isMobile ? 24 : 32,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 20),
-                              Flexible(
-                                flex: 4,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // TÍTULO DO SUBTÓPICO + CAPÍTULO
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          widget.subtopico.titulo,
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Capítulo ${widget.subtopico.indice.toString().padLeft(2, '0')}',
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 80),
-                                    const Text(
-                                      'Conteúdos Relacionados',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Capítulo ${widget.subtopico.indice.toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: isMobile ? 14 : 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
 
-                                    // BOTÃO VER QUIZZES
-                                    if (_carregandoQuizLink)
-                                      const CircularProgressIndicator()
-                                    else
-                                      TextButton(
-                                        onPressed: _abrirQuizzes,
-                                        style: TextButton.styleFrom(
-                                          minimumSize: const Size(
-                                            double.infinity,
-                                            44,
-                                          ),
-                                          backgroundColor: const Color.fromARGB(
-                                            255,
-                                            100,
-                                            55,
-                                            255,
-                                          ),
-                                          foregroundColor: const Color.fromARGB(
-                                            255,
-                                            255,
-                                            255,
-                                            255,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          textStyle: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            height: 1.2,
-                                            letterSpacing: 1,
-                                          ),
-                                        ),
-                                        child: const Text('VER QUIZZES'),
-                                      ),
-                                    const SizedBox(height: 12),
+                            // BOTÕES (MOBILE)
+                            Column(
+                              children: [
+                                const Text(
+                                  'Conteúdos Relacionados',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
 
-                                    // Botão ABRIR ATLAS
-                                    TextButton(
-                                      onPressed: _onAtlas,
+                                // BOTÃO VER QUIZZES
+                                if (_carregandoQuizLink)
+                                  const CircularProgressIndicator()
+                                else
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: TextButton(
+                                      onPressed: _abrirQuizzes,
                                       style: TextButton.styleFrom(
                                         minimumSize: const Size(
                                           double.infinity,
                                           44,
                                         ),
-                                        backgroundColor: AppColors.brandGreen,
+                                        backgroundColor: const Color.fromARGB(
+                                          255,
+                                          100,
+                                          55,
+                                          255,
+                                        ),
                                         foregroundColor: const Color.fromARGB(
                                           255,
                                           255,
@@ -489,23 +461,204 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                                           letterSpacing: 1,
                                         ),
                                       ),
-                                      child: const Text('ABRIR ATLAS'),
+                                      child: const Text('VER QUIZZES'),
                                     ),
-                                  ],
+                                  ),
+                                const SizedBox(height: 8),
+
+                                // Botão ABRIR ATLAS
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: TextButton(
+                                    onPressed: _onAtlas,
+                                    style: TextButton.styleFrom(
+                                      minimumSize: const Size(
+                                        double.infinity,
+                                        44,
+                                      ),
+                                      backgroundColor: AppColors.brandGreen,
+                                      foregroundColor: const Color.fromARGB(
+                                        255,
+                                        255,
+                                        255,
+                                        255,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.2,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                    child: const Text('ABRIR ATLAS'),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // Conteúdo da informação
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                          ] else ...[
+                            // DESKTOP: Layout em linha
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Imagem do subtópico
+                                Flexible(
+                                  flex: 6,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.network(
+                                      widget.subtopico.capaUrl ??
+                                          'https://picsum.photos/300/200?1',
+                                      width: double.infinity,
+                                      height: 400,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              width: double.infinity,
+                                              height: 400,
+                                              color: Colors.grey[300],
+                                              child: const Icon(
+                                                Icons.image,
+                                                size: 50,
+                                                color: Colors.grey,
+                                              ),
+                                            );
+                                          },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                Flexible(
+                                  flex: 4,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // TÍTULO DO SUBTÓPICO + CAPÍTULO
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            widget.subtopico.titulo,
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 32,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Capítulo ${widget.subtopico.indice.toString().padLeft(2, '0')}',
+                                            style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 80),
+                                      const Text(
+                                        'Conteúdos Relacionados',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      // BOTÃO VER QUIZZES
+                                      if (_carregandoQuizLink)
+                                        const CircularProgressIndicator()
+                                      else
+                                        TextButton(
+                                          onPressed: _abrirQuizzes,
+                                          style: TextButton.styleFrom(
+                                            minimumSize: const Size(
+                                              double.infinity,
+                                              44,
+                                            ),
+                                            backgroundColor:
+                                                const Color.fromARGB(
+                                                  255,
+                                                  100,
+                                                  55,
+                                                  255,
+                                                ),
+                                            foregroundColor:
+                                                const Color.fromARGB(
+                                                  255,
+                                                  255,
+                                                  255,
+                                                  255,
+                                                ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              height: 1.2,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                          child: const Text('VER QUIZZES'),
+                                        ),
+                                      const SizedBox(height: 12),
+
+                                      // Botão ABRIR ATLAS
+                                      TextButton(
+                                        onPressed: _onAtlas,
+                                        style: TextButton.styleFrom(
+                                          minimumSize: const Size(
+                                            double.infinity,
+                                            44,
+                                          ),
+                                          backgroundColor: AppColors.brandGreen,
+                                          foregroundColor: const Color.fromARGB(
+                                            255,
+                                            255,
+                                            255,
+                                            255,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.2,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
+                                        child: const Text('ABRIR ATLAS'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+
+                          // CONTEÚDO DA INFORMAÇÃO (igual para mobile e desktop)
+                          const SizedBox(height: 16),
                           Text(
                             informacao.informacao,
                             maxLines: expandido[index] ? null : 6,
                             overflow: expandido[index]
                                 ? TextOverflow.visible
                                 : TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 16,
+                            style: TextStyle(
+                              fontSize: isMobile ? 14 : 16,
                               color: Colors.black,
                             ),
                           ),
@@ -558,18 +711,18 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Outros Capítulos do Mesmo Tópico',
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: isMobile ? 18 : 20,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
                                   ),
                                 ),
                                 Text(
                                   'Capítulos: ${subtopicosRelacionados.length}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style: TextStyle(
+                                    fontSize: isMobile ? 14 : 16,
                                     color: Colors.black87,
                                   ),
                                 ),
@@ -578,8 +731,9 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                           ),
                           const SizedBox(height: 16),
 
+                          // AJUSTE AQUI: Aumentei a altura para evitar overflow
                           SizedBox(
-                            height: 192,
+                            height: isMobile ? 180 : 210, // Aumentei a altura
                             child: Scrollbar(
                               controller: controller,
                               thumbVisibility: true,
@@ -595,14 +749,14 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                                       subtopicosRelacionados[index];
 
                                   return Container(
-                                    margin: const EdgeInsets.fromLTRB(
+                                    margin: EdgeInsets.fromLTRB(
                                       0,
                                       0,
-                                      24,
+                                      isMobile ? 16 : 24,
                                       8,
                                     ),
                                     padding: const EdgeInsets.all(6),
-                                    width: 240,
+                                    width: isMobile ? 200 : 240,
                                     decoration: BoxDecoration(
                                       color: const Color.fromARGB(
                                         255,
@@ -630,18 +784,22 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                                           child: Image.network(
                                             subtopicoRelacionado.capaUrl ??
                                                 'https://picsum.photos/300/200?1',
-                                            height: 120,
+                                            height: isMobile
+                                                ? 100
+                                                : 130, // Ajuste na altura da imagem
                                             width: double.infinity,
                                             fit: BoxFit.cover,
                                             errorBuilder:
                                                 (context, error, stackTrace) {
                                                   return Container(
-                                                    height: 120,
+                                                    height: isMobile
+                                                        ? 100
+                                                        : 130,
                                                     width: double.infinity,
                                                     color: Colors.grey[300],
-                                                    child: const Icon(
+                                                    child: Icon(
                                                       Icons.image,
-                                                      size: 50,
+                                                      size: isMobile ? 30 : 50,
                                                       color: Colors.grey,
                                                     ),
                                                   );
@@ -650,85 +808,108 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                                         ),
                                         const SizedBox(height: 6),
 
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Capítulo ${subtopicoRelacionado.indice.toString().padLeft(2, '0')}',
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
+                                        // AJUSTE AQUI: Container para o conteúdo textual com altura fixa
+                                        Container(
+                                          height: isMobile
+                                              ? 50
+                                              : 40, // Altura fixa para o conteúdo
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Capítulo ${subtopicoRelacionado.indice.toString().padLeft(2, '0')}',
+                                                style: TextStyle(
+                                                  fontSize: isMobile ? 9 : 10,
+                                                  color: Colors.black,
+                                                ),
                                               ),
-                                            ),
 
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    subtopicoRelacionado.titulo,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.black87,
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      subtopicoRelacionado
+                                                          .titulo,
+                                                      style: TextStyle(
+                                                        fontSize: isMobile
+                                                            ? 14
+                                                            : 16,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: Colors.black87,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines:
+                                                          1, // Apenas 1 linha para o título
                                                     ),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
                                                   ),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            TelaCapitulo(
-                                                              subtopico:
-                                                                  subtopicoRelacionado,
-                                                            ),
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: const Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        'Acessar',
-                                                        style: TextStyle(
-                                                          color: Color.fromARGB(
-                                                            255,
-                                                            170,
-                                                            14,
-                                                            170,
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              TelaCapitulo(
+                                                                subtopico:
+                                                                    subtopicoRelacionado,
+                                                              ),
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          'Acessar',
+                                                          style: TextStyle(
+                                                            color:
+                                                                const Color.fromARGB(
+                                                                  255,
+                                                                  170,
+                                                                  14,
+                                                                  170,
+                                                                ),
+                                                            fontSize: isMobile
+                                                                ? 10
+                                                                : 12,
+                                                            fontWeight:
+                                                                FontWeight.w600,
                                                           ),
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w600,
                                                         ),
-                                                      ),
-                                                      SizedBox(width: 2),
-                                                      Icon(
-                                                        Icons
-                                                            .arrow_right_alt_sharp,
-                                                        color: Color.fromARGB(
-                                                          255,
-                                                          170,
-                                                          14,
-                                                          170,
+                                                        const SizedBox(
+                                                          width: 2,
                                                         ),
-                                                        size: 24,
-                                                      ),
-                                                    ],
+                                                        Icon(
+                                                          Icons
+                                                              .arrow_right_alt_sharp,
+                                                          color:
+                                                              const Color.fromARGB(
+                                                                255,
+                                                                170,
+                                                                14,
+                                                                170,
+                                                              ),
+                                                          size: isMobile
+                                                              ? 18
+                                                              : 22, // Ícone menor
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
