@@ -281,13 +281,6 @@ class _TelaCapituloState extends State<TelaCapitulo> {
     }
   }
 
-  void _irParaTermosUso() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PaginaTermosUso()),
-    );
-  }
-
   void _onLogin() {
     final estadoUsuario = Provider.of<EstadoUsuario>(context, listen: false);
 

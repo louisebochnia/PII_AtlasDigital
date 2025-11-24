@@ -22,7 +22,7 @@ class SecaoHorizontal extends StatefulWidget {
 class _SecaoHorizontalState extends State<SecaoHorizontal> {
   final ScrollController _scrollController = ScrollController();
 
-  // ← MÉTODO: Chamado quando clica em "Acessar"
+  // Chamado quando clica em "Acessar"
   void _onAcessarSubtopico(Subtopico subtopico) {
     if (widget.onAcessarSubtopico != null) {
       widget.onAcessarSubtopico!(subtopico);
