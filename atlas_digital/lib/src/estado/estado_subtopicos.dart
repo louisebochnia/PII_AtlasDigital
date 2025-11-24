@@ -10,34 +10,48 @@ class EstadoSubtopicos extends ChangeNotifier {
   final List<Subtopico> _subtopicos = [];
   List<Subtopico> get subtopicos => List.unmodifiable(_subtopicos);
 
-  static final String _baseUrl = '${ApiConfig.baseUrl}/subtopicos';
+  // MODIFICADO: Remove _baseUrl fixa
+  String _getBaseUrl(String? baseUrl) => baseUrl ?? ApiConfig.baseUrl;
 
-  // ---------------------------------------------------------------------------
-  // Adicionar Subtópico
-  // ---------------------------------------------------------------------------
-  Future<void> adicionarSubtopico(Subtopico s) async {
+  // MODIFICADO: Aceita baseUrl como parâmetro
+  Future<void> carregarBanco({String? baseUrl}) async {
     try {
+      final String urlBase = _getBaseUrl(baseUrl);
+      final res = await http.get(Uri.parse('$urlBase/subtopicos'));
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as List;
+        _subtopicos
+          ..clear()
+          ..addAll(data.map((e) => Subtopico.fromJson(e)).toList());
+        await salvarLocal();
+        notifyListeners();
+        debugPrint('Subtópicos carregados do banco com sucesso de: $urlBase');
+      } else {
+        debugPrint('Erro ao carregar subtópicos: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Falha ao conectar com o servidor: $e');
+      // Tenta carregar do cache local em caso de erro
+      await carregarLocal();
+    }
+  }
+
+  // MODIFICADO: Outros métodos também aceitam baseUrl
+  Future<void> adicionarSubtopico(Subtopico s, {String? baseUrl}) async {
+    try {
+      final String urlBase = _getBaseUrl(baseUrl);
       final body = s.toJson();
 
-      // DEBUG DETALHADO
-      debugPrint('=== DADOS DO SUBTÓPICO ===');
-      debugPrint('ID: ${s.id}');
-      debugPrint('Índice: ${s.indice} (tipo: ${s.indice.runtimeType})');
-      debugPrint('Título: ${s.titulo}');
-      debugPrint('TopicoId: ${s.topicoId}');
-      debugPrint('CapaUrl: ${s.capaUrl}');
-      debugPrint('Informações: ${s.informacoes.length}');
-      debugPrint('JSON a ser enviado: ${jsonEncode(body)}');
-      debugPrint('URL: $_baseUrl');
+      debugPrint('Enviando para: $urlBase/subtopicos');
 
       final res = await http.post(
-        Uri.parse(_baseUrl),
+        Uri.parse('$urlBase/subtopicos'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
 
       debugPrint('Status Code: ${res.statusCode}');
-      debugPrint('Resposta do servidor: ${res.body}');
 
       if (res.statusCode == 201 || res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -55,13 +69,15 @@ class EstadoSubtopicos extends ChangeNotifier {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Editar Subtópico
-  // ---------------------------------------------------------------------------
-  Future<void> editarSubtopico(String id, Subtopico atualizado) async {
+  Future<void> editarSubtopico(
+    String id,
+    Subtopico atualizado, {
+    String? baseUrl,
+  }) async {
     try {
+      final String urlBase = _getBaseUrl(baseUrl);
       final res = await http.put(
-        Uri.parse('$_baseUrl/$id'),
+        Uri.parse('$urlBase/subtopicos/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(atualizado.toJson()),
       );
@@ -81,12 +97,10 @@ class EstadoSubtopicos extends ChangeNotifier {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Remover Subtópico
-  // ---------------------------------------------------------------------------
-  Future<void> removerSubtopico(String id) async {
+  Future<void> removerSubtopico(String id, {String? baseUrl}) async {
     try {
-      final res = await http.delete(Uri.parse('$_baseUrl/$id'));
+      final String urlBase = _getBaseUrl(baseUrl);
+      final res = await http.delete(Uri.parse('$urlBase/subtopicos/$id'));
       if (res.statusCode == 200 || res.statusCode == 204) {
         _subtopicos.removeWhere((s) => s.id == id);
         await salvarLocal();
@@ -99,31 +113,7 @@ class EstadoSubtopicos extends ChangeNotifier {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Carregar do backend
-  // ---------------------------------------------------------------------------
-  Future<void> carregarBanco() async {
-    try {
-      final res = await http.get(Uri.parse(_baseUrl));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body) as List;
-        _subtopicos
-          ..clear()
-          ..addAll(data.map((e) => Subtopico.fromJson(e)).toList());
-        await salvarLocal();
-        notifyListeners();
-        debugPrint('Subtópicos carregados do banco com sucesso.');
-      } else {
-        debugPrint('Erro ao carregar subtópicos: ${res.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Falha ao conectar com o servidor: $e');
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Persistência local - Para testes
-  // ---------------------------------------------------------------------------
+  // ... resto do código permanece igual
   Future<void> salvarLocal() async {
     final prefs = await SharedPreferences.getInstance();
     final json = jsonEncode(_subtopicos.map((s) => s.toJson()).toList());
@@ -148,9 +138,6 @@ class EstadoSubtopicos extends ChangeNotifier {
     await prefs.remove(_chave);
   }
 
-  // ---------------------------------------------------------------------------
-  // Filtrar por topicoId
-  // ---------------------------------------------------------------------------
   List<Subtopico> filtrarPorTopico(String topicoId) {
     return _subtopicos.where((s) => s.topicoId == topicoId).toList();
   }

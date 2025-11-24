@@ -11,7 +11,9 @@ class EstadoTopicos extends ChangeNotifier {
   final List<Topico> _topicos = [];
   List<Topico> get topicos => List.unmodifiable(_topicos);
 
-  static final String _baseUrl = '${ApiConfig.baseUrl}/topicos';
+  String _getBaseUrl(String? baseUrl) => baseUrl ?? ApiConfig.baseUrl;
+
+  // static final String _baseUrl = '${ApiConfig.baseUrl}/topicos';
 
   // ---------------------------------------------------------------------------
   // MOCK local — usado apenas se o banco estiver vazio ou offline
@@ -31,79 +33,83 @@ class EstadoTopicos extends ChangeNotifier {
   // ---------------------------------------------------------------------------
   // CARREGAR DO BACKEND
   // ---------------------------------------------------------------------------
-  Future<void> adicionarTopico(Topico t) async {
-  try {
-    final res = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(t.toJson()),
-    );
+  Future<void> adicionarTopico(Topico t, {String? baseUrl}) async {
+    try {
+      final String urlBase = _getBaseUrl(baseUrl);
+      final res = await http.post(
+        Uri.parse('$urlBase/topicos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(t.toJson()),
+      );
 
-    if (res.statusCode == 201 || res.statusCode == 200) {
-      await carregarBanco();
-    } else {
-      debugPrint('Erro ao adicionar tópico: ${res.statusCode}');
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        await carregarBanco(baseUrl: baseUrl);
+      } else {
+        debugPrint('Erro ao adicionar tópico: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Falha ao salvar tópico: $e');
     }
-  } catch (e) {
-    debugPrint('Falha ao salvar tópico: $e');
   }
-}
 
-Future<void> editarTopico(String id, Topico novo) async {
-  try {
-    final res = await http.put(
-      Uri.parse('$_baseUrl/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(novo.toJson()),
-    );
+  Future<void> editarTopico(String id, Topico novo, {String? baseUrl}) async {
+    try {
+      final String urlBase = _getBaseUrl(baseUrl);
+      final res = await http.put(
+        Uri.parse('$urlBase/topicos/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(novo.toJson()),
+      );
 
-    if (res.statusCode == 200) {
-      await carregarBanco();
-    } else {
-      debugPrint('Erro ao editar tópico: ${res.statusCode}');
+      if (res.statusCode == 200) {
+        await carregarBanco(baseUrl: baseUrl);
+      } else {
+        debugPrint('Erro ao editar tópico: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao atualizar tópico: $e');
     }
-  } catch (e) {
-    debugPrint('Erro ao atualizar tópico: $e');
   }
-}
 
-Future<void> removerTopico(String id) async {
-  try {
-    final res = await http.delete(Uri.parse('$_baseUrl/$id'));
-    if (res.statusCode == 200 || res.statusCode == 204) {
-      await carregarBanco();
-    } else {
-      debugPrint('Erro ao remover tópico: ${res.statusCode}');
+  Future<void> removerTopico(String id, {String? baseUrl}) async {
+    try {
+      final String urlBase = _getBaseUrl(baseUrl);
+      final res = await http.delete(Uri.parse('$urlBase/topicos/$id'));
+      if (res.statusCode == 200 || res.statusCode == 204) {
+        await carregarBanco(baseUrl: baseUrl);
+      } else {
+        debugPrint('Erro ao remover tópico: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao deletar tópico: $e');
     }
-  } catch (e) {
-    debugPrint('Erro ao deletar tópico: $e');
   }
-}
 
-Future<void> carregarBanco() async {
-  try {
-    final res = await http.get(Uri.parse(_baseUrl));
+  Future<void> carregarBanco({String? baseUrl}) async {
+    try {
+      final String urlBase = _getBaseUrl(baseUrl);
+      final res = await http.get(Uri.parse('$urlBase/topicos'));
 
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body) as List;
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as List;
 
-      _topicos
-        ..clear()
-        ..addAll(data.map((e) => Topico.fromJson(e)).toList());
+        _topicos
+          ..clear()
+          ..addAll(data.map((e) => Topico.fromJson(e)).toList());
 
-      await salvarLocal();
+        await salvarLocal();
 
-      notifyListeners();
-      debugPrint('Tópicos carregados do banco com sucesso.');
-    } else {
-      debugPrint('Erro ao carregar tópicos do banco: ${res.statusCode}');
+        notifyListeners();
+        debugPrint('Tópicos carregados do banco com sucesso de: $urlBase');
+      } else {
+        debugPrint('Erro ao carregar tópicos do banco: ${res.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Falha ao conectar com o servidor: $e');
+      // Tenta carregar do cache local em caso de erro
+      await carregarLocal();
     }
-  } catch (e) {
-    debugPrint('Falha ao conectar com o servidor: $e');
   }
-}
-
-
 
   // ---------------------------------------------------------------------------
   // Persistência local (cache offline)
