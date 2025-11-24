@@ -1,6 +1,13 @@
 // pages/visualizador_page.dart
 import 'package:flutter/material.dart';
 import '../componentes/visualizador_imagem.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
+
+bool get isDesktopOrWeb {
+  if (kIsWeb) return true;
+  return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+}
 
 class PaginaImagem extends StatelessWidget {
   final String imagemId;
@@ -28,7 +35,7 @@ class PaginaImagem extends StatelessWidget {
             Expanded(
               child: VisualizadorImagem(
                 imagemId: imagemId,
-                tilesBaseUrl: 'http://localhost:3000/tiles',
+                tilesBaseUrl: isDesktopOrWeb ? 'http://localhost:3000/tiles' : 'http://10.2.129.68:3000',
               ),
             ),
           ],
