@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../estado/estado_visualizador.dart';
@@ -167,10 +165,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   }
 
   Widget _buildTileWidget(TileInfo tile, EstadoVisualizadorMRXS estado) {
-    final layer = estado.layers.firstWhere(
-      (l) => l.level == tile.level,
-      orElse: () => estado.layers.first,
-    );
     
     final tileSize = 256.0;
     

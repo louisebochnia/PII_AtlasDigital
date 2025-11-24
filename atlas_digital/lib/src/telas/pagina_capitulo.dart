@@ -11,7 +11,6 @@ import 'package:atlas_digital/src/componentes/rodape.dart';
 import 'package:atlas_digital/src/componentes/barra_de_navegacao.dart';
 import 'package:atlas_digital/src/modelos/subtopicos.dart';
 import 'package:atlas_digital/src/modelos/topico.dart';
-import 'package:atlas_digital/src/telas/pagina_termosUso.dart';
 import 'package:atlas_digital/src/estado/estado_usuario.dart';
 import 'package:atlas_digital/src/estado/estado_subtopicos.dart';
 import 'package:atlas_digital/src/estado/estado_topicos.dart';
@@ -93,15 +92,6 @@ class _TelaCapituloState extends State<TelaCapitulo> {
       context,
       MaterialPageRoute(builder: (context) => const PainelAdm()),
     );
-  }
-
-  // Método para abrir termos de uso
-  void _abrirTermosUso() {
-    final estadoNavegacao = Provider.of<EstadoNavegacao>(
-      context,
-      listen: false,
-    );
-    estadoNavegacao.definirPaginaEspecial(const PaginaTermosUso());
   }
 
   // Método para carregar o link do quiz da API
