@@ -40,12 +40,7 @@ class _AppShellState extends State<AppShell> {
   String? _urlFacebook;
   String? _urlLinkedIn;
   String? _urlYouTube;
-
-  final List<Widget> _pages = [
-    const PaginaInicial(),
-    const PaginaConteudo(),
-    const PaginaGaleria(),
-  ];
+  String? _urlKahoot;
 
   @override
   void initState() {
@@ -67,6 +62,7 @@ class _AppShellState extends State<AppShell> {
           if (nome == 'facebook') _urlFacebook = link;
           if (nome == 'linkedin') _urlLinkedIn = link;
           if (nome == 'youtube') _urlYouTube = link;
+          if (nome == 'kahoot') _urlKahoot = link;
         }
         setState(() {});
       }
@@ -90,6 +86,13 @@ class _AppShellState extends State<AppShell> {
         print('Visita ao AppShell registrada');
       });
     }
+  }
+
+  void _navegarParaPagina(int index) {
+    setState(() {
+      _index = index;
+      _paginaEspecial = null; // Volta para navegação normal
+    });
   }
 
   void _navegarParaPaginaEspecial(Widget pagina) {
@@ -119,19 +122,21 @@ class _AppShellState extends State<AppShell> {
 
   // Função para abrir quizzes
   void _abrirQuizzes() async {
-    const url =
-        'https://kahoot.it/challenge/01222478?challenge-id=0d7865cd-feea-4485-8785-64eda4afebed_1762430282515';
+    final url =
+        _urlKahoot ?? 'https://kahoot.it/challenge/01222478?challenge-id=0d7865cd-feea-4485-8785-64eda4afebed_1762430282515';
     await _launchUrl(url);
   }
 
   // Funções para redes sociais
   void _abrirInstagram() async {
-    final url = _urlInstagram ?? 'https://www.instagram.com/centrouniversitariofmabc/';
+    final url =
+        _urlInstagram ?? 'https://www.instagram.com/centrouniversitariofmabc/';
     await _launchUrl(url);
   }
 
   void _abrirFacebook() async {
-    final url = _urlFacebook ?? 'https://www.facebook.com/CentroUniversitarioFMABC/';
+    final url =
+        _urlFacebook ?? 'https://www.facebook.com/CentroUniversitarioFMABC/';
     await _launchUrl(url);
   }
 
@@ -141,7 +146,9 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _abrirYouTube() async {
-    final url = _urlYouTube ?? 'https://www.youtube.com/channel/UCJ_wO9afToh1XyMoUcGY8qw';
+    final url =
+        _urlYouTube ??
+        'https://www.youtube.com/channel/UCJ_wO9afToh1XyMoUcGY8qw';
     await _launchUrl(url);
   }
 
@@ -173,6 +180,21 @@ class _AppShellState extends State<AppShell> {
         SnackBar(content: Text('Erro ao abrir link: ${e.toString()}')),
       );
     }
+  }
+
+  List<Widget> _buildPages() {
+    return [
+      PaginaInicial(
+        onNavegar: (index) => _navegarParaPagina(index),
+        onInstagramTap: _abrirInstagram,
+        onFacebookTap: _abrirFacebook,
+        onLinkedInTap: _abrirLinkedIn,
+        onYouTubeTap: _abrirYouTube,
+        onQuiz: _abrirQuizzes,
+      ),
+      const PaginaConteudo(),
+      const PaginaGaleria(),
+    ];
   }
 
   @override
@@ -210,13 +232,15 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _buildBody() {
+    final pages = _buildPages(); 
+
     // Se temos uma página especial, mostra ela
     if (_paginaEspecial != null) {
       return _buildCustomScrollView(_paginaEspecial!);
     }
 
     // Senão, mostra a página normal baseada no índice
-    return _buildCustomScrollView(_pages[_index]);
+    return _buildCustomScrollView(pages[_index]);
   }
 
   Widget _buildCustomScrollView(Widget conteudo) {
@@ -237,19 +261,13 @@ class _AppShellState extends State<AppShell> {
                     itens: [
                       FooterItem(
                         'Sobre o Atlas',
-                        onTap: () =>
-                            _navegarParaPaginaEspecial(const PaginaInicial()),
+                        onTap: () => _navegarParaPagina(0),
                       ),
                       FooterItem(
                         'Conteúdo',
-                        onTap: () =>
-                            _navegarParaPaginaEspecial(const PaginaConteudo()),
+                        onTap: () => _navegarParaPagina(1),
                       ),
-                      FooterItem(
-                        'Galeria',
-                        onTap: () =>
-                            _navegarParaPaginaEspecial(const PaginaGaleria()),
-                      ),
+                      FooterItem('Galeria', onTap: () => _navegarParaPagina(2)),
                     ],
                   ),
                   FooterColumnData(
@@ -277,6 +295,7 @@ class _AppShellState extends State<AppShell> {
                 onFacebookTap: _abrirFacebook,
                 onLinkedInTap: _abrirLinkedIn,
                 onYouTubeTap: _abrirYouTube,
+                onQuiz: _abrirQuizzes,
                 onTermosUso: _paginaEspecial == null
                     ? (context) {
                         _navegarParaPaginaEspecial(const PaginaTermosUso());

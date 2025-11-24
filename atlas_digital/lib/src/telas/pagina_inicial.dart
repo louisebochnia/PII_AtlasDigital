@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const double kBreakpoint = 900;
 
 class PaginaInicial extends StatefulWidget {
   final Function(int)? onNavegar;
-  const PaginaInicial({super.key, this.onNavegar});
+  final VoidCallback? onInstagramTap;
+  final VoidCallback? onFacebookTap;
+  final VoidCallback? onLinkedInTap;
+  final VoidCallback? onYouTubeTap;
+  final VoidCallback? onQuiz;
+
+  const PaginaInicial({
+    super.key,
+    this.onNavegar,
+    this.onInstagramTap,
+    this.onFacebookTap,
+    this.onLinkedInTap,
+    this.onYouTubeTap,
+    this.onQuiz,
+  });
 
   @override
   State<PaginaInicial> createState() => _PaginaInicialState();
@@ -25,7 +40,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
       child: Column(
         children: [
           _buildHeroSlider(horizontalPadding, isMobile),
-          
+
           _buildWelcomeBanner(horizontalPadding, isMobile),
 
           SizedBox(height: sectionGap),
@@ -39,7 +54,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
 
           SizedBox(height: sectionGap),
           _buildSocialSection(horizontalPadding, isMobile),
-          const SizedBox(height: 80), 
+          const SizedBox(height: 80),
         ],
       ),
     );
@@ -56,10 +71,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: verticalPadding),
-      decoration: BoxDecoration(
-        color: corFundo,
-        image: imagemFundo,
-      ),
+      decoration: BoxDecoration(color: corFundo, image: imagemFundo),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -80,22 +92,34 @@ class _PaginaInicialState extends State<PaginaInicial> {
       child: Stack(
         children: [
           const Center(
-            child: Text("Banner Rotativo", 
-              style: TextStyle(color: Colors.grey, fontSize: 20))
+            child: Text(
+              "Banner Rotativo",
+              style: TextStyle(color: Colors.grey, fontSize: 20),
+            ),
           ),
           Positioned(
             left: isMobile ? 10 : padding,
-            top: 0, bottom: 0,
+            top: 0,
+            bottom: 0,
             child: IconButton(
-              icon: Icon(Icons.arrow_back_ios, size: isMobile ? 24 : 40, color: Colors.black54),
+              icon: Icon(
+                Icons.arrow_back_ios,
+                size: isMobile ? 24 : 40,
+                color: Colors.black54,
+              ),
               onPressed: () {},
             ),
           ),
           Positioned(
             right: isMobile ? 10 : padding,
-            top: 0, bottom: 0,
+            top: 0,
+            bottom: 0,
             child: IconButton(
-              icon: Icon(Icons.arrow_forward_ios, size: isMobile ? 24 : 40, color: Colors.black54),
+              icon: Icon(
+                Icons.arrow_forward_ios,
+                size: isMobile ? 24 : 40,
+                color: Colors.black54,
+              ),
               onPressed: () {},
             ),
           ),
@@ -119,9 +143,9 @@ class _PaginaInicialState extends State<PaginaInicial> {
           Text(
             "Bem Vindo(a) ao PORTAL ATLAS",
             style: TextStyle(
-              color: Colors.white, 
-              fontSize: isMobile ? 24 : 32, 
-              fontWeight: FontWeight.bold
+              color: Colors.white,
+              fontSize: isMobile ? 24 : 32,
+              fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
@@ -131,9 +155,9 @@ class _PaginaInicialState extends State<PaginaInicial> {
             child: Text(
               "Bem-vindo(a) ao Portal ATLAS, o espaço criado para você estudar citologia com máxima qualidade. Nesta plataforma, oferecemos não apenas imagens de altíssima definição, mas também uma experiência completa de aprendizado.",
               style: TextStyle(
-                color: Colors.white, 
-                fontSize: isMobile ? 16 : 18, 
-                height: 1.5
+                color: Colors.white,
+                fontSize: isMobile ? 16 : 18,
+                height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
@@ -149,7 +173,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
       horizontalPadding: padding,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          bool isNarrow = constraints.maxWidth < 900; 
+          bool isNarrow = constraints.maxWidth < 900;
 
           Widget imagem = Container(
             constraints: const BoxConstraints(maxWidth: 500),
@@ -163,7 +187,11 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   "assets/foto_equipe.png",
                   fit: BoxFit.cover,
                   errorBuilder: (ctx, err, stack) => const Center(
-                    child: Icon(Icons.broken_image, size: 50, color: Colors.grey)
+                    child: Icon(
+                      Icons.broken_image,
+                      size: 50,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
               ),
@@ -171,17 +199,23 @@ class _PaginaInicialState extends State<PaginaInicial> {
           );
 
           Widget texto = Column(
-            crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            crossAxisAlignment: isNarrow
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
             children: [
               Text(
-                "Por que o PORTAL ATLAS foi criado?", 
+                "Por que o PORTAL ATLAS foi criado?",
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 textAlign: isNarrow ? TextAlign.center : TextAlign.start,
               ),
               const SizedBox(height: 20),
               Text(
                 "Este portal foi desenvolvido para oferecer, tanto a estudantes quanto ao público em geral, um espaço onde o aprendizado é prioridade. No ATLAS, você encontrará imagens de citologia em alta qualidade, cuidadosamente selecionadas para análise e estudo.\n\nAlém das imagens e dos pontos de atenção destacados pelos professores, o portal também disponibiliza explicações detalhadas dos conteúdos.",
-                style: const TextStyle(fontSize: 18, height: 1.6, color: Colors.black87),
+                style: const TextStyle(
+                  fontSize: 18,
+                  height: 1.6,
+                  color: Colors.black87,
+                ),
                 textAlign: isNarrow ? TextAlign.center : TextAlign.start,
               ),
             ],
@@ -189,11 +223,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
 
           if (isNarrow) {
             return Column(
-              children: [
-                imagem,
-                const SizedBox(height: 40),
-                texto, 
-              ],
+              children: [imagem, const SizedBox(height: 40), texto],
             );
           } else {
             return Row(
@@ -206,7 +236,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
               ],
             );
           }
-        }
+        },
       ),
     );
   }
@@ -217,8 +247,10 @@ class _PaginaInicialState extends State<PaginaInicial> {
       horizontalPadding: padding,
       child: Column(
         children: [
-          Text("Explore o ATLAS", 
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+          Text(
+            "Explore o ATLAS",
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 50),
           Wrap(
             spacing: 30,
@@ -227,26 +259,27 @@ class _PaginaInicialState extends State<PaginaInicial> {
             children: [
               // CARD 1: Conteúdo -> Redireciona para índice 1 (Aba Conteúdo)
               _buildCardNovo(
-                Icons.biotech_rounded, 
-                "Conteúdo", 
-                "Acesse materiais didáticos completos.", 
+                Icons.biotech_rounded,
+                "Conteúdo",
+                "Acesse materiais didáticos completos.",
                 isMobile,
-                onTap: () => widget.onNavegar?.call(1), 
+                onTap: () => widget.onNavegar?.call(1),
               ),
               // CARD 2: Galeria -> Redireciona para índice 2 (Aba Galeria)
               _buildCardNovo(
-                Icons.collections_rounded, 
-                "Galeria", 
-                "Explore nosso acervo de lâminas.", 
+                Icons.collections_rounded,
+                "Galeria",
+                "Explore nosso acervo de lâminas.",
                 isMobile,
                 onTap: () => widget.onNavegar?.call(2),
               ),
               // CARD 3: Quiz (Exemplo sem navegação interna por enquanto)
               _buildCardNovo(
-                Icons.help_rounded, 
-                "Quiz", 
-                "Teste seus conhecimentos.", 
+                Icons.help_rounded,
+                "Quiz",
+                "Teste seus conhecimentos.",
                 isMobile,
+                onTap: widget.onQuiz,
                 // onTap: ... se quiser navegar para algum lugar
               ),
             ],
@@ -256,12 +289,18 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  Widget _buildCardNovo(IconData icon, String title, String description, bool isMobile, {VoidCallback? onTap}) {
-    const double cardHeight = 380; 
+  Widget _buildCardNovo(
+    IconData icon,
+    String title,
+    String description,
+    bool isMobile, {
+    VoidCallback? onTap,
+  }) {
+    const double cardHeight = 380;
 
     return Container(
       width: isMobile ? double.infinity : 300,
-      height: cardHeight, 
+      height: cardHeight,
       constraints: const BoxConstraints(maxWidth: 350),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -271,14 +310,14 @@ class _PaginaInicialState extends State<PaginaInicial> {
             color: Colors.black.withOpacity(0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
-          )
+          ),
         ],
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Material(
-        color: Colors.transparent, 
+        color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(30), 
+          borderRadius: BorderRadius.circular(30),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
@@ -289,16 +328,24 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 const SizedBox(height: 25),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 15),
                 Text(
                   description,
                   textAlign: TextAlign.center,
-                  maxLines: 4, 
+                  maxLines: 4,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15, color: Colors.black54, height: 1.4),
-                )
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.black54,
+                    height: 1.4,
+                  ),
+                ),
               ],
             ),
           ),
@@ -306,6 +353,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
       ),
     );
   }
+
   // --- 5. SEÇÃO QUIZ ---
   Widget _buildQuizSection(double padding) {
     return _secaoComMargem(
@@ -317,23 +365,40 @@ class _PaginaInicialState extends State<PaginaInicial> {
           Widget imagem = Container(
             height: 350,
             constraints: const BoxConstraints(maxWidth: 400),
+            alignment: isNarrow ? Alignment.center : Alignment.centerLeft,
             child: Image.asset(
               "assets/ilustracao_quiz.png",
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
-                return const Center(child: Icon(Icons.image_not_supported, size: 60, color: Colors.red));
+                return const Center(
+                  child: Icon(
+                    Icons.image_not_supported,
+                    size: 60,
+                    color: Colors.red,
+                  ),
+                );
               },
             ),
           );
-          
+
           Widget texto = Column(
-            crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            crossAxisAlignment: isNarrow
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
             children: [
-              Text("CONFIRA NOSSOS Quizzes", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              Text(
+                "CONFIRA NOSSOS Quizzes",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                textAlign: isNarrow ? TextAlign.center : TextAlign.start,
+              ),
               const SizedBox(height: 20),
               Text(
                 "Pratique o que você aprendeu com nossos exercícios e formulários de avaliação.",
-                style: const TextStyle(fontSize: 18, height: 1.6, color: Colors.black87),
+                style: const TextStyle(
+                  fontSize: 18,
+                  height: 1.6,
+                  color: Colors.black87,
+                ),
                 textAlign: isNarrow ? TextAlign.center : TextAlign.start,
               ),
               const SizedBox(height: 40),
@@ -343,40 +408,47 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 alignment: WrapAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: widget.onQuiz,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6200EE),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 22,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: const Text("Ver Quizzes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      "Ver Quizzes",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
-              )
+              ),
             ],
           );
 
           if (isNarrow) {
-             return Column(
-               children: [
-                 imagem,
-                 const SizedBox(height: 30),
-                 texto,
-               ],
-             );
+            return Column(
+              children: [imagem, const SizedBox(height: 30), texto],
+            );
           } else {
-             return Row(
-               mainAxisAlignment: MainAxisAlignment.center,
-               crossAxisAlignment: CrossAxisAlignment.center,
-               children: [
-                 imagem,
-                 const SizedBox(width: 60),
-                 Expanded(child: texto),
-               ],
-             );
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                imagem,
+                const SizedBox(width: 60),
+                Expanded(child: texto),
+              ],
+            );
           }
-        }
+        },
       ),
     );
   }
@@ -392,7 +464,11 @@ class _PaginaInicialState extends State<PaginaInicial> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
             ],
           ),
           child: Column(
@@ -403,17 +479,26 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Color(0xFF00C853),
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: isMobile ? 30 : 40),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: isMobile ? 30 : 40,
+                ),
                 child: Column(
                   children: [
                     Text(
                       "Acompanhe nossas redes sociais",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: isMobile ? 22 : 24, fontWeight: FontWeight.bold)
+                      style: TextStyle(
+                        fontSize: isMobile ? 22 : 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 15),
                     RichText(
@@ -421,8 +506,17 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       text: const TextSpan(
                         style: TextStyle(fontSize: 18, color: Colors.grey),
                         children: [
-                          TextSpan(text: "Fique por dentro de todas as atualizações da "),
-                          TextSpan(text: "FMABC", style: TextStyle(color: Color(0xFF388E3C), fontWeight: FontWeight.bold)),
+                          TextSpan(
+                            text:
+                                "Fique por dentro de todas as atualizações da ",
+                          ),
+                          TextSpan(
+                            text: "FMABC",
+                            style: TextStyle(
+                              color: Color(0xFF388E3C),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -432,11 +526,32 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       spacing: 30,
                       runSpacing: 20,
                       children: [
-                        _socialButton(Icons.camera_alt),
-                        _socialButton(Icons.close),
-                        _socialButton(Icons.play_arrow),
+                        _socialButton(
+                          Icons.photo_camera_outlined,
+                          'Instagram',
+                          widget
+                              .onInstagramTap, // USA a função passada do app_shell
+                        ),
+                        _socialButton(
+                          Icons.facebook,
+                          'Facebook',
+                          widget
+                              .onFacebookTap, // USA a função passada do app_shell
+                        ),
+                        _socialButton(
+                          Icons.business_center_outlined,
+                          'LinkedIn',
+                          widget
+                              .onLinkedInTap, // USA a função passada do app_shell
+                        ),
+                        _socialButton(
+                          Icons.smart_display,
+                          'YouTube',
+                          widget
+                              .onYouTubeTap, // USA a função passada do app_shell
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -447,14 +562,33 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  Widget _socialButton(IconData icon) {
-    return Container(
-      width: 80, height: 50,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade400,
-        borderRadius: BorderRadius.circular(25)
+  Widget _socialButton(IconData icon, String tooltip, VoidCallback? onTap) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(25),
+        child: Container(
+          width: 80,
+          height: 50,
+          decoration: BoxDecoration(
+            color: onTap != null
+                ? const Color(0xFF388E3C)
+                : Colors.grey.shade400,
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: onTap != null
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Icon(icon, color: Colors.white, size: 28),
+        ),
       ),
-      child: Icon(icon, color: Colors.white, size: 28),
     );
   }
 }

@@ -20,6 +20,7 @@ class Rodape extends StatelessWidget {
   final VoidCallback? onFacebookTap;
   final VoidCallback? onLinkedInTap;
   final VoidCallback? onYouTubeTap;
+  final VoidCallback? onQuiz;
 
   const Rodape({
     super.key,
@@ -34,6 +35,7 @@ class Rodape extends StatelessWidget {
     this.onFacebookTap,
     this.onLinkedInTap,
     this.onYouTubeTap,
+    this.onQuiz,
   });
 
   @override
