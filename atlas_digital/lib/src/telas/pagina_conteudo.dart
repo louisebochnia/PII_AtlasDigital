@@ -37,63 +37,58 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
     try {
       if (kIsWeb) {
         _baseUrl = 'http://localhost:3000';
-        print('🌐 Plataforma: Web - usando $_baseUrl');
+        print('Plataforma: Web - usando $_baseUrl');
         return _baseUrl;
       } else {
-        print('📱 Plataforma: Mobile - detectando host para conteúdo...');
+        print('Plataforma: Mobile - detectando host para conteúdo...');
 
-        // LISTA DE IPs PARA TESTAR - MESMA LÓGICA DAS REDES SOCIAIS
+        // MESMA LÓGICA DAS REDES SOCIAIS - USE O MESMO IP DO SEU COMPUTADOR
         final hosts = [
-          'http://192.168.15.163:3000', // SEU IP ATUAL
-          'http://192.168.1.100:3000', // IP comum em outras redes
-          'http://192.168.0.100:3000', // Outro IP comum
-          'http://10.0.2.2:3000', // Android Emulator
-          'http://localhost:3000', // iOS Simulator
+          'http://192.168.15.163:3000',    
+          'http://192.168.1.100:3000',     
+          'http://192.168.0.100:3000',     // Outro IP comum
+          'http://10.0.2.2:3000',          // Android Emulator
+          'http://localhost:3000',         // iOS Simulator
         ];
 
         for (final host in hosts) {
           try {
-            print('🔍 Testando conexão com: $host');
-            final testUri = Uri.parse(
-              '$host/topicos',
-            ); // Testa endpoint de tópicos
+            print('Testando conexão com: $host/topicos');
+            final testUri = Uri.parse('$host/topicos');
             final testResp = await http
                 .get(testUri)
                 .timeout(const Duration(seconds: 5));
 
             if (testResp.statusCode == 200) {
               _baseUrl = host;
-              print('✅ Conexão bem-sucedida com: $host');
+              print('Conexão bem-sucedida com: $host');
               return _baseUrl;
             } else {
-              print('❌ HTTP ${testResp.statusCode} com: $host');
+              print('HTTP ${testResp.statusCode} com: $host');
             }
           } catch (e) {
-            print('❌ Falha ao conectar com $host: ${e.toString()}');
+            print('Falha ao conectar com $host: ${e.toString()}');
             continue;
           }
         }
 
-        print('⚠️ Nenhum host funcionou para conteúdo');
+        print('Nenhum host funcionou para conteúdo');
         return null;
       }
     } catch (e) {
-      print('❌ Erro ao detectar baseUrl: ${e.toString()}');
+      print('Erro ao detectar baseUrl: ${e.toString()}');
       return null;
     }
   }
 
   Future<void> _carregarDadosDoBanco() async {
     try {
-      // Se não tem baseUrl, tenta detectar
       if (_baseUrl == null) {
         _baseUrl = await _detectarBaseUrl();
       }
 
       if (_baseUrl == null) {
-        throw Exception(
-          'Não foi possível conectar ao servidor. Verifique a conexão.',
-        );
+        throw Exception('Não foi possível conectar ao servidor. Verifique a conexão.');
       }
 
       final estadoTopicos = Provider.of<EstadoTopicos>(context, listen: false);
@@ -105,10 +100,10 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
 
       debugPrint('-- Carregando dados do banco de $_baseUrl...');
 
-      // MODIFICADO: Passa a baseUrl para os métodos de carregamento
-      await estadoTopicos.carregarBanco(baseUrl: _baseUrl!);
-      await estadoSubtopicos.carregarBanco(baseUrl: _baseUrl!);
-      await estadoImagem.carregarImagens(baseUrl: _baseUrl!);
+      // USA A BASE_URL DETECTADA
+      await estadoTopicos.carregarBanco(baseUrl: _baseUrl);
+      await estadoSubtopicos.carregarBanco(baseUrl: _baseUrl);
+      await estadoImagem.carregarImagens(baseUrl: _baseUrl);
 
       debugPrint('-- Dados carregados:');
       debugPrint('   - Tópicos: ${estadoTopicos.topicos.length}');
@@ -145,8 +140,9 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
       );
 
       if (imagemSubtopico != null) {
-        final thumbnailUrl = estadoImagem.converterThumbnailParaUrl(
+        final thumbnailUrl = estadoImagem.converterParaUrl(
           imagemSubtopico.enderecoThumbnail,
+          baseUrl: _baseUrl,
         );
 
         // Cria um novo Subtopico com a URL da imagem
@@ -155,7 +151,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
           titulo: subtopico.titulo,
           topicoId: subtopico.topicoId,
           indice: subtopico.indice,
-          capaUrl: thumbnailUrl, // AQUI ATUALIZA A URL
+          capaUrl: thumbnailUrl, 
           informacoes: subtopico.informacoes,
         );
       }
@@ -183,8 +179,9 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
         );
 
         if (imagemSubtopico != null) {
-          final thumbnailUrl = estadoImagem.converterThumbnailParaUrl(
+          final thumbnailUrl = estadoImagem.converterParaUrl(
             imagemSubtopico.enderecoThumbnail,
+            baseUrl: _baseUrl,
           );
 
           // Cria novo Subtopico com a imagem
@@ -210,7 +207,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
   }
 
   void _recarregarDados() {
-    print('🔄 Recarregando dados do conteúdo...');
+    print('Recarregando dados do conteúdo...');
     setState(() {
       _carregamentoFuture = _detectarBaseUrlECarregarDados();
     });
@@ -298,50 +295,6 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
                           ElevatedButton(
                             onPressed: _recarregarDados,
                             child: const Text('Tentar Novamente'),
-                          ),
-                          const SizedBox(height: 10),
-                          TextButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text('Informações de Conexão'),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'BaseURL: ${_baseUrl ?? 'Não detectada'}',
-                                        ),
-                                        SizedBox(height: 10),
-                                        Text('Erro: ${snapshot.error}'),
-                                        SizedBox(height: 10),
-                                        Text(
-                                          'Verifique:',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text('• Servidor está rodando'),
-                                        Text('• IP do computador está correto'),
-                                        Text('• Firewall desativado'),
-                                        Text('• Mesma rede Wi-Fi'),
-                                      ],
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        child: Text('Fechar'),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                            child: const Text('Ver Detalhes'),
                           ),
                         ],
                       ),
