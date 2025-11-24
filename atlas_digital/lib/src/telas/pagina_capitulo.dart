@@ -301,7 +301,7 @@ class _TelaCapituloState extends State<TelaCapitulo> {
     );
 
     if (imagemSubtopico != null) {
-      final thumbnailUrl = estadoImagem.converterThumbnailParaUrl(
+      final thumbnailUrl = estadoImagem.converterParaUrl(
         imagemSubtopico.enderecoThumbnail,
       );
 
