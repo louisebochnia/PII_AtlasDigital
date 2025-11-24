@@ -44,11 +44,12 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
 
         // MESMA LÓGICA DAS REDES SOCIAIS - USE O MESMO IP DO SEU COMPUTADOR
         final hosts = [
-          'http://192.168.15.163:3000',    
-          'http://192.168.1.100:3000',     
-          'http://192.168.0.100:3000',     // Outro IP comum
-          'http://10.0.2.2:3000',          // Android Emulator
-          'http://localhost:3000',         // iOS Simulator
+          'http://192.168.15.163:3000',
+          'http://192.168.1.100:3000',
+          'http://192.168.0.100:3000', // Outro IP comum
+          'http://10.0.2.2:3000', // Android Emulator
+          'http://localhost:3000', // iOS Simulator
+          'http://10.2.129.68:3000'
         ];
 
         for (final host in hosts) {
@@ -88,7 +89,9 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
       }
 
       if (_baseUrl == null) {
-        throw Exception('Não foi possível conectar ao servidor. Verifique a conexão.');
+        throw Exception(
+          'Não foi possível conectar ao servidor. Verifique a conexão.',
+        );
       }
 
       final estadoTopicos = Provider.of<EstadoTopicos>(context, listen: false);
@@ -151,7 +154,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
           titulo: subtopico.titulo,
           topicoId: subtopico.topicoId,
           indice: subtopico.indice,
-          capaUrl: thumbnailUrl, 
+          capaUrl: thumbnailUrl,
           informacoes: subtopico.informacoes,
         );
       }
