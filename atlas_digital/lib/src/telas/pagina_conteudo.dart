@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../componentes/sub_componentes/componenteTopicoshorizontais.dart';
 import '../estado/estado_topicos.dart';
 import '../estado/estado_subtopicos.dart';
@@ -7,6 +9,10 @@ import '../estado/estado_imagem.dart';
 import '../modelos/topico.dart';
 import '../modelos/subtopicos.dart';
 import '../telas/pagina_capitulo.dart';
+
+// Import para detecção de plataforma
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 
 const double kBreakpoint = 1000;
 
@@ -19,15 +25,77 @@ class PaginaConteudo extends StatefulWidget {
 
 class _PaginaConteudoState extends State<PaginaConteudo> {
   late Future<void> _carregamentoFuture;
+  String? _baseUrl;
 
   @override
   void initState() {
     super.initState();
-    _carregamentoFuture = _carregarDadosDoBanco();
+    _carregamentoFuture = _detectarBaseUrlECarregarDados();
+  }
+
+  Future<String?> _detectarBaseUrl() async {
+    try {
+      if (kIsWeb) {
+        _baseUrl = 'http://localhost:3000';
+        print('🌐 Plataforma: Web - usando $_baseUrl');
+        return _baseUrl;
+      } else {
+        print('📱 Plataforma: Mobile - detectando host para conteúdo...');
+
+        // LISTA DE IPs PARA TESTAR - MESMA LÓGICA DAS REDES SOCIAIS
+        final hosts = [
+          'http://192.168.15.163:3000', // SEU IP ATUAL
+          'http://192.168.1.100:3000', // IP comum em outras redes
+          'http://192.168.0.100:3000', // Outro IP comum
+          'http://10.0.2.2:3000', // Android Emulator
+          'http://localhost:3000', // iOS Simulator
+        ];
+
+        for (final host in hosts) {
+          try {
+            print('🔍 Testando conexão com: $host');
+            final testUri = Uri.parse(
+              '$host/topicos',
+            ); // Testa endpoint de tópicos
+            final testResp = await http
+                .get(testUri)
+                .timeout(const Duration(seconds: 5));
+
+            if (testResp.statusCode == 200) {
+              _baseUrl = host;
+              print('✅ Conexão bem-sucedida com: $host');
+              return _baseUrl;
+            } else {
+              print('❌ HTTP ${testResp.statusCode} com: $host');
+            }
+          } catch (e) {
+            print('❌ Falha ao conectar com $host: ${e.toString()}');
+            continue;
+          }
+        }
+
+        print('⚠️ Nenhum host funcionou para conteúdo');
+        return null;
+      }
+    } catch (e) {
+      print('❌ Erro ao detectar baseUrl: ${e.toString()}');
+      return null;
+    }
   }
 
   Future<void> _carregarDadosDoBanco() async {
     try {
+      // Se não tem baseUrl, tenta detectar
+      if (_baseUrl == null) {
+        _baseUrl = await _detectarBaseUrl();
+      }
+
+      if (_baseUrl == null) {
+        throw Exception(
+          'Não foi possível conectar ao servidor. Verifique a conexão.',
+        );
+      }
+
       final estadoTopicos = Provider.of<EstadoTopicos>(context, listen: false);
       final estadoSubtopicos = Provider.of<EstadoSubtopicos>(
         context,
@@ -35,11 +103,12 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
       );
       final estadoImagem = Provider.of<EstadoImagem>(context, listen: false);
 
-      debugPrint('-- Carregando dados do banco...');
+      debugPrint('-- Carregando dados do banco de $_baseUrl...');
 
-      await estadoTopicos.carregarBanco();
-      await estadoSubtopicos.carregarBanco();
-      await estadoImagem.carregarImagens();
+      // MODIFICADO: Passa a baseUrl para os métodos de carregamento
+      await estadoTopicos.carregarBanco(baseUrl: _baseUrl!);
+      await estadoSubtopicos.carregarBanco(baseUrl: _baseUrl!);
+      await estadoImagem.carregarImagens(baseUrl: _baseUrl!);
 
       debugPrint('-- Dados carregados:');
       debugPrint('   - Tópicos: ${estadoTopicos.topicos.length}');
@@ -49,6 +118,11 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
       debugPrint("-- Erro ao carregar dados do banco: $e");
       rethrow;
     }
+  }
+
+  Future<void> _detectarBaseUrlECarregarDados() async {
+    await _detectarBaseUrl();
+    await _carregarDadosDoBanco();
   }
 
   void _navegarParaCapitulo(Subtopico subtopico) {
@@ -135,6 +209,13 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
     }).toList();
   }
 
+  void _recarregarDados() {
+    print('🔄 Recarregando dados do conteúdo...');
+    setState(() {
+      _carregamentoFuture = _detectarBaseUrlECarregarDados();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -207,14 +288,60 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
                             style: const TextStyle(color: Colors.red),
                             textAlign: TextAlign.center,
                           ),
+                          const SizedBox(height: 12),
+                          Text(
+                            "BaseURL: ${_baseUrl ?? 'Não detectada'}",
+                            style: const TextStyle(color: Colors.grey),
+                            textAlign: TextAlign.center,
+                          ),
                           const SizedBox(height: 20),
                           ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _carregamentoFuture = _carregarDadosDoBanco();
-                              });
-                            },
+                            onPressed: _recarregarDados,
                             child: const Text('Tentar Novamente'),
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Informações de Conexão'),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'BaseURL: ${_baseUrl ?? 'Não detectada'}',
+                                        ),
+                                        SizedBox(height: 10),
+                                        Text('Erro: ${snapshot.error}'),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          'Verifique:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text('• Servidor está rodando'),
+                                        Text('• IP do computador está correto'),
+                                        Text('• Firewall desativado'),
+                                        Text('• Mesma rede Wi-Fi'),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('Fechar'),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text('Ver Detalhes'),
                           ),
                         ],
                       ),
