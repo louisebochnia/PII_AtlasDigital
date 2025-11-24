@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:atlas_digital/src/estado/estado_imagem.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const double kBreakpoint = 900;
@@ -26,37 +28,62 @@ class PaginaInicial extends StatefulWidget {
 }
 
 class _PaginaInicialState extends State<PaginaInicial> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  late Future<void> _carregamentoFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregamentoFuture = _carregarImagens();
+  }
+
+  Future<void> _carregarImagens() async {
+    final estadoImagem = Provider.of<EstadoImagem>(context, listen: false);
+    await estadoImagem.carregarImagens();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isMobile = screenWidth < kBreakpoint;
 
     final double horizontalPadding = isMobile ? 24 : 60;
-
     final double sectionGap = isMobile ? 60 : 100;
 
-    return Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          _buildHeroSlider(horizontalPadding, isMobile),
+    return FutureBuilder<void>(
+      future: _carregamentoFuture,
+      builder: (context, snapshot) {
+        return Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              _buildHeroSlider(horizontalPadding, isMobile),
 
-          _buildWelcomeBanner(horizontalPadding, isMobile),
+              _buildWelcomeBanner(horizontalPadding, isMobile),
 
-          SizedBox(height: sectionGap),
-          _buildSobreSection(horizontalPadding),
+              SizedBox(height: sectionGap),
+              _buildSobreSection(horizontalPadding),
 
-          SizedBox(height: sectionGap),
-          _buildExploreSection(horizontalPadding, isMobile),
+              SizedBox(height: sectionGap),
+              _buildExploreSection(horizontalPadding, isMobile),
 
-          SizedBox(height: sectionGap),
-          _buildQuizSection(horizontalPadding),
+              SizedBox(height: sectionGap),
+              _buildQuizSection(horizontalPadding),
 
-          SizedBox(height: sectionGap),
-          _buildSocialSection(horizontalPadding, isMobile),
-          const SizedBox(height: 80),
-        ],
-      ),
+              SizedBox(height: sectionGap),
+              _buildSocialSection(horizontalPadding, isMobile),
+              const SizedBox(height: 80),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -84,51 +111,209 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  // --- 1. BANNER CARROSSEL ---
+  // --- 1. BANNER CARROSSEL ATUALIZADO ---
   Widget _buildHeroSlider(double padding, bool isMobile) {
-    return Container(
-      height: isMobile ? 250 : 400, // Altura ajustável
-      color: Colors.grey[300],
-      child: Stack(
-        children: [
-          const Center(
-            child: Text(
-              "Banner Rotativo",
-              style: TextStyle(color: Colors.grey, fontSize: 20),
-            ),
-          ),
-          Positioned(
-            left: isMobile ? 10 : padding,
-            top: 0,
-            bottom: 0,
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios,
-                size: isMobile ? 24 : 40,
-                color: Colors.black54,
+    return Consumer<EstadoImagem>(
+      builder: (context, estadoImagem, child) {
+        final todasImagens = estadoImagem.todasAsImagens;
+        final imagensCarrossel = todasImagens.take(5).toList();
+
+        if (estadoImagem.carregando) {
+          return Container(
+            height: isMobile ? 250 : 400,
+            color: Colors.grey[200],
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (imagensCarrossel.isEmpty) {
+          return Container(
+            height: isMobile ? 250 : 400,
+            color: Colors.grey[300],
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image, size: 50, color: Colors.grey),
+                  SizedBox(height: 10),
+                  Text(
+                    "Nenhuma imagem disponível",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ],
               ),
-              onPressed: () {},
             ),
-          ),
-          Positioned(
-            right: isMobile ? 10 : padding,
-            top: 0,
-            bottom: 0,
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_forward_ios,
-                size: isMobile ? 24 : 40,
-                color: Colors.black54,
+          );
+        }
+
+        return Container(
+          height: isMobile ? 250 : 400,
+          color: Colors.black,
+          child: Stack(
+            children: [
+              // CARROSSEL DE IMAGENS
+              PageView.builder(
+                controller: _pageController,
+                itemCount: imagensCarrossel.length,
+                onPageChanged: (int page) {
+                  setState(() {
+                    _currentPage = page;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  final imagem = imagensCarrossel[index];
+                  final imageUrl = estadoImagem.converterThumbnailParaUrl(
+                    imagem.enderecoThumbnail,
+                  );
+
+                  return Container(
+                    width: double.infinity,
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[800],
+                          child: const Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              size: 50,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey[800],
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
-              onPressed: () {},
-            ),
+
+              // OVERLAY ESCURO PARA MELHOR VISIBILIDADE
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                  ),
+                ),
+              ),
+
+              // TÍTULO DA IMAGEM ATUAL
+              Positioned(
+                left: padding,
+                right: padding,
+                bottom: 40,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      imagensCarrossel[_currentPage].nomeImagem,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      imagensCarrossel[_currentPage].subtopico,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // INDICADORES DE PÁGINA
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(imagensCarrossel.length, (index) {
+                    return Container(
+                      width: 8,
+                      height: 8,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _currentPage == index
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.5),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+
+              // BOTÕES DE NAVEGAÇÃO
+              if (imagensCarrossel.length > 1) ...[
+                Positioned(
+                  left: isMobile ? 10 : padding,
+                  top: 0,
+                  bottom: 0,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      size: isMobile ? 24 : 40,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      if (_currentPage > 0) {
+                        _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Positioned(
+                  right: isMobile ? 10 : padding,
+                  top: 0,
+                  bottom: 0,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_forward_ios,
+                      size: isMobile ? 24 : 40,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      if (_currentPage < imagensCarrossel.length - 1) {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  // --- 2. BANNER BOAS-VINDAS ---
+  // --- 2. BANNER BOAS-VINDAS (MANTIDO ORIGINAL) ---
   Widget _buildWelcomeBanner(double padding, bool isMobile) {
     return _secaoComMargem(
       horizontalPadding: padding,
@@ -167,7 +352,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  // --- 3. SEÇÃO SOBRE ---
+  // --- 3. SEÇÃO SOBRE (MANTIDO ORIGINAL) ---
   Widget _buildSobreSection(double padding) {
     return _secaoComMargem(
       horizontalPadding: padding,
@@ -241,7 +426,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  // --- 4. SEÇÃO EXPLORE (CARDS) ---
+  // --- 4. SEÇÃO EXPLORE (CARDS COM ÍCONES ORIGINAIS) ---
   Widget _buildExploreSection(double padding, bool isMobile) {
     return _secaoComMargem(
       horizontalPadding: padding,
@@ -280,7 +465,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 "Teste seus conhecimentos.",
                 isMobile,
                 onTap: widget.onQuiz,
-                // onTap: ... se quiser navegar para algum lugar
               ),
             ],
           ),
@@ -324,6 +508,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // ÍCONE ORIGINAL (SEM IMAGEM)
                 Icon(icon, size: 150, color: const Color(0xFF388E3C)),
                 const SizedBox(height: 25),
                 Text(
@@ -354,7 +539,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  // --- 5. SEÇÃO QUIZ ---
+  // --- 5. SEÇÃO QUIZ (MANTIDO ORIGINAL) ---
   Widget _buildQuizSection(double padding) {
     return _secaoComMargem(
       horizontalPadding: padding,
@@ -453,7 +638,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  // --- 6. REDES SOCIAIS ---
+  // --- 6. REDES SOCIAIS (MANTIDO ORIGINAL) ---
   Widget _buildSocialSection(double padding, bool isMobile) {
     return _secaoComMargem(
       horizontalPadding: padding,
@@ -529,26 +714,22 @@ class _PaginaInicialState extends State<PaginaInicial> {
                         _socialButton(
                           Icons.photo_camera_outlined,
                           'Instagram',
-                          widget
-                              .onInstagramTap, // USA a função passada do app_shell
+                          widget.onInstagramTap,
                         ),
                         _socialButton(
                           Icons.facebook,
                           'Facebook',
-                          widget
-                              .onFacebookTap, // USA a função passada do app_shell
+                          widget.onFacebookTap,
                         ),
                         _socialButton(
                           Icons.business_center_outlined,
                           'LinkedIn',
-                          widget
-                              .onLinkedInTap, // USA a função passada do app_shell
+                          widget.onLinkedInTap,
                         ),
                         _socialButton(
                           Icons.smart_display,
                           'YouTube',
-                          widget
-                              .onYouTubeTap, // USA a função passada do app_shell
+                          widget.onYouTubeTap,
                         ),
                       ],
                     ),

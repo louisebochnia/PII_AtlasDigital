@@ -9,7 +9,7 @@ class EstadoImagem extends ChangeNotifier {
 
   final List<Imagem> _imagens = [];
   List<Imagem> get imagens => List.unmodifiable(_imagens);
-  
+
   static final String baseUrl = 'http://localhost:3000/images';
 
   bool _carregando = false;
@@ -25,12 +25,12 @@ class EstadoImagem extends ChangeNotifier {
 
     // Normaliza o caminho (substitui \ por /)
     final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
-    
+
     // Remove barras extras no início
-    final caminhoLimpo = caminhoNormalizado.startsWith('/') 
-        ? caminhoNormalizado.substring(1) 
+    final caminhoLimpo = caminhoNormalizado.startsWith('/')
+        ? caminhoNormalizado.substring(1)
         : caminhoNormalizado;
-    
+
     return '$protocolo$baseURL/$caminhoLimpo';
   }
 
@@ -47,28 +47,30 @@ class EstadoImagem extends ChangeNotifier {
 
   // Método para buscar todas as imagens de um subtópico
   List<Imagem> imagensPorSubtopico(String subtopicoNome) {
-    return _imagens.where((imagem) => 
-      _correspondeSubtopico(imagem.subtopico, subtopicoNome)
-    ).toList();
+    return _imagens
+        .where(
+          (imagem) => _correspondeSubtopico(imagem.subtopico, subtopicoNome),
+        )
+        .toList();
   }
 
   // Método auxiliar para fazer match flexível de nomes
   bool _correspondeSubtopico(String nomeImagem, String nomeBuscado) {
     final nome1 = nomeImagem.toLowerCase().trim();
     final nome2 = nomeBuscado.toLowerCase().trim();
-    
+
     // Verifica match exato
     if (nome1 == nome2) return true;
-    
+
     // Verifica se um contém o outro
     if (nome1.contains(nome2) || nome2.contains(nome1)) return true;
-    
+
     // Verifica palavras em comum
     final palavras1 = nome1.split(' ');
     final palavras2 = nome2.split(' ');
-    
+
     return palavras1.any((palavra) => palavras2.contains(palavra)) ||
-           palavras2.any((palavra) => palavras1.contains(palavra));
+        palavras2.any((palavra) => palavras1.contains(palavra));
   }
 
   // CARREGAMENTO
@@ -78,16 +80,18 @@ class EstadoImagem extends ChangeNotifier {
 
     try {
       final res = await http.get(Uri.parse(baseUrl));
-      if(res.statusCode == 200) {
+      if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as List;
         _imagens
           ..clear()
           ..addAll(data.map((e) => Imagem.fromJson(e)).toList());
         await salvarLocal();
-        
+
         debugPrint('-- Imagens carregadas: ${_imagens.length}');
-        debugPrint('-- Exemplo de thumbnail: ${_imagens.isNotEmpty ? converterThumbnailParaUrl(_imagens.first.enderecoThumbnail) : "Nenhuma"}');
-      } 
+        debugPrint(
+          '-- Exemplo de thumbnail: ${_imagens.isNotEmpty ? converterThumbnailParaUrl(_imagens.first.enderecoThumbnail) : "Nenhuma"}',
+        );
+      }
     } catch (e) {
       debugPrint('-- Erro ao carregar imagens da API: $e');
       await carregarLocal();
@@ -114,7 +118,7 @@ class EstadoImagem extends ChangeNotifier {
           await carregarImagens();
           return true;
         }
-        
+
         notifyListeners();
         await salvarLocal();
         return true;
@@ -129,7 +133,7 @@ class EstadoImagem extends ChangeNotifier {
   Future<bool> removerImagem(String id) async {
     try {
       final res = await http.delete(Uri.parse('$baseUrl/$id'));
-      
+
       if (res.statusCode == 200 || res.statusCode == 204) {
         await carregarImagens();
         return true;
@@ -168,6 +172,14 @@ class EstadoImagem extends ChangeNotifier {
     } catch (e) {
       return null;
     }
+  }
+
+  List<Imagem> get todasAsImagens {
+    return List<Imagem>.from(_imagens);
+  }
+
+  List<Imagem> obterTodasImagens() {
+    return List<Imagem>.from(_imagens);
   }
 
   List<Imagem> imagensPorTopico(String topico) {
