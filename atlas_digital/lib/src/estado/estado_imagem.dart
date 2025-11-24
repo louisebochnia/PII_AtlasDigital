@@ -86,7 +86,7 @@ class EstadoImagem extends ChangeNotifier {
         await salvarLocal();
         
         debugPrint('-- Imagens carregadas: ${_imagens.length}');
-        debugPrint('-- Exemplo de thumbnail: ${_imagens.isNotEmpty ? converterThumbnailParaUrl(_imagens.first.endereco_thumbnail) : "Nenhuma"}');
+        debugPrint('-- Exemplo de thumbnail: ${_imagens.isNotEmpty ? converterThumbnailParaUrl(_imagens.first.enderecoThumbnail) : "Nenhuma"}');
       } 
     } catch (e) {
       debugPrint('-- Erro ao carregar imagens da API: $e');

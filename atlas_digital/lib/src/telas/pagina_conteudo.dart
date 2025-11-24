@@ -72,7 +72,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
 
       if (imagemSubtopico != null) {
         final thumbnailUrl = estadoImagem.converterThumbnailParaUrl(
-          imagemSubtopico.endereco_thumbnail,
+          imagemSubtopico.enderecoThumbnail,
         );
 
         // Cria um novo Subtopico com a URL da imagem
@@ -110,7 +110,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
 
         if (imagemSubtopico != null) {
           final thumbnailUrl = estadoImagem.converterThumbnailParaUrl(
-            imagemSubtopico.endereco_thumbnail,
+            imagemSubtopico.enderecoThumbnail,
           );
 
           // Cria novo Subtopico com a imagem
