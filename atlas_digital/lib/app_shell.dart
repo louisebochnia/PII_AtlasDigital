@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'src/componentes/barra_de_navegacao.dart';
 import 'src/componentes/rodape.dart';
 import 'src/componentes/sub_componentes/popup_login.dart';
@@ -33,6 +35,12 @@ class _AppShellState extends State<AppShell> {
   bool _visitaRegistrada = false;
   Widget? _paginaEspecial;
 
+  // URLs das redes sociais
+  String? _urlInstagram;
+  String? _urlFacebook;
+  String? _urlLinkedIn;
+  String? _urlYouTube;
+
   final List<Widget> _pages = [
     const PaginaInicial(),
     const PaginaConteudo(),
@@ -43,6 +51,28 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     _registrarVisitaApp();
+    _carregarRedesSociais();
+  }
+
+  Future<void> _carregarRedesSociais() async {
+    try {
+      final uri = Uri.parse('http://localhost:3000/hyperlink');
+      final resp = await http.get(uri).timeout(const Duration(seconds: 6));
+      if (resp.statusCode == 200) {
+        final List<dynamic> data = json.decode(resp.body);
+        for (final item in data) {
+          final nome = (item['nome'] as String?)?.toLowerCase();
+          final link = item['link'] as String?;
+          if (nome == 'instagram') _urlInstagram = link;
+          if (nome == 'facebook') _urlFacebook = link;
+          if (nome == 'linkedin') _urlLinkedIn = link;
+          if (nome == 'youtube') _urlYouTube = link;
+        }
+        setState(() {});
+      }
+    } catch (e) {
+      // ignore erro
+    }
   }
 
   void _registrarVisitaApp() {
@@ -94,6 +124,27 @@ class _AppShellState extends State<AppShell> {
     await _launchUrl(url);
   }
 
+  // Funções para redes sociais
+  void _abrirInstagram() async {
+    final url = _urlInstagram ?? 'https://www.instagram.com/centrouniversitariofmabc/';
+    await _launchUrl(url);
+  }
+
+  void _abrirFacebook() async {
+    final url = _urlFacebook ?? 'https://www.facebook.com/CentroUniversitarioFMABC/';
+    await _launchUrl(url);
+  }
+
+  void _abrirLinkedIn() async {
+    final url = _urlLinkedIn ?? 'https://br.linkedin.com/school/fmabc/';
+    await _launchUrl(url);
+  }
+
+  void _abrirYouTube() async {
+    final url = _urlYouTube ?? 'https://www.youtube.com/channel/UCJ_wO9afToh1XyMoUcGY8qw';
+    await _launchUrl(url);
+  }
+
   // Função genérica para lançar URLs
   Future<void> _launchUrl(String urlString) async {
     try {
@@ -121,32 +172,6 @@ class _AppShellState extends State<AppShell> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao abrir link: ${e.toString()}')),
       );
-    }
-  }
-
-  Future<void> _launchUrlUniversal(String urlString) async {
-    try {
-      if (!urlString.startsWith('http')) {
-        urlString = 'https://$urlString';
-      }
-
-      final uri = Uri.parse(urlString);
-
-      // Tenta abrir de várias formas
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else if (await canLaunch(urlString)) {
-        // Método legado como fallback
-        await launch(urlString);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Nenhum aplicativo pode abrir este link')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro: ${e.toString()}')));
     }
   }
 
@@ -248,6 +273,10 @@ class _AppShellState extends State<AppShell> {
                     'Sede: Av. Príncipe de Gales, 821 –   Bairro Príncipe de Gales – Santo André, SP –  CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes,  2000 – Vila Sacadura Cabral – Santo André / SP   – CEP: 09060-870 (Portaria 2) Telefone: (11)  4993-5400',
                 site: 'www.fmabc.br',
                 onSiteTap: _abrirSiteFMABC,
+                onInstagramTap: _abrirInstagram,
+                onFacebookTap: _abrirFacebook,
+                onLinkedInTap: _abrirLinkedIn,
+                onYouTubeTap: _abrirYouTube,
                 onTermosUso: _paginaEspecial == null
                     ? (context) {
                         _navegarParaPaginaEspecial(const PaginaTermosUso());
