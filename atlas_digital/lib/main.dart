@@ -11,7 +11,6 @@ import 'src/estado/estado_usuario.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
 
   final estadoUsuario = EstadoUsuario();
   await estadoUsuario.carregarDadosSalvos();

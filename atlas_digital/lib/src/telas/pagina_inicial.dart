@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Ponto de quebra para responsividade (pode ser ajustado)
-const double kBreakpoint = 1000;
+const double kBreakpoint = 900;
 
 class PaginaInicial extends StatefulWidget {
   const PaginaInicial({super.key});
@@ -11,39 +10,47 @@ class PaginaInicial extends StatefulWidget {
 }
 
 class _PaginaInicialState extends State<PaginaInicial> {
-  
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double horizontalPadding = screenWidth > kBreakpoint ? 20 : 20;
+    final bool isMobile = screenWidth < kBreakpoint;
 
-    return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
+    final double horizontalPadding = isMobile ? 24 : 60;
+
+    final double sectionGap = isMobile ? 60 : 100;
+
+    return Container(
+      color: Colors.white,
       child: Column(
         children: [
-          _buildHeroSlider(horizontalPadding),
-          _buildWelcomeBanner(horizontalPadding),
-          const SizedBox(height: 60),
+          _buildHeroSlider(horizontalPadding, isMobile),
+          
+          _buildWelcomeBanner(horizontalPadding, isMobile),
+
+          SizedBox(height: sectionGap),
           _buildSobreSection(horizontalPadding),
-          const SizedBox(height: 60),
-          _buildExploreSection(horizontalPadding),
-          const SizedBox(height: 60),
+
+          SizedBox(height: sectionGap),
+          _buildExploreSection(horizontalPadding, isMobile),
+
+          SizedBox(height: sectionGap),
           _buildQuizSection(horizontalPadding),
-          const SizedBox(height: 80),
-          _buildSocialSection(horizontalPadding),
-          const SizedBox(height: 60),
+
+          SizedBox(height: sectionGap),
+          _buildSocialSection(horizontalPadding, isMobile),
+          const SizedBox(height: 80), 
         ],
       ),
     );
   }
 
-  // --- WIDGET AUXILIAR: SEÇÃO COM MARGEM DINÂMICA ---
+  // --- WIDGET AUXILIAR ---
   Widget _secaoComMargem({
-    required Widget child, 
-    required double horizontalPadding, 
-    Color? corFundo, 
-    DecorationImage? imagemFundo, 
-    double verticalPadding = 0
+    required Widget child,
+    required double horizontalPadding,
+    Color? corFundo,
+    DecorationImage? imagemFundo,
+    double verticalPadding = 0,
   }) {
     return Container(
       width: double.infinity,
@@ -52,30 +59,44 @@ class _PaginaInicialState extends State<PaginaInicial> {
         color: corFundo,
         image: imagemFundo,
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding), // Usa o padding dinâmico
-        child: child,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: child,
+          ),
+        ),
       ),
     );
   }
 
   // --- 1. BANNER CARROSSEL ---
-  Widget _buildHeroSlider(double padding) {
+  Widget _buildHeroSlider(double padding, bool isMobile) {
     return Container(
-      height: 400,
+      height: isMobile ? 250 : 400, // Altura ajustável
       color: Colors.grey[300],
       child: Stack(
         children: [
-          const Center(child: Text("Banner Rotativo", style: TextStyle(color: Colors.grey, fontSize: 20))),
-          Positioned(
-            left: padding, // Padding dinâmico
-            top: 0, bottom: 0,
-            child: IconButton(icon: const Icon(Icons.arrow_back_ios, size: 40, color: Colors.black54), onPressed: () {}),
+          const Center(
+            child: Text("Banner Rotativo", 
+              style: TextStyle(color: Colors.grey, fontSize: 20))
           ),
           Positioned(
-            right: padding, // Padding dinâmico
+            left: isMobile ? 10 : padding, // Setas mais próximas da borda no mobile
             top: 0, bottom: 0,
-            child: IconButton(icon: const Icon(Icons.arrow_forward_ios, size: 40, color: Colors.black54), onPressed: () {}),
+            child: IconButton(
+              icon: Icon(Icons.arrow_back_ios, size: isMobile ? 24 : 40, color: Colors.black54),
+              onPressed: () {},
+            ),
+          ),
+          Positioned(
+            right: isMobile ? 10 : padding,
+            top: 0, bottom: 0,
+            child: IconButton(
+              icon: Icon(Icons.arrow_forward_ios, size: isMobile ? 24 : 40, color: Colors.black54),
+              onPressed: () {},
+            ),
           ),
         ],
       ),
@@ -83,28 +104,36 @@ class _PaginaInicialState extends State<PaginaInicial> {
   }
 
   // --- 2. BANNER BOAS-VINDAS ---
-  Widget _buildWelcomeBanner(double padding) {
+  Widget _buildWelcomeBanner(double padding, bool isMobile) {
     return _secaoComMargem(
       horizontalPadding: padding,
       corFundo: const Color(0xFF388E3C),
       imagemFundo: const DecorationImage(
-        image: AssetImage("assets/banner_texture.png"),
+        image: AssetImage("assets/banner_texture.png"), // Certifique-se que essa imagem existe ou remova
         fit: BoxFit.cover,
       ),
-      verticalPadding: 60,
+      verticalPadding: isMobile ? 40 : 60,
       child: Column(
         children: [
-          const Text(
+          Text(
             "Bem Vindo(a) ao PORTAL ATLAS",
-            style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.white, 
+              fontSize: isMobile ? 24 : 32, 
+              fontWeight: FontWeight.bold
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1000),
-            child: const Text(
-              "Bem-vindo(a) ao Portal ATLAS, o espaço criado para você estudar citologia com máxima qualidade. Nesta plataforma, oferecemos não apenas imagens de altíssima definição, mas também uma experiência completa de aprendizado, unindo conteúdo visual, usabilidade intuitiva e recursos que tornam seus estudos mais eficientes.",
-              style: TextStyle(color: Colors.white, fontSize: 18, height: 1.5),
+            child: Text(
+              "Bem-vindo(a) ao Portal ATLAS, o espaço criado para você estudar citologia com máxima qualidade. Nesta plataforma, oferecemos não apenas imagens de altíssima definição, mas também uma experiência completa de aprendizado.",
+              style: TextStyle(
+                color: Colors.white, 
+                fontSize: isMobile ? 16 : 18, 
+                height: 1.5
+              ),
               textAlign: TextAlign.center,
             ),
           ),
@@ -113,15 +142,14 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-// --- 3. SEÇÃO SOBRE (AJUSTADA ISOLADAMENTE) ---
+  // --- 3. SEÇÃO SOBRE ---
   Widget _buildSobreSection(double padding) {
     return _secaoComMargem(
       horizontalPadding: padding,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          bool isNarrow = constraints.maxWidth < 900;
+          bool isNarrow = constraints.maxWidth < 900; 
 
-          // Widgets definidos antes
           Widget imagem = Container(
             constraints: const BoxConstraints(maxWidth: 500),
             height: 350,
@@ -133,79 +161,72 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 child: Image.asset(
                   "assets/foto_equipe.png",
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(child: Icon(Icons.broken_image, size: 50, color: Colors.grey));
-                  },
+                  errorBuilder: (ctx, err, stack) => const Center(
+                    child: Icon(Icons.broken_image, size: 50, color: Colors.grey)
+                  ),
                 ),
               ),
             ),
           );
 
-          Widget conteudoTexto = Container(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
-              crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Por que o PORTAL ATLAS foi criado?",
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: isNarrow ? TextAlign.center : TextAlign.start,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  "Este portal foi desenvolvido para oferecer, tanto a estudantes quanto ao público em geral, um espaço onde o aprendizado é prioridade. No ATLAS, você encontrará imagens de citologia em alta qualidade, cuidadosamente selecionadas para análise e estudo.\n\nAlém das imagens e dos pontos de atenção destacados pelos professores, o portal também disponibiliza explicações detalhadas dos conteúdos.",
-                  style: const TextStyle(fontSize: 18, height: 1.6, color: Colors.black87),
-                  textAlign: isNarrow ? TextAlign.center : TextAlign.start,
-                ),
-              ],
-            ),
+          Widget texto = Column(
+            crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Por que o PORTAL ATLAS foi criado?", 
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                textAlign: isNarrow ? TextAlign.center : TextAlign.start,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Este portal foi desenvolvido para oferecer, tanto a estudantes quanto ao público em geral, um espaço onde o aprendizado é prioridade. No ATLAS, você encontrará imagens de citologia em alta qualidade, cuidadosamente selecionadas para análise e estudo.\n\nAlém das imagens e dos pontos de atenção destacados pelos professores, o portal também disponibiliza explicações detalhadas dos conteúdos.",
+                style: const TextStyle(fontSize: 18, height: 1.6, color: Colors.black87),
+                textAlign: isNarrow ? TextAlign.center : TextAlign.start,
+              ),
+            ],
           );
 
-          // LÓGICA DE LAYOUT:
           if (isNarrow) {
-            // MODO CELULAR
             return Column(
               children: [
                 imagem,
                 const SizedBox(height: 40),
-                conteudoTexto,
+                texto, 
               ],
             );
           } else {
-            // MODO PC
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 imagem,
-                // AJEITANDO A MARGEM (GAP) AQUI:
-                // Reduzi de 60 para 50 para garantir que não empurre demais em telas médias
-                const SizedBox(width: 50), 
-                Expanded(child: conteudoTexto),
+                const SizedBox(width: 50),
+                Expanded(child: texto),
               ],
             );
           }
-        },
+        }
       ),
     );
   }
-  
+
   // --- 4. SEÇÃO EXPLORE (CARDS) ---
-  Widget _buildExploreSection(double padding) {
+  Widget _buildExploreSection(double padding, bool isMobile) {
     return _secaoComMargem(
       horizontalPadding: padding,
       child: Column(
         children: [
-          const Text("Explore o ATLAS", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+          Text("Explore o ATLAS", 
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
           const SizedBox(height: 50),
           Wrap(
             spacing: 30,
             runSpacing: 30,
             alignment: WrapAlignment.center,
             children: [
-              _buildCardNovo(Icons.biotech_rounded, "Conteúdo", "Acesse materiais didáticos completos sobre citologia e análises clínicas."),
-              _buildCardNovo(Icons.collections_rounded, "Galeria", "Explore nosso acervo de lâminas em alta definição organizadas por categorias."),
-              _buildCardNovo(Icons.help_rounded, "Quiz", "Teste seus conhecimentos com questões interativas e formulários de avaliação."),
+              _buildCardNovo(Icons.biotech_rounded, "Conteúdo", "Acesse materiais didáticos completos.", isMobile),
+              _buildCardNovo(Icons.collections_rounded, "Galeria", "Explore nosso acervo de lâminas.", isMobile),
+              _buildCardNovo(Icons.help_rounded, "Quiz", "Teste seus conhecimentos.", isMobile),
             ],
           ),
         ],
@@ -213,10 +234,10 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  Widget _buildCardNovo(IconData icon, String title, String description) {
+  Widget _buildCardNovo(IconData icon, String title, String description, bool isMobile) {
     return Container(
-      width: 300,
-      height: 340,
+      width: isMobile ? double.infinity : 300, 
+      constraints: const BoxConstraints(maxWidth: 350),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -231,13 +252,12 @@ class _PaginaInicialState extends State<PaginaInicial> {
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Icon(icon, size: 70, color: const Color(0xFF388E3C)),
+          Icon(icon, size: 60, color: const Color(0xFF388E3C)),
           const SizedBox(height: 20),
           Text(
             title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)
           ),
           const SizedBox(height: 15),
           Text(
@@ -250,6 +270,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
+  // --- 5. SEÇÃO QUIZ ---
   Widget _buildQuizSection(double padding) {
     return _secaoComMargem(
       horizontalPadding: padding,
@@ -257,7 +278,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
         builder: (context, constraints) {
           bool isNarrow = constraints.maxWidth < 900;
 
-          // Definimos os widgets antes para usar na lógica abaixo
           Widget imagem = Container(
             height: 350,
             constraints: const BoxConstraints(maxWidth: 400),
@@ -269,140 +289,132 @@ class _PaginaInicialState extends State<PaginaInicial> {
               },
             ),
           );
-
-          Widget conteudoTexto = Container(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Column(
-              crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-              children: [
-                const Text("CONFIRA NOSSOS Quizzes", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                Text(
-                  "Este portal foi desenvolvido para oferecer, tanto a estudantes quanto ao público em geral, um espaço onde o aprendizado é prioridade. Pratique o que você aprendeu com nossos exercícios.",
-                  style: const TextStyle(fontSize: 18, height: 1.6, color: Colors.black87),
-                  textAlign: isNarrow ? TextAlign.center : TextAlign.start,
-                ),
-                const SizedBox(height: 40),
-                Wrap(
-                  spacing: 20,
-                  runSpacing: 20,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6200EE),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text("Ver Quizzes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          
+          Widget texto = Column(
+            crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            children: [
+              Text("CONFIRA NOSSOS Quizzes", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              Text(
+                "Pratique o que você aprendeu com nossos exercícios e formulários de avaliação.",
+                style: const TextStyle(fontSize: 18, height: 1.6, color: Colors.black87),
+                textAlign: isNarrow ? TextAlign.center : TextAlign.start,
+              ),
+              const SizedBox(height: 40),
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                alignment: WrapAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6200EE),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF388E3C),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text("FORMULÁRIOS", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: const Text("Ver Quizzes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF388E3C),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                  ],
-                )
-              ],
-            ),
+                    child: const Text("FORMULÁRIOS", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              )
+            ],
           );
 
-          // LÓGICA DE CORREÇÃO:
           if (isNarrow) {
-            // MODO CELULAR: Coluna simples (SEM Flexible)
-            return Column(
-              children: [
-                imagem,
-                const SizedBox(height: 40),
-                conteudoTexto, // O texto flui naturalmente para baixo
-              ],
-            );
+             return Column(
+               children: [
+                 imagem,
+                 const SizedBox(height: 30),
+                 texto,
+               ],
+             );
           } else {
-            // MODO PC: Linha (COM Expanded para dividir largura)
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                imagem,
-                const SizedBox(width: 60),
-                Expanded(child: conteudoTexto), // Expanded só existe aqui!
-              ],
-            );
+             return Row(
+               mainAxisAlignment: MainAxisAlignment.center,
+               crossAxisAlignment: CrossAxisAlignment.center,
+               children: [
+                 imagem,
+                 const SizedBox(width: 60),
+                 Expanded(child: texto),
+               ],
+             );
           }
-        },
+        }
       ),
     );
   }
+
   // --- 6. REDES SOCIAIS ---
-  Widget _buildSocialSection(double padding) {
+  Widget _buildSocialSection(double padding, bool isMobile) {
     return _secaoComMargem(
       horizontalPadding: padding,
       child: Center(
-        child: ConstrainedBox(
+        child: Container(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 8,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF00C853),
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                  ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 8,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF00C853),
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                 ),
-                Padding(
-                  // Padding interno do card de redes sociais (responsivo se quiser)
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Acompanhe nossas redes sociais",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)
-                      ),
-                      const SizedBox(height: 15),
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: const TextSpan(
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                          children: [
-                            TextSpan(text: "Fique por dentro de todas as atualizações da "),
-                            TextSpan(text: "FMABC", style: TextStyle(color: Color(0xFF388E3C), fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 30,
-                        runSpacing: 20,
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: isMobile ? 30 : 40),
+                child: Column(
+                  children: [
+                    Text(
+                      "Acompanhe nossas redes sociais",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: isMobile ? 22 : 24, fontWeight: FontWeight.bold)
+                    ),
+                    const SizedBox(height: 15),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: const TextSpan(
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
                         children: [
-                          _socialButton(Icons.camera_alt),
-                          _socialButton(Icons.close),
-                          _socialButton(Icons.play_arrow),
+                          TextSpan(text: "Fique por dentro de todas as atualizações da "),
+                          TextSpan(text: "FMABC", style: TextStyle(color: Color(0xFF388E3C), fontWeight: FontWeight.bold)),
                         ],
-                      )
-                    ],
-                  ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 30,
+                      runSpacing: 20,
+                      children: [
+                        _socialButton(Icons.camera_alt),
+                        _socialButton(Icons.close),
+                        _socialButton(Icons.play_arrow),
+                      ],
+                    )
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
