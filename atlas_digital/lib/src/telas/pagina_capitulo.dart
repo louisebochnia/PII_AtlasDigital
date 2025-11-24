@@ -1,492 +1,799 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:atlas_digital/src/componentes/sub_componentes/popup_login.dart';
+import 'package:atlas_digital/src/telas/painelAdm.dart';
+import 'package:atlas_digital/src/estado/estado_navegacao.dart';
+import 'package:atlas_digital/src/componentes/rodape.dart';
+import 'package:atlas_digital/src/componentes/barra_de_navegacao.dart';
+import 'package:atlas_digital/src/modelos/subtopicos.dart';
+import 'package:atlas_digital/src/modelos/topico.dart';
+import 'package:atlas_digital/src/estado/estado_usuario.dart';
+import 'package:atlas_digital/src/estado/estado_subtopicos.dart';
+import 'package:atlas_digital/src/estado/estado_topicos.dart';
 import 'package:atlas_digital/temas.dart';
+import 'package:atlas_digital/app_shell.dart';
 
-class telaCapitulo extends StatefulWidget {
-  const telaCapitulo({super.key});
+// Para resolver o conflito do isDesktopOrWeb, importe com prefixo ou defina localmente
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 
-  @override
-  State<telaCapitulo> createState() => _telaCapituloState();
+// Defina isDesktopOrWeb localmente na TelaCapitulo
+bool get isDesktopOrWeb {
+  if (kIsWeb) return true;
+  return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 }
 
-class _telaCapituloState extends State<telaCapitulo> {
-  List<Map<String, dynamic>> Conteudocap = [
-    {
-      "titulo": "Nome do topico selecionado",
-      "items": [
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "Celula Eucarionte",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-        {
-          "tumbnailurl": "https://picsum.photos/300/200?1",
-          "titucap": "seila2",
-          "descricao":
-              "Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.Essa galeria permite a navegação rápida pelas lâminas de microscópio em cada capítulo. Embora as lâminas não tenham descrições, você ainda pode identificar características individuais usando a lista suspensa no canto superior direito da imagem.",
-          "LinkK": "https://www.nyan.cat/",
-        },
-      ],
-    },
-  ];
+class TelaCapitulo extends StatefulWidget {
+  final Subtopico subtopico;
 
-  List<Map<String, dynamic>> capRelacionados = [
-    {
-      "titulo": "Lugares Recomendados",
-      "itens": [
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-        {
-          "url": "https://picsum.photos/300/200?1",
-          "titulo": "Montanha",
-          "capitulo": "01",
-        },
-      ],
-    },
-  ];
+  const TelaCapitulo({super.key, required this.subtopico});
 
+  @override
+  State<TelaCapitulo> createState() => _TelaCapituloState();
+}
+
+class _TelaCapituloState extends State<TelaCapitulo> {
   // Controle de expansão das descrições
   List<bool> expandido = [];
 
-  List<bool> isHoveredQuizzes = [];
-  List<bool> isHoveredAtlas = [];
+  // Controlador para o scroll horizontal
+  final ScrollController controller = ScrollController();
+
+  // Estado simples para a navbar
+  int _indiceSelecionado = 1;
+
+  // Variável para armazenar o nome do tópico
+  String? _nomeTopico;
+
+  // Variáveis para o link do quiz
+  String _quizLink = 'https://kahoot.com/pt-BR';
+  bool _carregandoQuizLink = false;
+
+  // URLs das redes sociais
+  String? _urlInstagram;
+  String? _urlFacebook;
+  String? _urlLinkedIn;
+  String? _urlYouTube;
 
   @override
   void initState() {
     super.initState();
-    expandido = List.filled(Conteudocap[0]['items'].length, false);
-    isHoveredQuizzes = List.filled(Conteudocap[0]['items'].length, false);
-    isHoveredAtlas = List.filled(Conteudocap[0]['items'].length, false);
+    expandido = List.filled(widget.subtopico.informacoes.length, false);
+    _carregarNomeTopico();
+    _carregarQuizLink();
+    _carregarRedesSociais();
   }
 
-  Future<void> abrirLink(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Não foi possível abrir o link $url';
+  // Método para carregar o nome do tópico
+  void _carregarNomeTopico() {
+    final estadoTopicos = Provider.of<EstadoTopicos>(context, listen: false);
+
+    Topico? topicoEncontrado;
+    try {
+      topicoEncontrado = estadoTopicos.topicos.firstWhere(
+        (topico) => topico.id == widget.subtopico.topicoId,
+      );
+    } catch (e) {
+      topicoEncontrado = null;
+    }
+
+    setState(() {
+      _nomeTopico = topicoEncontrado?.titulo ?? 'Tópico';
+    });
+  }
+
+  // Método para ir para área admin
+  void _irParaAreaAdmin(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const PainelAdm()),
+    );
+  }
+
+  // Método para carregar o link do quiz da API
+  Future<void> _carregarQuizLink() async {
+    if (_carregandoQuizLink) return;
+
+    setState(() {
+      _carregandoQuizLink = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/hyperlink'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // Busca o link do Kahoot pelo nome
+        if (data is List && data.isNotEmpty) {
+          final kahootLink = data.firstWhere(
+            (item) => item['nome'] == 'kahoot' || item['nome'] == 'quizzes',
+            orElse: () => null,
+          );
+
+          if (kahootLink != null) {
+            setState(() {
+              _quizLink = kahootLink['link'];
+            });
+          }
+        }
+      } else {
+        throw Exception('Falha ao carregar link: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erro ao carregar link do quiz: $e');
+    } finally {
+      setState(() {
+        _carregandoQuizLink = false;
+      });
+    }
+  }
+
+  // Método para carregar redes sociais
+  Future<void> _carregarRedesSociais() async {
+    try {
+      final uri = Uri.parse('http://localhost:3000/hyperlink');
+      final resp = await http.get(uri).timeout(const Duration(seconds: 6));
+      if (resp.statusCode == 200) {
+        final List<dynamic> data = json.decode(resp.body);
+        for (final item in data) {
+          final nome = (item['nome'] as String?)?.toLowerCase();
+          final link = item['link'] as String?;
+          if (nome == 'instagram') _urlInstagram = link;
+          if (nome == 'facebook') _urlFacebook = link;
+          if (nome == 'linkedin') _urlLinkedIn = link;
+          if (nome == 'youtube') _urlYouTube = link;
+        }
+        setState(() {});
+      }
+    } catch (e) {
+      // ignore erro
+    }
+  }
+
+  // Método para abrir links
+  Future<void> _abrirLink(String urlString) async {
+    try {
+      final uri = Uri.parse(urlString);
+      if (!await canLaunchUrl(uri)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível abrir: $urlString')),
+        );
+        return;
+      }
+
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao abrir link: ${e.toString()}')),
+      );
+    }
+  }
+
+  // Método para abrir site FMABC
+  void _abrirSiteFMABC() async {
+    const url = 'https://www.fmabc.br';
+    await _abrirLink(url);
+  }
+
+  // Método para abrir quizzes
+  void _abrirQuizzes() async {
+    await _abrirLink(_quizLink);
+  }
+
+  // Métodos para redes sociais
+  void _abrirInstagram() async {
+    final url =
+        _urlInstagram ?? 'https://www.instagram.com/centrouniversitariofmabc/';
+    await _abrirLink(url);
+  }
+
+  void _abrirFacebook() async {
+    final url =
+        _urlFacebook ?? 'https://www.facebook.com/CentroUniversitarioFMABC/';
+    await _abrirLink(url);
+  }
+
+  void _abrirLinkedIn() async {
+    final url = _urlLinkedIn ?? 'https://br.linkedin.com/school/fmabc/';
+    await _abrirLink(url);
+  }
+
+  void _abrirYouTube() async {
+    final url =
+        _urlYouTube ??
+        'https://www.youtube.com/channel/UCJ_wO9afToh1XyMoUcGY8qw';
+    await _abrirLink(url);
+  }
+
+  void _onItemTap(int index) {
+    final estadoNavegacao = Provider.of<EstadoNavegacao>(
+      context,
+      listen: false,
+    );
+
+    // Define o índice no estado global
+    estadoNavegacao.mudarIndice(index);
+
+    // Volta para o AppShell que vai ler o índice do EstadoNavegacao
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      // Se não pode pop (é a primeira tela), vai para o AppShell
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const AppShell()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _onAtlas() {
+    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+  }
+
+  // Adicione estes métodos na _TelaCapituloState
+  void _irParaInicio() {
+    if (Navigator.canPop(context)) {
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const AppShell()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _irParaConteudo() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
+
+  void _irParaGaleria() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
+
+  void _onLogin() {
+    final estadoUsuario = Provider.of<EstadoUsuario>(context, listen: false);
+
+    if (estadoUsuario.estaLogado) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PainelAdm()),
+      );
+    } else {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return const LoginPopup();
+        },
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = ScrollController();
-    final Map<String, dynamic> capitulo = Conteudocap[0];
-    final List items = capitulo['items'];
-    final Map<String, dynamic> capitulosSemelhantes = capRelacionados[0];
-    final List itens = capitulosSemelhantes['itens'];
-
     return Scaffold(
-      body: Container(
-        margin: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Botão de voltar
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.arrow_back, color: Colors.red, size: 16),
-                  label: const Text(
-                    'Voltar',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
+      appBar: TopNavBar(
+        selectedIndex: _indiceSelecionado,
+        onItemTap: _onItemTap,
+        onAtlas: _onAtlas,
+        onLogin: _onLogin,
+      ),
+      body: CustomScrollView(
+        slivers: [
+          // Conteúdo principal do capítulo
+          SliverToBoxAdapter(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 160, vertical: 40),
+              child: Column(
+                children: [
+                  // Botão de voltar
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.red,
+                        size: 16,
+                      ),
+                      label: const Text(
+                        'Voltar',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // TÍTULO DO TÓPICO
+                  Text(
+                    _nomeTopico ?? 'Carregando...',
+                    style: const TextStyle(
+                      fontSize: 40,
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-              ),
-              
-              // Título do capítulo
-              Text(
-                capitulo['titulo'],
-                style: const TextStyle(
-                  fontSize: 40,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Lista de itens AGORA COM ListView CORRETO
-              ListView.builder(
-                shrinkWrap: true, // ← ESSENCIAL: faz o ListView ocupar apenas o espaço necessário
-                physics: const NeverScrollableScrollPhysics(), // ← ESSENCIAL: desabilita rolagem independente
-                padding: const EdgeInsets.all(16),
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+
+                  const SizedBox(height: 16),
+
+                  // Lista de informações do subtópico
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: widget.subtopico.informacoes.length,
+                    itemBuilder: (context, index) {
+                      final informacao = widget.subtopico.informacoes[index];
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Flexible(
-                            flex: 6,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.network(
-                                item['tumbnailurl'],
-                                width: double.infinity,
-                                height: 400,
-                                fit: BoxFit.cover,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Imagem do subtópico
+                              Flexible(
+                                flex: 6,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.network(
+                                    widget.subtopico.capaUrl ??
+                                        'https://picsum.photos/300/200?1',
+                                    width: double.infinity,
+                                    height: 400,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: double.infinity,
+                                        height: 400,
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.image,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Flexible(
+                                flex: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // TÍTULO DO SUBTÓPICO + CAPÍTULO
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          widget.subtopico.titulo,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Capítulo ${widget.subtopico.indice.toString().padLeft(2, '0')}',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 80),
+                                    const Text(
+                                      'Conteúdos Relacionados',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    // BOTÃO VER QUIZZES
+                                    if (_carregandoQuizLink)
+                                      const CircularProgressIndicator()
+                                    else
+                                      TextButton(
+                                        onPressed: _abrirQuizzes,
+                                        style: TextButton.styleFrom(
+                                          minimumSize: const Size(
+                                            double.infinity,
+                                            44,
+                                          ),
+                                          backgroundColor: const Color.fromARGB(
+                                            255,
+                                            100,
+                                            55,
+                                            255,
+                                          ),
+                                          foregroundColor: const Color.fromARGB(
+                                            255,
+                                            255,
+                                            255,
+                                            255,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.2,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
+                                        child: const Text('VER QUIZZES'),
+                                      ),
+                                    const SizedBox(height: 12),
+
+                                    // Botão ABRIR ATLAS
+                                    TextButton(
+                                      onPressed: _onAtlas,
+                                      style: TextButton.styleFrom(
+                                        minimumSize: const Size(
+                                          double.infinity,
+                                          44,
+                                        ),
+                                        backgroundColor: AppColors.brandGreen,
+                                        foregroundColor: const Color.fromARGB(
+                                          255,
+                                          255,
+                                          255,
+                                          255,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.2,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                      child: const Text('ABRIR ATLAS'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Conteúdo da informação
+                          Text(
+                            informacao.informacao,
+                            maxLines: expandido[index] ? null : 6,
+                            overflow: expandido[index]
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  expandido[index] = !expandido[index];
+                                });
+                              },
+                              child: Text(
+                                expandido[index] ? "Ler menos" : "Ler mais",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Color.fromARGB(255, 45, 210, 255),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 20),
-                          Flexible(
-                            flex: 4,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(height: 32),
+                        ],
+                      );
+                    },
+                  ),
+
+                  // Seção de subtópicos relacionados
+                  Consumer<EstadoSubtopicos>(
+                    builder: (context, estadoSubtopicos, child) {
+                      final subtopicosRelacionados = estadoSubtopicos.subtopicos
+                          .where(
+                            (subtopico) =>
+                                subtopico.topicoId ==
+                                    widget.subtopico.topicoId &&
+                                subtopico.id != widget.subtopico.id,
+                          )
+                          .toList();
+
+                      if (subtopicosRelacionados.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  item['titucap'],
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 100),
                                 const Text(
-                                  'Conteúdos Relacionados',
+                                  'Outros Capítulos do Mesmo Tópico',
                                   style: TextStyle(
-                                    color: Colors.black,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'Capítulos: ${subtopicosRelacionados.length}',
+                                  style: const TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                
-                                // Botão VER QUIZZES
-                                TextButton(
-                                  onPressed: () => abrirLink(item['LinkK']),
-                                  style: TextButton.styleFrom(
-                                    minimumSize: const Size(double.infinity, 44),
-                                    backgroundColor: const Color.fromARGB(255, 100, 55, 255),
-                                    foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.2,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                  child: const Text('VER QUIZZES'),
-                                ),
-                                const SizedBox(height: 12),
-                                
-                                // Botão ABRIR ATLAS
-                                TextButton(
-                                  onPressed: () {},
-                                  style: TextButton.styleFrom(
-                                    minimumSize: const Size(double.infinity, 44),
-                                    backgroundColor: AppColors.brandGreen,
-                                    foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.2,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                  child: const Text('ABRIR ATLAS'),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item['descricao'],
-                        maxLines: expandido[index] ? null : 6,
-                        overflow: expandido[index] ? TextOverflow.visible : TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              expandido[index] = !expandido[index];
-                            });
-                          },
-                          child: Text(
-                            expandido[index] ? "Ler menos" : "Ler mais",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 45, 210, 255),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  );
-                },
-              ),
-              
-              // Seção de capítulos relacionados TAMBÉM COM ListView
-              ListView(
-                shrinkWrap: true, // ← ESSENCIAL
-                physics: const NeverScrollableScrollPhysics(), // ← ESSENCIAL
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Título da seção
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Títulos Semelhantes',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            Text(
-                              'Capítulos: 1-7',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Carrossel horizontal com Scrollbar
-                      SizedBox(
-                        height: 192,
-                        child: Scrollbar(
-                          controller: controller,
-                          thumbVisibility: true,
-                          trackVisibility: true,
-                          thickness: 6,
-                          radius: const Radius.circular(10),
-                          child: ListView.builder(
-                            controller: controller,
-                            scrollDirection: Axis.horizontal,
-                            itemCount: itens.length,
-                            itemBuilder: (context, index) {
-                              final item = itens[index];
-                              
-                              return Container(
-                                margin: const EdgeInsets.fromLTRB(0, 0, 24, 8),
-                                padding: const EdgeInsets.all(6),
-                                width: 240,
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 231, 230, 230),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 3),
+                          const SizedBox(height: 16),
+
+                          SizedBox(
+                            height: 192,
+                            child: Scrollbar(
+                              controller: controller,
+                              thumbVisibility: true,
+                              trackVisibility: true,
+                              thickness: 6,
+                              radius: const Radius.circular(10),
+                              child: ListView.builder(
+                                controller: controller,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: subtopicosRelacionados.length,
+                                itemBuilder: (context, index) {
+                                  final subtopicoRelacionado =
+                                      subtopicosRelacionados[index];
+
+                                  return Container(
+                                    margin: const EdgeInsets.fromLTRB(
+                                      0,
+                                      0,
+                                      24,
+                                      8,
                                     ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Imagem
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        item['url']!,
-                                        height: 120,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
+                                    padding: const EdgeInsets.all(6),
+                                    width: 240,
+                                    decoration: BoxDecoration(
+                                      color: const Color.fromARGB(
+                                        255,
+                                        231,
+                                        230,
+                                        230,
                                       ),
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 6),
-                                    
-                                    // Capítulo + título + botão
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        // Capítulo
-                                        Text(
-                                          'Capítulo ${item['capitulo']}',
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.black,
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: Image.network(
+                                            subtopicoRelacionado.capaUrl ??
+                                                'https://picsum.photos/300/200?1',
+                                            height: 120,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return Container(
+                                                    height: 120,
+                                                    width: double.infinity,
+                                                    color: Colors.grey[300],
+                                                    child: const Icon(
+                                                      Icons.image,
+                                                      size: 50,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  );
+                                                },
                                           ),
                                         ),
-                                        
-                                        // Título + botão
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        const SizedBox(height: 6),
+
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Expanded(
-                                              child: Text(
-                                                item['titulo']!,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.black87,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
+                                            Text(
+                                              'Capítulo ${subtopicoRelacionado.indice.toString().padLeft(2, '0')}',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.black,
                                               ),
                                             ),
-                                            TextButton(
-                                              onPressed: () {
-                                                print('Clicou no botão!');
-                                              },
-                                              child: const Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text(
-                                                    'Acessar',
-                                                    style: TextStyle(
-                                                      color: Color.fromARGB(255, 170, 14, 170),
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.w600,
+
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    subtopicoRelacionado.titulo,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.black87,
                                                     ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
-                                                  SizedBox(width: 2),
-                                                  Icon(
-                                                    Icons.arrow_right_alt_sharp,
-                                                    color: Color.fromARGB(255, 170, 14, 170),
-                                                    size: 24,
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            TelaCapitulo(
+                                                              subtopico:
+                                                                  subtopicoRelacionado,
+                                                            ),
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: const Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        'Acessar',
+                                                        style: TextStyle(
+                                                          color: Color.fromARGB(
+                                                            255,
+                                                            170,
+                                                            14,
+                                                            170,
+                                                          ),
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 2),
+                                                      Icon(
+                                                        Icons
+                                                            .arrow_right_alt_sharp,
+                                                        color: Color.fromARGB(
+                                                          255,
+                                                          170,
+                                                          14,
+                                                          170,
+                                                        ),
+                                                        size: 24,
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
+                                  );
+                                },
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+
+          // Rodapé
+          SliverToBoxAdapter(
+            child: Consumer2<EstadoNavegacao, EstadoUsuario>(
+              builder: (context, estadoNavegacao, estadoUsuario, child) {
+                return Rodape(
+                  logoAsset: 'assets/logo_fmabc.png',
+                  colunas: [
+                    FooterColumnData(
+                      titulo: 'Navegação',
+                      itens: [
+                        FooterItem('Início', onTap: _irParaInicio),
+                        FooterItem('Conteúdo', onTap: _irParaConteudo),
+                        FooterItem('Galeria', onTap: _irParaGaleria),
+                      ],
+                    ),
+                    FooterColumnData(
+                      titulo: 'Recursos',
+                      itens: [
+                        FooterItem('Quizzes', onTap: _abrirQuizzes),
+                        if (estadoUsuario.estaLogado && isDesktopOrWeb)
+                          FooterItem(
+                            'Painel Administrativo',
+                            onTap: () => _irParaAreaAdmin(context),
+                          ),
+                        FooterItem('Termos de Uso'),
+                      ],
+                    ),
+                  ],
+                  endereco:
+                      'Sede: Av. Príncipe de Gales, 821 – Bairro Príncipe de Gales – Santo André, SP – CEP: 09060-650 (Portaria 1)  Av. Lauro Gomes,  2000 – Vila Sacadura Cabral – Santo André / SP   – CEP: 09060-870 (Portaria 2) Telefone: (11)  4993-5400',
+                  site: 'www.fmabc.br',
+                  onSiteTap: _abrirSiteFMABC,
+                  onInstagramTap: _abrirInstagram,
+                  onFacebookTap: _abrirFacebook,
+                  onLinkedInTap: _abrirLinkedIn,
+                  onYouTubeTap: _abrirYouTube,
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 }

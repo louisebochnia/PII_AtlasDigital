@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
 import 'package:provider/provider.dart';
 import '../../temas.dart';
 import '../estado/estado_usuario.dart';

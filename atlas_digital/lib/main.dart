@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'temas.dart';
 import 'src/telas/painelAdm.dart';
+import 'src/estado/estado_navegacao.dart';
 import 'src/estado/estado_topicos.dart';
 import 'src/estado/estado_subtopicos.dart';
 import 'src/estado/estado_estatisticas.dart';
@@ -23,6 +24,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => EstadoSubtopicos()),
         ChangeNotifierProvider(create: (_) => EstadoEstatisticas()),
         ChangeNotifierProvider(create: (_) => EstadoImagem()),
+        ChangeNotifierProvider(create: (_) => EstadoNavegacao()),
       ],
       child: const AtlasApp(),
     ),
@@ -38,16 +40,19 @@ class AtlasApp extends StatelessWidget {
       title: 'Atlas Digital',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: Consumer<EstadoUsuario>(
-        builder: (context, estadoUsuario, child) {
-          // Se estiver logado, vai direto para o PainelAdm
-          if (estadoUsuario.estaLogado) {
-            return const PainelAdm();
-          }
-          // Se não estiver logado, vai para o AppShell (site normal)
-          return const AppShell();
-        },
-      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => Consumer<EstadoUsuario>(
+          builder: (context, estadoUsuario, child) {
+            if (estadoUsuario.estaLogado) {
+              return const PainelAdm();
+            }
+            return const AppShell();
+          },
+        ),
+        '/galeria': (context) => const AppShell(), 
+        '/conteudo': (context) => const AppShell(), 
+      },
     );
   }
 }
