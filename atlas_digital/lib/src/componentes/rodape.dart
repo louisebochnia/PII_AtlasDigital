@@ -16,6 +16,11 @@ class Rodape extends StatelessWidget {
   final String logoAsset;
   final double borderRadius;
   final Function(BuildContext)? onTermosUso;
+  final VoidCallback? onSiteTap;
+  final VoidCallback? onInstagramTap;
+  final VoidCallback? onFacebookTap;
+  final VoidCallback? onLinkedInTap;
+  final VoidCallback? onYouTubeTap;
 
   const Rodape({
     super.key,
@@ -25,7 +30,11 @@ class Rodape extends StatelessWidget {
     required this.logoAsset,
     this.borderRadius = 22,
     this.onTermosUso,
-    required void Function() onSiteTap,
+    this.onSiteTap,
+    this.onInstagramTap,
+    this.onFacebookTap,
+    this.onLinkedInTap,
+    this.onYouTubeTap,
   });
 
   @override
@@ -68,7 +77,13 @@ class Rodape extends StatelessWidget {
                           children: [
                             _Topo(logoAsset: logoAsset, isMobile: isMobile),
                             const SizedBox(height: 20),
-                            _RedesSociais(isMobile: isMobile),
+                            _RedesSociais(
+                              isMobile: isMobile,
+                              onInstagramTap: onInstagramTap,
+                              onFacebookTap: onFacebookTap,
+                              onLinkedInTap: onLinkedInTap,
+                              onYouTubeTap: onYouTubeTap,
+                            ),
                             const SizedBox(height: 20),
                             _ColunasLinks(
                               colunas: colunas,
@@ -88,7 +103,13 @@ class Rodape extends StatelessWidget {
                                 children: [
                                   _Topo(logoAsset: logoAsset, isMobile: false),
                                   const SizedBox(height: 20),
-                                  _RedesSociais(isMobile: false),
+                                  _RedesSociais(
+                                    isMobile: false,
+                                    onInstagramTap: onInstagramTap,
+                                    onFacebookTap: onFacebookTap,
+                                    onLinkedInTap: onLinkedInTap,
+                                    onYouTubeTap: onYouTubeTap,
+                                  ),
                                 ],
                               ),
                             ),
@@ -114,6 +135,7 @@ class Rodape extends StatelessWidget {
                         endereco: endereco,
                         site: site,
                         isMobile: isMobile,
+                        onSiteTap: onSiteTap,
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -168,16 +190,42 @@ class _Topo extends StatelessWidget {
 
 class _RedesSociais extends StatelessWidget {
   final bool isMobile;
+  final VoidCallback? onInstagramTap;
+  final VoidCallback? onFacebookTap;
+  final VoidCallback? onLinkedInTap;
+  final VoidCallback? onYouTubeTap;
 
-  const _RedesSociais({required this.isMobile});
+  const _RedesSociais({
+    required this.isMobile,
+    this.onInstagramTap,
+    this.onFacebookTap,
+    this.onLinkedInTap,
+    this.onYouTubeTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final icons = <Widget>[
-      _SocialIcon(icon: Icons.photo_camera_outlined, tooltip: 'Instagram'),
-      _SocialIcon(icon: Icons.facebook, tooltip: 'Facebook'),
-      _SocialIcon(icon: Icons.business_center_outlined, tooltip: 'LinkedIn'),
-      _SocialIcon(icon: Icons.smart_display, tooltip: 'YouTube'),
+      _SocialIcon(
+        icon: Icons.photo_camera_outlined,
+        tooltip: 'Instagram',
+        onTap: onInstagramTap,
+      ),
+      _SocialIcon(
+        icon: Icons.facebook,
+        tooltip: 'Facebook',
+        onTap: onFacebookTap,
+      ),
+      _SocialIcon(
+        icon: Icons.business_center_outlined,
+        tooltip: 'LinkedIn',
+        onTap: onLinkedInTap,
+      ),
+      _SocialIcon(
+        icon: Icons.smart_display,
+        tooltip: 'YouTube',
+        onTap: onYouTubeTap,
+      ),
     ];
 
     return Column(
@@ -227,7 +275,11 @@ class _SocialIcon extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             color: Colors.white,
           ),
-          child: Icon(icon, size: 26, color: AppColors.textPrimary),
+          child: Icon(
+            icon,
+            size: 26,
+            color: onTap != null ? AppColors.textPrimary : Colors.grey,
+          ),
         ),
       ),
     );
@@ -356,11 +408,13 @@ class _RodapeLegal extends StatelessWidget {
   final String endereco;
   final String site;
   final bool isMobile;
+  final VoidCallback? onSiteTap;
 
   const _RodapeLegal({
     required this.endereco,
     required this.site,
     required this.isMobile,
+    this.onSiteTap,
   });
 
   @override
@@ -377,7 +431,7 @@ class _RodapeLegal extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         InkWell(
-          onTap: () => _launchSite(context, site),
+          onTap: onSiteTap,
           child: Text(
             site,
             style: TextStyle(
@@ -390,37 +444,6 @@ class _RodapeLegal extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _launchSite(BuildContext context, String url) async {
-    try {
-      String formattedUrl = url;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        formattedUrl = 'https://$url';
-      }
-
-      final uri = Uri.parse(formattedUrl);
-
-      if (!await canLaunchUrl(uri)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível abrir: $formattedUrl')),
-        );
-        return;
-      }
-
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!launched) {
-        await launchUrl(uri, mode: LaunchMode.platformDefault);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao abrir site: ${e.toString()}')),
-      );
-    }
   }
 }
 
