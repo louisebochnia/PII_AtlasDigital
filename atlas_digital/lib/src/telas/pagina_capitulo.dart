@@ -359,9 +359,7 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // LAYOUT RESPONSIVO: Coluna para mobile, linha para desktop
                           if (isMobile) ...[
-                            // MOBILE: Imagem acima do conteúdo
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: Image.network(
@@ -731,7 +729,7 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                           ),
                           const SizedBox(height: 16),
 
-                          // AJUSTE AQUI: Aumentei a altura para evitar overflow
+                          // Aumentei a altura para evitar overflow
                           SizedBox(
                             height: isMobile ? 180 : 210, // Aumentei a altura
                             child: Scrollbar(
@@ -808,11 +806,11 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                                         ),
                                         const SizedBox(height: 6),
 
-                                        // AJUSTE AQUI: Container para o conteúdo textual com altura fixa
+                                        // Container para o conteúdo textual com altura fixa
                                         Container(
                                           height: isMobile
                                               ? 50
-                                              : 40, // Altura fixa para o conteúdo
+                                              : 40, 
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
