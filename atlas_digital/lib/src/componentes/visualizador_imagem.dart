@@ -23,6 +23,9 @@ class VisualizadorImagem extends StatefulWidget {
 }
 
 class _VisualidorImagemState extends State<VisualizadorImagem> {
+  final String protocolo = 'http://';
+  final String baseURL = 'localhost:3000';
+
   late EstadoVisualizadorMRXS _estadoVisualizador;
   late EstadoImagem _estadoImagem;
   late Imagem? imagem;
@@ -147,11 +150,17 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
 
   Widget _buildOverlayControls(EstadoVisualizadorMRXS estado, bool isSmallScreen) {
     if (isSmallScreen) {
-      return Positioned(
-        top: 20,
-        left: 20,
-        right: 20,
-        child: _buildZoomControlMobile(estado),
+      return Stack(
+        children: [
+          if (estado.modoColocacaoPointer)
+            _buildModoPointerOverlayMobile(estado),
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
+            child: _buildZoomControlMobile(estado),
+          ),
+        ],
       );
     } else {
       return Positioned(
@@ -160,6 +169,8 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         right: 20,
         child: Column(
           children: [
+            if (estado.modoColocacaoPointer)
+              _buildModoPointerOverlayDesktop(estado),
             _buildZoomControl(estado),
             SizedBox(height: 16),
             if (estado.zoom == 1.0) _buildInstrucoes(),
@@ -167,6 +178,67 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         ),
       );
     }
+  }
+
+  Widget _buildModoPointerOverlayDesktop(EstadoVisualizadorMRXS estado) {
+    return Container(
+      width: 400,
+      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info, color: Colors.white),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Modo de Colocação Ativo - Clique na imagem para posicionar o pointer',
+              style: TextStyle(color: Colors.white, fontSize: 14),
+              maxLines: 2,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, color: Colors.white, size: 20),
+            onPressed: estado.desativarModoColocacaoPointer,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModoPointerOverlayMobile(EstadoVisualizadorMRXS estado) {
+    return Positioned(
+      top: 100,
+      left: 20,
+      right: 20,
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.add_location_alt, color: Colors.white),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Toque na imagem para colocar o pointer',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.close, color: Colors.white, size: 20),
+              onPressed: estado.desativarModoColocacaoPointer,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildZoomControlMobile(EstadoVisualizadorMRXS estado) {
@@ -207,6 +279,79 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Indicador do modo pointer
+        if (estado.modoColocacaoPointer)
+          Container(
+            width: 8,
+            height: 8,
+            margin: EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              shape: BoxShape.circle,
+            ),
+          ),
+        
+        // Indicador de pointer visível
+        if (estado.pointerVisivel && !estado.modoColocacaoPointer)
+          GestureDetector(
+            onTap: estado.alternarPointerVisibilidade,
+            child: Container(
+              width: 12,
+              height: 12,
+              margin: EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 1),
+              ),
+            ),
+          ),
+
+        // Menu para controles de pointer
+        PopupMenuButton<String>(
+          icon: Icon(Icons.mouse, color: Colors.white, size: 20),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'pointer',
+              child: Row(
+                children: [
+                  Icon(
+                    estado.modoColocacaoPointer ? Icons.edit_location_alt : Icons.mouse,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 8),
+                  Text(estado.modoColocacaoPointer ? 
+                      'Cancelar Colocação' : 'Colocar Pointer'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'visibilidade',
+              child: Row(
+                children: [
+                  Icon(
+                    estado.pointerVisivel ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 8),
+                  Text(estado.pointerVisivel ? 'Ocultar Pointer' : 'Mostrar Pointer'),
+                ],
+              ),
+            ),
+          ],
+          onSelected: (value) {
+            if (value == 'pointer') {
+              if (estado.modoColocacaoPointer) {
+                estado.desativarModoColocacaoPointer();
+              } else {
+                estado.ativarModoColocacaoPointer();
+              }
+            } else if (value == 'visibilidade') {
+              estado.alternarPointerVisibilidade();
+            }
+          },
+        ),
+
         IconButton(
           icon: Icon(Icons.zoom_out, color: Colors.white, size: 20),
           onPressed: estado.zoom > estado.minZoom ? estado.aplicarZoomOut : null,
@@ -227,28 +372,77 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   }
 
   Widget _buildAreaVisualizacao(EstadoVisualizadorMRXS estado) {
-    return GestureDetector(
-      onScaleStart: (details) {
-        estado.iniciarZoom(details.localFocalPoint);
-      },
-      onScaleUpdate: (details) {
-        if (details.pointerCount > 1 || details.scale != 1.0) {
-          final scale = details.scale;
-          estado.atualizarZoomPinch(scale, details.localFocalPoint);
-        } else if (details.pointerCount == 1 && details.scale == 1.0) {
-          estado.arrastar(details.focalPointDelta);
-        }
-      },
-      onScaleEnd: (details) {
-        estado.finalizarZoom();
-      },
-      onDoubleTap: () {
-        estado.aplicarZoomIn();
-      },
-      child: Container(
-        color: Colors.white,
-        child: _buildTiles(estado),
-      ),
+    return Stack(
+      children: [
+        GestureDetector(
+          onScaleStart: (details) {
+            estado.iniciarZoom(details.localFocalPoint);
+          },
+          onScaleUpdate: (details) {
+            if (details.pointerCount > 1 || details.scale != 1.0) {
+              final scale = details.scale;
+              estado.atualizarZoomPinch(scale, details.localFocalPoint);
+            } else if (details.pointerCount == 1 && details.scale == 1.0) {
+              estado.arrastar(details.focalPointDelta);
+            }
+          },
+          onScaleEnd: (details) {
+            estado.finalizarZoom();
+          },
+          onDoubleTap: () {
+            estado.aplicarZoomIn();
+          },
+          onTapDown: (details) {
+            // Colocar pointer quando o modo de colocação está ativo
+            if (estado.modoColocacaoPointer) {
+              estado.colocarPointerNaImagem(details.localPosition);
+            }
+          },
+          child: Container(
+            color: Colors.white,
+            child: Stack(
+              children: [
+                _buildTiles(estado),
+                
+                // Overlay de feedback para modo de colocação
+                if (estado.modoColocacaoPointer)
+                  Container(
+                    color: Colors.black.withOpacity(0.1),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            child: CustomPaint(
+                              painter: _CursorMousePainter(
+                                cor: Colors.white,
+                                tamanho: 60,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Clique em qualquer lugar para colocar o pointer',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        
+        // Pointer na imagem
+        PointerNaImagem(),
+      ],
     );
   }
 
@@ -429,6 +623,35 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Botão para ativar modo de colocação do pointer
+        IconButton(
+          icon: Icon(
+            estado.modoColocacaoPointer ? Icons.edit_location_alt : Icons.arrow_drop_up_outlined,
+            color: estado.modoColocacaoPointer ? Colors.orange : 
+                   (estado.pointerVisivel ? Colors.white : Colors.white54),
+          ),
+          onPressed: () {
+            if (estado.modoColocacaoPointer) {
+              estado.desativarModoColocacaoPointer();
+            } else {
+              estado.ativarModoColocacaoPointer();
+            }
+          },
+          tooltip: estado.modoColocacaoPointer ? 
+                  'Clique na imagem para colocar o pointer' : 
+                  'Colocar pointer na imagem',
+        ),
+
+        // Botão para mostrar/ocultar pointer
+        IconButton(
+          icon: Icon(
+            estado.pointerVisivel ? Icons.visibility : Icons.visibility_off,
+            color: estado.pointerVisivel ? Colors.white : Colors.white54,
+          ),
+          onPressed: estado.alternarPointerVisibilidade,
+          tooltip: estado.pointerVisivel ? 'Ocultar pointer' : 'Mostrar pointer',
+        ),
+
         IconButton(
           icon: Icon(Icons.zoom_out, color: Colors.white),
           onPressed: estado.zoom > estado.minZoom ? estado.aplicarZoomOut : null,
@@ -506,7 +729,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6.5),
                   child: Image.network(
-                    _estadoImagem.converterParaUrl(imagem!.enderecoThumbnail),
+                    converterParaUrl(imagem!.enderecoThumbnail),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -570,22 +793,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                       )
                     ),
                     SizedBox(height: 12),
-                    // Text(
-                    //   "Hiperlinks",
-                    //   style: const TextStyle(
-                    //     fontFamily: "Arial",
-                    //     fontSize: 22,
-                    //     fontWeight: FontWeight.bold,
-                    //   ),
-                    // ),
-                    // SizedBox(height: 8),
-                    // Text(
-                    //   "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-                    //   style: const TextStyle(
-                    //     fontFamily: "Arial",
-                    //     fontSize: 16,
-                    //   )
-                    // ),
                   ],
                 )
               ),
@@ -692,6 +899,13 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     }
   }
 
+  String converterParaUrl(String caminhoRelativo) {
+    if (caminhoRelativo.isEmpty) return '';
+
+    final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
+    return '$protocolo$baseURL/$caminhoNormalizado';
+  }
+
   @override
   void dispose() {
     _estadoVisualizador.dispose();
@@ -785,3 +999,123 @@ class _ContainerRedimensionavelState extends State<_ContainerRedimensionavel> {
     );
   }
 }
+
+class _CursorMousePainter extends CustomPainter {
+  final Color cor;
+  final double tamanho;
+
+  _CursorMousePainter({required this.cor, required this.tamanho});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Sombra suave
+    final paintSombra = Paint()
+      ..color = Colors.black.withOpacity(0.6)
+      ..style = PaintingStyle.fill;
+
+    // Borda preta
+    final paintBorda = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tamanho * 0.04;
+
+    // Preenchimento branco
+    final paintPreenchimento = Paint()
+      ..color = cor
+      ..style = PaintingStyle.fill;
+
+    // Desenha o cursor de mouse (seta inclinada realista)
+    final path = Path();
+    
+    // Ponta do cursor (parte mais importante - posição exata do clique)
+    final pontaX = tamanho * 0.1;
+    final pontaY = tamanho * 0.1;
+    path.moveTo(pontaX, pontaY);
+    
+    // Lado esquerdo do cursor
+    path.lineTo(pontaX, tamanho * 0.35);
+    path.lineTo(tamanho * 0.25, tamanho * 0.35);
+    path.lineTo(tamanho * 0.15, tamanho * 0.5);
+    path.lineTo(tamanho * 0.35, tamanho * 0.7);
+    
+    // Lado direito do cursor
+    path.lineTo(tamanho * 0.55, tamanho * 0.45);
+    path.lineTo(tamanho * 0.45, tamanho * 0.45);
+    path.lineTo(tamanho * 0.45, pontaY);
+    
+    path.close();
+
+    // Desenha sombra primeiro (ligeiramente deslocada)
+    final pathSombra = Path()
+      ..addPath(path, Offset(tamanho * 0.02, tamanho * 0.02));
+    canvas.drawPath(pathSombra, paintSombra);
+
+    // Desenha o preenchimento branco
+    canvas.drawPath(path, paintPreenchimento);
+
+    // Desenha a borda preta
+    canvas.drawPath(path, paintBorda);
+
+    // Adiciona um pequeno brilho para efeito 3D
+    final paintBrilho = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+
+    final pathBrilho = Path()
+      ..moveTo(pontaX + tamanho * 0.02, pontaY + tamanho * 0.02)
+      ..lineTo(pontaX + tamanho * 0.02, tamanho * 0.2)
+      ..lineTo(tamanho * 0.2, tamanho * 0.2)
+      ..lineTo(tamanho * 0.12, tamanho * 0.32)
+      ..lineTo(tamanho * 0.25, tamanho * 0.45)
+      ..close();
+
+    canvas.drawPath(pathBrilho, paintBrilho);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class PointerNaImagem extends StatelessWidget {
+    const PointerNaImagem({Key? key}) : super(key: key);
+
+    @override
+    Widget build(BuildContext context) {
+      return Consumer<EstadoVisualizadorMRXS>(
+        builder: (context, estado, child) {
+          if (!estado.pointerVisivel || estado.pointerPosicaoImagem == Offset.zero) {
+            return SizedBox.shrink();
+          }
+
+          final tamanho = 60.0; // Tamanho fixo grande
+          final offsetX = tamanho * 0.1; // Ponta do cursor fica na posição
+          final offsetY = tamanho * 0.1;
+
+          return Positioned(
+            left: estado.pointerPosicaoImagem.dx - offsetX,
+            top: estado.pointerPosicaoImagem.dy - offsetY,
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                estado.moverPointerNaImagem(
+                  estado.pointerPosicaoImagem + details.delta
+                );
+              },
+              child: MouseRegion(
+                cursor: SystemMouseCursors.none,
+                child: Container(
+                  width: tamanho,
+                  height: tamanho,
+                  child: CustomPaint(
+                    painter: _CursorMousePainter(
+                      cor: Colors.white,
+                      tamanho: tamanho,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
