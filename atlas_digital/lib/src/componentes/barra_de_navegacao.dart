@@ -22,16 +22,14 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(72);
 
-  // Verifica se é desktop/web
-  bool get isDesktopOrWeb {
-    if (kIsWeb) return true;
-    return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-  }
-
   @override
   Widget build(BuildContext context) {
     final estadoUsuario = Provider.of<EstadoUsuario>(context);
     final items = const ['Início', 'Conteúdo', 'Galeria'];
+
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobileLayout = screenWidth < 1100; 
+    final double horizontalPadding = isMobileLayout ? 20 : 160;
 
     return Material(
       elevation: 0,
@@ -40,89 +38,94 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
         bottom: false,
         child: Container(
           height: preferredSize.height,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              // LOGO
-              GestureDetector(
-                onTap: onAtlas,
+          width: double.infinity,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 2000),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Row(
                   children: [
-                    Image.asset('assets/logo_fmabc.png', height: 36),
-                    const SizedBox(width: 8),
+                    // LOGO
+                    GestureDetector(
+                      onTap: onAtlas,
+                      child: Row(
+                        children: [
+                          Image.asset('assets/logo_fmabc.png', height: 36),
+                          const SizedBox(width: 8),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 24),
+
+                    if (!isMobileLayout)
+                      Wrap(
+                        alignment: WrapAlignment.end,
+                        spacing: 28,
+                        children: List.generate(items.length, (i) {
+                          return _NavItem(
+                            label: items[i],
+                            selected: selectedIndex == i,
+                            onTap: () => onItemTap(i),
+                          );
+                        }),
+                      )
+                    else
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _MobileDropdown(
+                            items: items,
+                            selectedIndex: selectedIndex,
+                            onItemSelected: onItemTap,
+                          ),
+                        ),
+                      ),
+
+                    if (!isMobileLayout) const Spacer(),
+                    
+                    const SizedBox(width: 12),
+
+                    if (!isMobileLayout)
+                      if (!estadoUsuario.estaLogado)
+                        FilledButton(
+                          onPressed: onLogin,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+                            foregroundColor: AppColors.white,
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: const Text(
+                            'LOGIN',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        )
+                      else
+                        FilledButton(
+                          onPressed: onLogin,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 61, 61, 61),
+                            foregroundColor: AppColors.white,
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: const Text(
+                            'ÁREA ADMINISTRATIVA',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
                   ],
                 ),
               ),
-
-              const SizedBox(width: 24),
-
-              // ---- MENU: Dropdown no mobile, Menu normal no desktop ----
-              if (isDesktopOrWeb)
-                // MENU DESKTOP/WEB
-                Wrap(
-                  alignment: WrapAlignment.end,
-                  spacing: 28,
-                  children: List.generate(items.length, (i) {
-                    return _NavItem(
-                      label: items[i],
-                      selected: selectedIndex == i,
-                      onTap: () => onItemTap(i),
-                    );
-                  }),
-                )
-              else
-                // DROPDOWN MOBILE
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _MobileDropdown(
-                      items: items,
-                      selectedIndex: selectedIndex,
-                      onItemSelected: onItemTap,
-                    ),
-                  ),
-                ),
-
-              const Spacer(),
-              const SizedBox(width: 12),
-
-              // LOGIN ou ÁREA ADMINISTRATIVA - SÓ APARECE NO DESKTOP/WEB
-              if (isDesktopOrWeb)
-                if (!estadoUsuario.estaLogado)
-                  FilledButton(
-                    onPressed: onLogin,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 61, 61, 61),
-                      foregroundColor: AppColors.white,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text(
-                      'LOGIN',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  )
-                else
-                  FilledButton(
-                    onPressed: onLogin,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 61, 61, 61),
-                      foregroundColor: AppColors.white,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text(
-                      'ÁREA ADMINISTRATIVA',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-            ],
+            ),
           ),
         ),
       ),
@@ -169,7 +172,7 @@ class _MobileDropdownState extends State<_MobileDropdown> {
           ),
         );
       }).toList(),
-      underline: Container(), // Remove a linha padrão
+      underline: Container(),
       icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
       isExpanded: false,
       elevation: 4,
