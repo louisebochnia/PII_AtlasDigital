@@ -13,15 +13,67 @@ class EstadoImagem extends ChangeNotifier {
   static final String baseUrl = 'http://localhost:3000/images';
 
   bool _carregando = false;
-   bool get carregando => _carregando;
+  bool get carregando => _carregando;
   String? _erro;
   String? get erro => _erro;
 
+  final String protocolo = 'http://';
+  final String baseURL = 'localhost:3000';
+
+  String converterParaUrl(String caminhoRelativo) {
+    if (caminhoRelativo.isEmpty) return '';
+
+    // Normaliza o caminho (substitui \ por /)
+    final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
+    
+    // Remove barras extras no início
+    final caminhoLimpo = caminhoNormalizado.startsWith('/') 
+        ? caminhoNormalizado.substring(1) 
+        : caminhoNormalizado;
+    
+    return '$protocolo$baseURL/$caminhoLimpo';
+  }
+
+  // Método específico para thumbnails
+  String converterThumbnailParaUrl(String enderecoThumbnail) {
+    return converterParaUrl(enderecoThumbnail);
+  }
+
+  // Método para buscar a primeira imagem de um subtópico
+  Imagem? primeiraImagemPorSubtopico(String subtopicoNome) {
+    final imagens = imagensPorSubtopico(subtopicoNome);
+    return imagens.isNotEmpty ? imagens.first : null;
+  }
+
+  // Método para buscar todas as imagens de um subtópico
+  List<Imagem> imagensPorSubtopico(String subtopicoNome) {
+    return _imagens.where((imagem) => 
+      _correspondeSubtopico(imagem.subtopico, subtopicoNome)
+    ).toList();
+  }
+
+  // Método auxiliar para fazer match flexível de nomes
+  bool _correspondeSubtopico(String nomeImagem, String nomeBuscado) {
+    final nome1 = nomeImagem.toLowerCase().trim();
+    final nome2 = nomeBuscado.toLowerCase().trim();
+    
+    // Verifica match exato
+    if (nome1 == nome2) return true;
+    
+    // Verifica se um contém o outro
+    if (nome1.contains(nome2) || nome2.contains(nome1)) return true;
+    
+    // Verifica palavras em comum
+    final palavras1 = nome1.split(' ');
+    final palavras2 = nome2.split(' ');
+    
+    return palavras1.any((palavra) => palavras2.contains(palavra)) ||
+           palavras2.any((palavra) => palavras1.contains(palavra));
+  }
 
   // CARREGAMENTO
   Future<void> carregarImagens() async {
     _carregando = true;
-
     notifyListeners();
 
     try {
@@ -32,8 +84,12 @@ class EstadoImagem extends ChangeNotifier {
           ..clear()
           ..addAll(data.map((e) => Imagem.fromJson(e)).toList());
         await salvarLocal();
+        
+        debugPrint('-- Imagens carregadas: ${_imagens.length}');
+        debugPrint('-- Exemplo de thumbnail: ${_imagens.isNotEmpty ? converterThumbnailParaUrl(_imagens.first.endereco_thumbnail) : "Nenhuma"}');
       } 
     } catch (e) {
+      debugPrint('-- Erro ao carregar imagens da API: $e');
       await carregarLocal();
     } finally {
       _carregando = false;
@@ -41,10 +97,9 @@ class EstadoImagem extends ChangeNotifier {
     }
   }
 
-  // CRUD
+  // ... (mantenha o resto dos métodos CRUD, persistência e busca existentes)
   Future<bool> atualizarImagem(String id, Imagem imagem) async {
     try {
-      
       final res = await http.put(
         Uri.parse('$baseUrl/$id'),
         headers: {'Content-Type': 'application/json'},
@@ -61,7 +116,6 @@ class EstadoImagem extends ChangeNotifier {
         }
         
         notifyListeners();
-        
         await salvarLocal();
         return true;
       }
@@ -120,10 +174,6 @@ class EstadoImagem extends ChangeNotifier {
     return _imagens.where((imagem) => imagem.topico == topico).toList();
   }
 
-  List<Imagem> imagensPorSubtopico(String subtopico) {
-    return _imagens.where((imagem) => imagem.subtopico == subtopico).toList();
-  }
-
   List<String> get topicosUnicos {
     final topicos = _imagens.map((imagem) => imagem.topico).toSet();
     return topicos.where((topico) => topico.isNotEmpty).toList();
@@ -133,5 +183,4 @@ class EstadoImagem extends ChangeNotifier {
     final subtopicos = _imagens.map((imagem) => imagem.subtopico).toSet();
     return subtopicos.where((subtopico) => subtopico.isNotEmpty).toList();
   }
-
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Ancoras de cor para o projeto.
-/// Se precisar ajustar a marca, altere só aqui.
+// Ancoras de cor para o projeto.
+// Se precisar ajustar a marca, altere só aqui.
 class AppColors {
   // Base
   static const Color white       = Color(0xFFFFFFFF);
@@ -19,7 +19,7 @@ class AppColors {
   static const Color divider     = Color.fromRGBO(0, 0, 0, 0.067);
 }
 
-/// Tema global
+// Tema global
 ThemeData buildAppTheme() {
   final seed = AppColors.brandGreen;
   return ThemeData(

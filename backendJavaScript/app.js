@@ -38,6 +38,7 @@ async function seedHyperlinks() {
       { nome: 'instagram', link: 'https://www.instagram.com/seu-usuario' },
       { nome: 'youtube', link: 'https://www.youtube.com/seu-canal' },
       { nome: 'linkedin', link: 'https://www.linkedin.com/company/sua-empresa' },
+      { nome: 'kahoot', link: 'https://kahoot.com/pt-BR' },
     ];
 
     for (const hl of hyperlinksData) {

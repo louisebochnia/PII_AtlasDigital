@@ -136,7 +136,6 @@ class _LoginPopupState extends State<LoginPopup> {
         // Fecha o popup e retorna os dados
         Navigator.pop(context, data);
       } else if (response.statusCode == 401) {
-        final data = json.decode(response.body);
         setState(() {
           mensagemErro = "Senha incorreta. Verifique e tente novamente.";
           isLoading = false;

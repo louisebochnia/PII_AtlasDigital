@@ -1,8 +1,9 @@
-import 'dart:math';
-
+import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../estado/estado_visualizador.dart';
+import '../estado/estado_imagem.dart';
+import '../modelos/imagem.dart';
 import '../modelos/tile.dart';
 
 class VisualizadorImagem extends StatefulWidget {
@@ -20,7 +21,15 @@ class VisualizadorImagem extends StatefulWidget {
 }
 
 class _VisualidorImagemState extends State<VisualizadorImagem> {
+  final String protocolo = 'http://';
+  final String baseURL = 'localhost:3000';
+
   late EstadoVisualizadorMRXS _estadoVisualizador;
+  late EstadoImagem _estadoImagem;
+  late Imagem? imagem;
+
+  final Map<String, Widget> _tileCache = {};
+  final Map<String, TileInfo> _currentTiles = {};
 
   @override
   void initState() {
@@ -29,6 +38,10 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       imagemId: widget.imagemId, 
       tilesBaseUrl: widget.tilesBaseUrl
     );
+
+    _estadoImagem = context.read<EstadoImagem>();
+
+    imagem = _estadoImagem.encontrarPorId(widget.imagemId);
     
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final sucesso = await _estadoVisualizador.carregarMetadados();
@@ -159,14 +172,60 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         
         final tiles = estado.obterTilesVisiveis(viewportSize);
 
+        _updateTileCache(tiles, estado);
+
         return Stack(
-          children: tiles.map((tile) => _buildTileWidget(tile, estado)).toList(),
+          children: _buildCachedTiles(estado),
         );
       },
     );
   }
 
-  Widget _buildTileWidget(TileInfo tile, EstadoVisualizadorMRXS estado) {
+  void _updateTileCache(List<TileInfo> newTiles, EstadoVisualizadorMRXS estado) {
+    final newTileMap = <String, TileInfo>{};
+    
+    // Mapear novos tiles por chave única
+    for (final tile in newTiles) {
+      final key = _getTileKey(tile);
+      newTileMap[key] = tile;
+    }
+
+    // Remover tiles que não estão mais visíveis do cache atual
+    final keysToRemove = <String>[];
+    for (final key in _currentTiles.keys) {
+      if (!newTileMap.containsKey(key)) {
+        keysToRemove.add(key);
+      }
+    }
+    for (final key in keysToRemove) {
+      _currentTiles.remove(key);
+    }
+
+    // Adicionar novos tiles ao cache atual
+    _currentTiles.addAll(newTileMap);
+  }
+
+  List<Widget> _buildCachedTiles(EstadoVisualizadorMRXS estado) {
+    final widgets = <Widget>[];
+    
+    for (final tile in _currentTiles.values) {
+      final key = _getTileKey(tile);
+      
+      // Se o tile já está no cache de widgets, use-o
+      if (_tileCache.containsKey(key)) {
+        widgets.add(_buildCachedTileWidget(tile, estado, _tileCache[key]!));
+      } else {
+        // Se não está no cache, crie um novo widget e adicione ao cache
+        final widget = _buildTileContent(tile);
+        _tileCache[key] = widget;
+        widgets.add(_buildCachedTileWidget(tile, estado, widget));
+      }
+    }
+    
+    return widgets;
+  }
+
+  Widget _buildCachedTileWidget(TileInfo tile, EstadoVisualizadorMRXS estado, Widget cachedWidget) {
     final layer = estado.layers.firstWhere(
       (l) => l.level == tile.level,
       orElse: () => estado.layers.first,
@@ -183,9 +242,13 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       child: SizedBox(
         width: tileSize,
         height: tileSize,
-        child: _buildTileContent(tile),
+        child: cachedWidget,
       ),
     );
+  }
+
+  String _getTileKey(TileInfo tile) {
+    return '${tile.level}_${tile.x}_${tile.y}';
   }
 
   Widget _buildTileContent(TileInfo tile) {
@@ -198,14 +261,10 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return Image.network(
       tile.url!,
       fit: BoxFit.cover,
-
       filterQuality: FilterQuality.high,
-      
       isAntiAlias: true,
-      
       cacheHeight: 256,
       cacheWidth: 256,
-      
       frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
         if (wasSynchronouslyLoaded || frame != null) {
           return child;
@@ -256,9 +315,10 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
 
   Widget _buildZoomControl(EstadoVisualizadorMRXS estado) {
     return Container(
+      width: 400,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.8),
+        color: AppColors.brandGray90.withOpacity(0.8),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -313,19 +373,130 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Anotações"),
-            
-            SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  width: 100,
+                  height: 75,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.brandGreen,
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      8.0,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      6.5,
+                    ),
+                    child: Image.network(
+                      converterParaUrl(
+                        imagem!.enderecoThumbnail,
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
 
-            SizedBox(height: 8),
+                SizedBox(width: 12),
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      imagem!.nomeImagem,
+                      style: const TextStyle(
+                        fontFamily: "Arial",
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold
+                      ),
+                    ),
+
+                    Text(
+                      '${imagem!.topico} • ${imagem!.subtopico}',
+                      style: const TextStyle(
+                        fontFamily: "Arial",
+                        color: AppColors.textMuted
+                      ),
+                    )
+                  ],
+                )
+                
+              ],
+            ),
+
+            SizedBox(height: 12),
             
+            Divider(
+              color: AppColors.brandGray90,
+              height: 12,
+              thickness: 0.5,
+            ),
+            
+            SizedBox(height: 10),
+
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: 550),
+              child: Scrollbar(
+                thumbVisibility: true,
+                thickness: 3,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Anotações",
+                        style: const TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      SizedBox(height: 8),
+
+                      Text(
+                        imagem!.anotacao,
+                        style: const TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 16,
+                        )
+                      ),
+
+                      SizedBox(height: 12),
+
+                      Text(
+                        "Hiperlinks",
+                        style: const TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      SizedBox(height: 8),
+
+                      Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam ut risus ligula. Nunc ac dolor at nunc luctus porta. Fusce ac ex ac sem ultricies tempus non non turpis. Aliquam fermentum dictum porta. Proin pellentesque nec tortor sit amet malesuada. Nulla justo nunc, iaculis quis vestibulum sit amet, aliquet ut nibh. Donec eget leo ac ipsum molestie fermentum eu sed neque. Morbi nisl dui, consequat ac sollicitudin consectetur, placerat at felis. Ut at enim auctor, consequat diam in, sodales orci. Duis pulvinar libero nibh, eget vehicula risus rutrum id. Suspendisse ipsum tellus, iaculis nec tristique ut, elementum sed mauris. Curabitur in augue ac turpis malesuada bibendum in in risus. Quisque molestie rutrum venenatis. Phasellus ac vehicula elit, ac dictum leo. Proin vestibulum sem eu erat porttitor porttitor. Sed tempor dui id metus suscipit, vel pellentesque tellus sollicitudin. Nunc non rhoncus erat. Duis euismod blandit commodo. Vivamus luctus vitae tortor nec vestibulum. Nullam ut lacus laoreet, accumsan massa sed, finibus lectus. Proin at ligula at quam finibus dictum sed faucibus risus. Vestibulum luctus lacus urna, at sollicitudin quam imperdiet a. Nam sit amet diam nec tellus tempus mollis sed sit amet lacus. Ut et laoreet leo. Aliquam iaculis finibus arcu, et tincidunt mi blandit vel.",
+                        style: const TextStyle(
+                          fontFamily: "Arial",
+                          fontSize: 16,
+                        )
+                      ),
+                    ],
+                  )
+                ),
+              ),
+            )
           ],
         )
       ),
     );
   }
-
 
   Widget _buildQuickActions(EstadoVisualizadorMRXS estado) {
     return Row(
@@ -352,9 +523,10 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       opacity: 1.0,
       duration: Duration(milliseconds: 500),
       child: Container(
+        width: 400,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.8),
+          color: AppColors.brandGray90.withOpacity(0.8),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -409,9 +581,18 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     }
   }
 
+  String converterParaUrl(String caminhoRelativo) {
+    if (caminhoRelativo.isEmpty) return '';
+
+    final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
+    return '$protocolo$baseURL/$caminhoNormalizado';
+  }
+
   @override
   void dispose() {
     _estadoVisualizador.dispose();
+    _tileCache.clear();
+    _currentTiles.clear();
     super.dispose();
   }
 }
