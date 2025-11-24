@@ -51,7 +51,7 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                       onTap: onAtlas,
                       child: Row(
                         children: [
-                          Image.asset('assets/logo_fmabc.png', height: 36),
+                          Image.asset('assets/logo_fmabc.png', height: 50),
                           const SizedBox(width: 8),
                         ],
                       ),

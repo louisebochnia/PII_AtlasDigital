@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 const double kBreakpoint = 900;
 
 class PaginaInicial extends StatefulWidget {
-  const PaginaInicial({super.key});
+  final Function(int)? onNavegar;
+  const PaginaInicial({super.key, this.onNavegar});
 
   @override
   State<PaginaInicial> createState() => _PaginaInicialState();
@@ -83,7 +84,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
               style: TextStyle(color: Colors.grey, fontSize: 20))
           ),
           Positioned(
-            left: isMobile ? 10 : padding, // Setas mais próximas da borda no mobile
+            left: isMobile ? 10 : padding,
             top: 0, bottom: 0,
             child: IconButton(
               icon: Icon(Icons.arrow_back_ios, size: isMobile ? 24 : 40, color: Colors.black54),
@@ -109,7 +110,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
       horizontalPadding: padding,
       corFundo: const Color(0xFF388E3C),
       imagemFundo: const DecorationImage(
-        image: AssetImage("assets/banner_texture.png"), // Certifique-se que essa imagem existe ou remova
+        image: AssetImage("assets/banner_texture.png"),
         fit: BoxFit.cover,
       ),
       verticalPadding: isMobile ? 40 : 60,
@@ -224,9 +225,30 @@ class _PaginaInicialState extends State<PaginaInicial> {
             runSpacing: 30,
             alignment: WrapAlignment.center,
             children: [
-              _buildCardNovo(Icons.biotech_rounded, "Conteúdo", "Acesse materiais didáticos completos.", isMobile),
-              _buildCardNovo(Icons.collections_rounded, "Galeria", "Explore nosso acervo de lâminas.", isMobile),
-              _buildCardNovo(Icons.help_rounded, "Quiz", "Teste seus conhecimentos.", isMobile),
+              // CARD 1: Conteúdo -> Redireciona para índice 1 (Aba Conteúdo)
+              _buildCardNovo(
+                Icons.biotech_rounded, 
+                "Conteúdo", 
+                "Acesse materiais didáticos completos.", 
+                isMobile,
+                onTap: () => widget.onNavegar?.call(1), 
+              ),
+              // CARD 2: Galeria -> Redireciona para índice 2 (Aba Galeria)
+              _buildCardNovo(
+                Icons.collections_rounded, 
+                "Galeria", 
+                "Explore nosso acervo de lâminas.", 
+                isMobile,
+                onTap: () => widget.onNavegar?.call(2),
+              ),
+              // CARD 3: Quiz (Exemplo sem navegação interna por enquanto)
+              _buildCardNovo(
+                Icons.help_rounded, 
+                "Quiz", 
+                "Teste seus conhecimentos.", 
+                isMobile,
+                // onTap: ... se quiser navegar para algum lugar
+              ),
             ],
           ),
         ],
@@ -234,11 +256,13 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-  Widget _buildCardNovo(IconData icon, String title, String description, bool isMobile) {
+  Widget _buildCardNovo(IconData icon, String title, String description, bool isMobile, {VoidCallback? onTap}) {
+    const double cardHeight = 380; 
+
     return Container(
-      width: isMobile ? double.infinity : 300, 
+      width: isMobile ? double.infinity : 300,
+      height: cardHeight, 
       constraints: const BoxConstraints(maxWidth: 350),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
@@ -246,30 +270,42 @@ class _PaginaInicialState extends State<PaginaInicial> {
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
             blurRadius: 20,
-            offset: const Offset(0, 8)
+            offset: const Offset(0, 8),
           )
         ],
         border: Border.all(color: Colors.grey.shade100),
       ),
-      child: Column(
-        children: [
-          Icon(icon, size: 60, color: const Color(0xFF388E3C)),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)
+      child: Material(
+        color: Colors.transparent, 
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30), 
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 150, color: const Color(0xFF388E3C)),
+                const SizedBox(height: 25),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  maxLines: 4, 
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15, color: Colors.black54, height: 1.4),
+                )
+              ],
+            ),
           ),
-          const SizedBox(height: 15),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 15, color: Colors.black54, height: 1.4),
-          )
-        ],
+        ),
       ),
     );
   }
-
   // --- 5. SEÇÃO QUIZ ---
   Widget _buildQuizSection(double padding) {
     return _secaoComMargem(
@@ -315,16 +351,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text("Ver Quizzes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF388E3C),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text("FORMULÁRIOS", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ],
               )

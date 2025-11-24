@@ -127,7 +127,10 @@ class _LoginPopupState extends State<LoginPopup> {
         final data = json.decode(response.body);
         debugPrint('-- Login bem sucedido: $data');
 
-        final estadoUsuario = Provider.of<EstadoUsuario>(context, listen: false);
+        final estadoUsuario = Provider.of<EstadoUsuario>(
+          context,
+          listen: false,
+        );
         await estadoUsuario.login(emailSelecionado!, senha);
 
         // Fecha o popup e retorna os dados
@@ -167,248 +170,260 @@ class _LoginPopupState extends State<LoginPopup> {
       content: SizedBox(
         width: 350,
         height: etapaEmail ? 400 : 450,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Login",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Arial',
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-
-            Flexible(
-              child: Text(
-                textoInstrucao,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Login",
+                style: TextStyle(
                   fontSize: 24,
-                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
                   fontFamily: 'Arial',
                 ),
-                softWrap: true,
-                overflow: TextOverflow.visible,
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  etapaEmail ? "Email" : "Senha",
+              Flexible(
+                child: Text(
+                  textoInstrucao,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
+                    fontSize: 24,
+                    color: Colors.black,
                     fontFamily: 'Arial',
                   ),
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
                 ),
-                const SizedBox(height: 5),
-                if (etapaEmail)
-                  TextField(
-                    controller: emailController,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      hintText: "Digite seu email @fmabc.net",
-                      hintStyle: const TextStyle(
-                        color: Colors.grey,
-                        fontFamily: 'Arial',
-                      ),
-                    ),
-                    onSubmitted: (_) => verificarEmail(),
-                  )
-                else
-                  TextField(
-                    controller: senhaController,
-                    obscureText: !mostrarSenha,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      hintText: "Digite sua senha",
-                      hintStyle: const TextStyle(
-                        color: Colors.grey,
-                        fontFamily: 'Arial',
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          mostrarSenha ? Icons.visibility_off : Icons.visibility,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            mostrarSenha = !mostrarSenha;
-                          });
-                        },
-                      ),
-                    ),
-                    onSubmitted: (_) => fazerLogin(),
-                  ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 20),
 
-            const SizedBox(height: 10),
-
-            if (!etapaEmail)
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Checkbox(
-                        value: lembrarSenha,
-                        onChanged: (val) {
-                          setState(() {
-                            lembrarSenha = val ?? false;
-                          });
-                        },
-                      ),
-                      const Text(
-                        "Lembrar a senha",
-                        style: TextStyle(fontFamily: 'Arial'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    "Ao clicar em Entrar, você aceita automaticamente nossos termos & condições",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.black,
+                  Text(
+                    etapaEmail ? "Email" : "Senha",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
                       fontFamily: 'Arial',
                     ),
                   ),
+                  const SizedBox(height: 5),
+                  if (etapaEmail)
+                    TextField(
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                        hintText: "Digite seu email @fmabc.net",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontFamily: 'Arial',
+                        ),
+                      ),
+                      onSubmitted: (_) => verificarEmail(),
+                    )
+                  else
+                    TextField(
+                      controller: senhaController,
+                      obscureText: !mostrarSenha,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                        hintText: "Digite sua senha",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontFamily: 'Arial',
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            mostrarSenha
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              mostrarSenha = !mostrarSenha;
+                            });
+                          },
+                        ),
+                      ),
+                      onSubmitted: (_) => fazerLogin(),
+                    ),
                 ],
               ),
 
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-            if (mensagemErro != null)
-              Text(
-                mensagemErro!,
-                style: TextStyle(
-                  color: mensagemErro!.contains("sucesso") ? Colors.green : Colors.red,
-                  fontFamily: 'Arial',
+              if (!etapaEmail)
+                Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: lembrarSenha,
+                          onChanged: (val) {
+                            setState(() {
+                              lembrarSenha = val ?? false;
+                            });
+                          },
+                        ),
+                        const Text(
+                          "Lembrar a senha",
+                          style: TextStyle(fontFamily: 'Arial'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      "Ao clicar em Entrar, você aceita automaticamente nossos termos & condições",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.black,
+                        fontFamily: 'Arial',
+                      ),
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-              ),
 
-            const SizedBox(height: 15),
+              const SizedBox(height: 10),
 
-            Row(
-              children: [
-                if (!etapaEmail)
+              if (mensagemErro != null)
+                Text(
+                  mensagemErro!,
+                  style: TextStyle(
+                    color: mensagemErro!.contains("sucesso")
+                        ? Colors.green
+                        : Colors.red,
+                    fontFamily: 'Arial',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+              const SizedBox(height: 15),
+
+              Row(
+                children: [
+                  if (!etapaEmail)
+                    Expanded(
+                      child: TextButton(
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                setState(() {
+                                  etapaEmail = true;
+                                  emailSelecionado = null;
+                                  mensagemErro = null;
+                                  senhaController.clear();
+                                  mostrarSenha = false;
+                                });
+                              },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text(
+                          "Voltar",
+                          style: TextStyle(fontFamily: 'Arial'),
+                        ),
+                      ),
+                    ),
+                  if (!etapaEmail) const SizedBox(width: 28),
                   Expanded(
                     child: TextButton(
                       onPressed: isLoading
                           ? null
-                          : () {
-                              setState(() {
-                                etapaEmail = true;
-                                emailSelecionado = null;
-                                mensagemErro = null;
-                                senhaController.clear();
-                                mostrarSenha = false;
-                              });
-                            },
+                          : (etapaEmail ? verificarEmail : fazerLogin),
                       style: TextButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: isLoading
+                            ? Colors.grey
+                            : AppColors.brandGreen,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text(
-                        "Voltar",
-                        style: TextStyle(fontFamily: 'Arial'),
-                      ),
-                    ),
-                  ),
-                if (!etapaEmail) const SizedBox(width: 28),
-                Expanded(
-                  child: TextButton(
-                    onPressed: isLoading
-                        ? null
-                        : (etapaEmail ? verificarEmail : fazerLogin),
-                    style: TextButton.styleFrom(
-                      backgroundColor: isLoading ? Colors.grey : AppColors.brandGreen,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
+                            )
+                          : Text(
+                              etapaEmail ? "Próximo" : "Entrar",
+                              style: const TextStyle(fontFamily: 'Arial'),
                             ),
-                          )
-                        : Text(
-                            etapaEmail ? "Próximo" : "Entrar",
-                            style: const TextStyle(fontFamily: 'Arial'),
-                          ),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
-            const SizedBox(height: 15),
+              const SizedBox(height: 15),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: etapaEmail ? AppColors.brandGreen : Colors.grey[800],
-                    borderRadius: BorderRadius.circular(4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: etapaEmail
+                          ? AppColors.brandGreen
+                          : Colors.grey[800],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: etapaEmail ? const Color.fromARGB(255, 124, 124, 124) : Colors.green,
-                    borderRadius: BorderRadius.circular(4),
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: etapaEmail
+                          ? const Color.fromARGB(255, 124, 124, 124)
+                          : Colors.green,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
