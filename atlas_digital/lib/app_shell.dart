@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'src/estado/estado_navegacao.dart';
 import 'src/componentes/barra_de_navegacao.dart';
 import 'src/componentes/rodape.dart';
 import 'src/componentes/sub_componentes/popup_login.dart';

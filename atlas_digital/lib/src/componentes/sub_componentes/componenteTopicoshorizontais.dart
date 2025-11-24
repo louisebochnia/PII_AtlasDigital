@@ -1,24 +1,48 @@
 import 'package:flutter/material.dart';
+import '../../modelos/subtopicos.dart';
 
-class SecaoHorizontal extends StatelessWidget {
+class SecaoHorizontal extends StatefulWidget {
   final String titulo;
   final String descricao;
-  final List<Map<String, String>> itens;
+  final List<Subtopico> subtopicos;
+  final Function(Subtopico)? onAcessarSubtopico;
 
   const SecaoHorizontal({
     super.key,
     required this.titulo,
     required this.descricao,
-    required this.itens,
+    required this.subtopicos,
+    this.onAcessarSubtopico,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final controller = ScrollController();
+  State<SecaoHorizontal> createState() => _SecaoHorizontalState();
+}
 
+class _SecaoHorizontalState extends State<SecaoHorizontal> {
+  final ScrollController _scrollController = ScrollController();
+
+  // ← MÉTODO: Chamado quando clica em "Acessar"
+  void _onAcessarSubtopico(Subtopico subtopico) {
+    if (widget.onAcessarSubtopico != null) {
+      widget.onAcessarSubtopico!(subtopico);
+    } else {
+      debugPrint('Acessar subtópico: ${subtopico.titulo}');
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Cabeçalho
         Padding(
           padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
           child: Row(
@@ -27,30 +51,30 @@ class SecaoHorizontal extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  titulo,
+                  widget.titulo,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
-                  maxLines:
-                      1,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
-                'Capítulos: 1-7',
+                'Subtópicos: ${widget.subtopicos.length}',
                 style: const TextStyle(fontSize: 16, color: Colors.black87),
               ),
             ],
           ),
         ),
 
+        // Descrição
         Padding(
           padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
           child: Text(
-            descricao,
+            widget.descricao,
             style: const TextStyle(
               fontSize: 16,
               color: Colors.black87,
@@ -61,21 +85,21 @@ class SecaoHorizontal extends StatelessWidget {
 
         const SizedBox(height: 16),
 
+        // Container do carrossel COM SCROLL HORIZONTAL NORMAL
         SizedBox(
           height: 194,
           child: Scrollbar(
-            controller: controller,
+            controller: _scrollController,
             thumbVisibility: true,
             trackVisibility: true,
             thickness: 6,
             radius: const Radius.circular(10),
             child: ListView.builder(
-              controller: controller,
+              controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              itemCount: itens.length,
+              itemCount: widget.subtopicos.length,
               itemBuilder: (context, index) {
-                final item = itens[index];
-
+                final subtopico = widget.subtopicos[index];
                 return Container(
                   margin: const EdgeInsets.fromLTRB(0, 0, 24, 8),
                   padding: const EdgeInsets.all(6),
@@ -97,61 +121,57 @@ class SecaoHorizontal extends StatelessWidget {
                       // Imagem
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          item['url']!,
+                        child: Container(
                           height: 120,
                           width: double.infinity,
-                          fit: BoxFit.cover,
+                          color: const Color.fromARGB(255, 200, 200, 200),
+                          child:
+                              subtopico.capaUrl != null &&
+                                  subtopico.capaUrl!.isNotEmpty
+                              ? Image.network(
+                                  subtopico.capaUrl!,
+                                  height: 120,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.auto_stories_outlined,
+                                  size: 40,
+                                  color: Colors.grey,
+                                ),
                         ),
                       ),
-
                       const SizedBox(height: 6),
-
-                      // Capítulo + título + botão
+                      // Conteúdo
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Capítulo
                           Text(
-                            'Capítulo ${item['capitulo']}',
+                            'Subtópico ${subtopico.indice}',
                             style: const TextStyle(
                               fontSize: 10,
                               color: Colors.black,
                             ),
                           ),
-
-                          // Título + botão
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Text(
-                                  item['titulo']!,
+                                  subtopico.titulo,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.black87,
                                   ),
-                                  overflow:
-                                      TextOverflow.ellipsis, // evita estourar
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               TextButton(
-                                onPressed: () {
-                                  if (item['rota'] != null) {
-                                    Navigator.of(
-                                      context,
-                                    ).pushNamed(item['rota']!);
-                                  } else {
-                                    print(
-                                      'Erro: Rota não definida para este item.',
-                                    );
-                                  }
-                                },
-                                // Mantenha o child (Texto 'Acessar' e ícone) inalterado:
-                                child: Row(
+                                onPressed: () => _onAcessarSubtopico(subtopico),
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
+                                  children: [
                                     Text(
                                       'Acessar',
                                       style: TextStyle(

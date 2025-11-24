@@ -171,55 +171,55 @@ class _InicioPageState extends State<InicioPage> {
             fontFamily: "Arial",
           ),
         ),
-        const Text(
-          "Por que criamos o ATLAS?",
-          style: TextStyle(fontSize: 20, fontFamily: "Arial"),
-        ),
-        const SizedBox(height: 8),
+        // const Text(
+        //   "Por que criamos o ATLAS?",
+        //   style: TextStyle(fontSize: 20, fontFamily: "Arial"),
+        // ),
+        // const SizedBox(height: 8),
 
-        // Campo de texto rolável com ícone dentro
-        Stack(
-          children: [
-            Container(
-              height: 150,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: TextField(
-                  controller: controlador,
-                  enabled: editavel,
-                  maxLines: null,
-                  style: const TextStyle(fontFamily: "Arial"),
-                  decoration: const InputDecoration(border: InputBorder.none),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 4,
-              right: 4,
-              child: IconButton(
-                icon: Icon(editavel ? Icons.check : Icons.edit),
-                onPressed: () {
-                  setState(() {
-                    editavel = !editavel;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
+        // // Campo de texto rolável com ícone dentro
+        // Stack(
+        //   children: [
+        //     Container(
+        //       height: 150,
+        //       padding: const EdgeInsets.all(8),
+        //       decoration: BoxDecoration(
+        //         color: Colors.white,
+        //         border: Border.all(color: Colors.grey),
+        //         borderRadius: BorderRadius.circular(12),
+        //         boxShadow: [
+        //           BoxShadow(
+        //             color: Colors.grey.withOpacity(0.5),
+        //             spreadRadius: 2,
+        //             blurRadius: 5,
+        //             offset: const Offset(0, 0),
+        //           ),
+        //         ],
+        //       ),
+        //       child: SingleChildScrollView(
+        //         child: TextField(
+        //           controller: controlador,
+        //           enabled: editavel,
+        //           maxLines: null,
+        //           style: const TextStyle(fontFamily: "Arial"),
+        //           decoration: const InputDecoration(border: InputBorder.none),
+        //         ),
+        //       ),
+        //     ),
+        //     Positioned(
+        //       bottom: 4,
+        //       right: 4,
+        //       child: IconButton(
+        //         icon: Icon(editavel ? Icons.check : Icons.edit),
+        //         onPressed: () {
+        //           setState(() {
+        //             editavel = !editavel;
+        //           });
+        //         },
+        //       ),
+        //     ),
+        //   ],
+        // ),
 
         const SizedBox(height: 24),
 
@@ -309,57 +309,57 @@ class _InicioPageState extends State<InicioPage> {
           ),
         ),
 
-        const SizedBox(height: 24),
+        // const SizedBox(height: 24),
 
-        const Text("Quiz", style: TextStyle(fontSize: 18, fontFamily: "Arial")),
-        const SizedBox(height: 8),
+        // const Text("Quiz", style: TextStyle(fontSize: 18, fontFamily: "Arial")),
+        // const SizedBox(height: 8),
 
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  linkQuiz,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: "Arial",
-                    // Fica cinza se for o texto padrão, preto se for um link
-                    color: linkQuiz == "Coloque o link do quiz aqui"
-                        ? Colors.grey
-                        : Colors.black,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit, size: 20),
-                onPressed: () async {
-                  // Reutiliza sua função _mostrarDialog existente
-                  String? novo = await _mostrarDialog(context, linkQuiz);
-                  if (novo != null) {
-                    setState(() {
-                      linkQuiz = novo;
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
+        // Container(
+        //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        //   decoration: BoxDecoration(
+        //     color: Colors.white,
+        //     border: Border.all(color: Colors.grey),
+        //     borderRadius: BorderRadius.circular(12),
+        //     boxShadow: [
+        //       BoxShadow(
+        //         color: Colors.grey.withOpacity(0.5),
+        //         spreadRadius: 2,
+        //         blurRadius: 5,
+        //         offset: const Offset(0, 0),
+        //       ),
+        //     ],
+        //   ),
+        //   child: Row(
+        //     children: [
+        //       Expanded(
+        //         child: Text(
+        //           linkQuiz,
+        //           style: TextStyle(
+        //             fontSize: 16,
+        //             fontFamily: "Arial",
+        //             // Fica cinza se for o texto padrão, preto se for um link
+        //             color: linkQuiz == "Coloque o link do quiz aqui"
+        //                 ? Colors.grey
+        //                 : Colors.black,
+        //           ),
+        //           overflow: TextOverflow.ellipsis,
+        //         ),
+        //       ),
+        //       IconButton(
+        //         icon: const Icon(Icons.edit, size: 20),
+        //         onPressed: () async {
+        //           // Reutiliza sua função _mostrarDialog existente
+        //           String? novo = await _mostrarDialog(context, linkQuiz);
+        //           if (novo != null) {
+        //             setState(() {
+        //               linkQuiz = novo;
+        //             });
+        //           }
+        //         },
+        //       ),
+        //     ],
+        //   ),
+        // ),
 
         // Adicione um espaço extra no final para não grudar na borda
         const SizedBox(height: 20),
