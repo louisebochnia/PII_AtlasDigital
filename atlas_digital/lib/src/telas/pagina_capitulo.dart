@@ -18,11 +18,11 @@ import 'package:atlas_digital/src/estado/estado_imagem.dart';
 import 'package:atlas_digital/temas.dart';
 import 'package:atlas_digital/app_shell.dart';
 
-// Para resolver o conflito do isDesktopOrWeb, importe com prefixo ou defina localmente
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
-// Defina isDesktopOrWeb localmente na TelaCapitulo
+import 'pagina_imagem.dart';
+
 bool get isDesktopOrWeb {
   if (kIsWeb) return true;
   return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
@@ -194,6 +194,39 @@ class _TelaCapituloState extends State<TelaCapitulo> {
   // Método para abrir quizzes
   void _abrirQuizzes() async {
     await _abrirLink(_quizLink);
+  }
+
+  // Método para abrir o atlas (página de imagem)
+  void _abrirAtlas() {
+    final estadoImagem = Provider.of<EstadoImagem>(context, listen: false);
+    
+    // Busca a primeira imagem relacionada a este subtópico
+    final imagensDoSubtopico = estadoImagem.imagensPorSubtopico(widget.subtopico.titulo);
+    
+    if (imagensDoSubtopico.isNotEmpty) {
+      final imagem = imagensDoSubtopico.first;
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaginaImagem(
+            imagemId: imagem.id,
+            nomeImagem: imagem.nomeImagem,
+            topico: imagem.topico,
+            subtopico: imagem.subtopico,
+            thumbnailUrl: estadoImagem.converterParaUrl(imagem.enderecoThumbnail),
+          ),
+        ),
+      );
+    } else {
+      // Se não encontrar imagem, mostra um snackbar informativo
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Nenhuma imagem encontrada para este capítulo'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 
   // Métodos para redes sociais
@@ -508,7 +541,7 @@ class _TelaCapituloState extends State<TelaCapitulo> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: TextButton(
-                                    onPressed: _onAtlas,
+                                    onPressed: _abrirAtlas, // ← CORRIGIDO
                                     style: TextButton.styleFrom(
                                       minimumSize: const Size(
                                         double.infinity,
@@ -661,7 +694,7 @@ class _TelaCapituloState extends State<TelaCapitulo> {
 
                                           // Botão ABRIR ATLAS
                                           TextButton(
-                                            onPressed: _onAtlas,
+                                            onPressed: _abrirAtlas, // ← CORRIGIDO
                                             style: TextButton.styleFrom(
                                               minimumSize: const Size(
                                                 double.infinity,
