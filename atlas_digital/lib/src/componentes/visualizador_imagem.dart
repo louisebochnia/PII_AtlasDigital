@@ -1,3 +1,4 @@
+import 'package:atlas_digital/app_shell.dart';
 import 'package:atlas_digital/temas.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -5,6 +6,7 @@ import '../estado/estado_visualizador.dart';
 import '../estado/estado_imagem.dart';
 import '../modelos/imagem.dart';
 import '../modelos/tile.dart';
+import '../telas/pagina_galeria.dart';
 
 class VisualizadorImagem extends StatefulWidget {
   final String imagemId;
@@ -365,135 +367,152 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       top: 20,
       bottom: 20,
       right: 20,
-      child: Container(
-        width: 400,
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1F1F1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 100,
-                  height: 75,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.brandGreen,
-                      width: 2.0,
+      child: _ContainerRedimensionavel(
+        larguraInicial: 400,
+        larguraMinima: 250,
+        larguraMaxima: 500,
+        child: Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F1F1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 100,
+                    height: 75,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.brandGreen,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    borderRadius: BorderRadius.circular(
-                      8.0,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6.5),
+                      child: Image.network(
+                        converterParaUrl(imagem!.enderecoThumbnail),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      6.5,
-                    ),
-                    child: Image.network(
-                      converterParaUrl(
-                        imagem!.enderecoThumbnail,
-                      ),
-                      fit: BoxFit.cover,
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          imagem!.nomeImagem,
+                          style: const TextStyle(
+                            fontFamily: "Arial",
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          '${imagem!.topico} • ${imagem!.subtopico}',
+                          style: const TextStyle(
+                            fontFamily: "Arial",
+                            color: AppColors.textMuted
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                ),
-
-                SizedBox(width: 12),
-
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      imagem!.nomeImagem,
-                      style: const TextStyle(
-                        fontFamily: "Arial",
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-
-                    Text(
-                      '${imagem!.topico} • ${imagem!.subtopico}',
-                      style: const TextStyle(
-                        fontFamily: "Arial",
-                        color: AppColors.textMuted
-                      ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Divider(
+                color: AppColors.brandGray90,
+                height: 12,
+                thickness: 0.5,
+              ),
+              SizedBox(height: 10),
+              Expanded(
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  thickness: 3,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Anotações",
+                          style: const TextStyle(
+                            fontFamily: "Arial",
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          imagem!.anotacao,
+                          style: const TextStyle(
+                            fontFamily: "Arial",
+                            fontSize: 16,
+                          )
+                        ),
+                        SizedBox(height: 12),
+                        // Text(
+                        //   "Hiperlinks",
+                        //   style: const TextStyle(
+                        //     fontFamily: "Arial",
+                        //     fontSize: 22,
+                        //     fontWeight: FontWeight.bold,
+                        //   ),
+                        // ),
+                        // SizedBox(height: 8),
+                        // Text(
+                        //   "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
+                        //   style: const TextStyle(
+                        //     fontFamily: "Arial",
+                        //     fontSize: 16,
+                        //   )
+                        // ),
+                      ],
                     )
-                  ],
-                )
-                
-              ],
-            ),
-
-            SizedBox(height: 12),
-            
-            Divider(
-              color: AppColors.brandGray90,
-              height: 12,
-              thickness: 0.5,
-            ),
-            
-            SizedBox(height: 10),
-
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: 550),
-              child: Scrollbar(
-                thumbVisibility: true,
-                thickness: 3,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Anotações",
-                        style: const TextStyle(
-                          fontFamily: "Arial",
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      SizedBox(height: 8),
-
-                      Text(
-                        imagem!.anotacao,
-                        style: const TextStyle(
-                          fontFamily: "Arial",
-                          fontSize: 16,
-                        )
-                      ),
-
-                      SizedBox(height: 12),
-
-                      Text(
-                        "Hiperlinks",
-                        style: const TextStyle(
-                          fontFamily: "Arial",
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      SizedBox(height: 8),
-
-                      Text(
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam ut risus ligula. Nunc ac dolor at nunc luctus porta. Fusce ac ex ac sem ultricies tempus non non turpis. Aliquam fermentum dictum porta. Proin pellentesque nec tortor sit amet malesuada. Nulla justo nunc, iaculis quis vestibulum sit amet, aliquet ut nibh. Donec eget leo ac ipsum molestie fermentum eu sed neque. Morbi nisl dui, consequat ac sollicitudin consectetur, placerat at felis. Ut at enim auctor, consequat diam in, sodales orci. Duis pulvinar libero nibh, eget vehicula risus rutrum id. Suspendisse ipsum tellus, iaculis nec tristique ut, elementum sed mauris. Curabitur in augue ac turpis malesuada bibendum in in risus. Quisque molestie rutrum venenatis. Phasellus ac vehicula elit, ac dictum leo. Proin vestibulum sem eu erat porttitor porttitor. Sed tempor dui id metus suscipit, vel pellentesque tellus sollicitudin. Nunc non rhoncus erat. Duis euismod blandit commodo. Vivamus luctus vitae tortor nec vestibulum. Nullam ut lacus laoreet, accumsan massa sed, finibus lectus. Proin at ligula at quam finibus dictum sed faucibus risus. Vestibulum luctus lacus urna, at sollicitudin quam imperdiet a. Nam sit amet diam nec tellus tempus mollis sed sit amet lacus. Ut et laoreet leo. Aliquam iaculis finibus arcu, et tincidunt mi blandit vel.",
-                        style: const TextStyle(
-                          fontFamily: "Arial",
-                          fontSize: 16,
-                        )
-                      ),
-                    ],
-                  )
+                  ),
                 ),
               ),
-            )
-          ],
-        )
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AppShell()),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 220, 20, 20),
+                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.exit_to_app, color: Colors.white, size: 20),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "Voltar para o site",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: "Arial",
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          )
+        ),
       ),
     );
   }
@@ -594,5 +613,93 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     _tileCache.clear();
     _currentTiles.clear();
     super.dispose();
+  }
+}
+
+class _ContainerRedimensionavel extends StatefulWidget {
+  final Widget child;
+  final double larguraInicial;
+  final double larguraMinima;
+  final double larguraMaxima;
+
+  const _ContainerRedimensionavel({
+    required this.child,
+    required this.larguraInicial,
+    this.larguraMinima = 200,
+    this.larguraMaxima = 600,
+  });
+
+  @override
+  _ContainerRedimensionavelState createState() => _ContainerRedimensionavelState();
+}
+
+class _ContainerRedimensionavelState extends State<_ContainerRedimensionavel> {
+  double _largura = 400;
+  bool _estaArrastando = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _largura = widget.larguraInicial;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Container principal
+        Container(
+          width: _largura,
+          child: widget.child,
+        ),
+        
+        // Alça de redimensionamento na borda esquerda
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.resizeLeftRight,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onPanStart: (details) {
+                setState(() {
+                  _estaArrastando = true;
+                });
+              },
+              onPanUpdate: (details) {
+                setState(() {
+                  _largura -= details.delta.dx;
+                  // Limitar a largura entre os valores mínimo e máximo
+                  if (_largura < widget.larguraMinima) {
+                    _largura = widget.larguraMinima;
+                  } else if (_largura > widget.larguraMaxima) {
+                    _largura = widget.larguraMaxima;
+                  }
+                });
+              },
+              onPanEnd: (details) {
+                setState(() {
+                  _estaArrastando = false;
+                });
+              },
+              child: Container(
+                width: 8,
+                color: _estaArrastando 
+                  ? AppColors.brandGreen.withOpacity(0.5)
+                  : Colors.transparent,
+                child: Center(
+                  child: Container(
+                    width: 2,
+                    height: 40,
+                    color: AppColors.brandGreen,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

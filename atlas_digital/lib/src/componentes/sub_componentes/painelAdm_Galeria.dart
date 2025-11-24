@@ -723,11 +723,11 @@ class _GaleriaPageState extends State<GaleriaPage> {
         .map(
           (imagem) => {
             'id': imagem.id,
-            'nomeArquivo': imagem.nome_arquivo,
-            'nome': imagem.nome_imagem,
-            'pastaMrxs': imagem.endereco_pasta_mrxs,
-            'thumbnail': imagem.endereco_thumbnail,
-            'tiles': imagem.endereco_tiles,
+            'nomeArquivo': imagem.nomeArquivo,
+            'nome': imagem.nomeImagem,
+            'pastaMrxs': imagem.enderecoPastaMrxs,
+            'thumbnail': imagem.enderecoThumbnail,
+            'tiles': imagem.enderecoTiles,
             'topico': imagem.topico,
             'subtopico': imagem.subtopico,
             'anotacao': imagem.anotacao,
@@ -756,11 +756,11 @@ class _GaleriaPageState extends State<GaleriaPage> {
 
       final imagemAlterada = Imagem(
         id: imagemOriginal.id,
-        nome_arquivo: imagemOriginal.nome_arquivo,
-        nome_imagem: nomeController.text,
-        endereco_pasta_mrxs: imagemOriginal.endereco_pasta_mrxs,
-        endereco_thumbnail: imagemOriginal.endereco_thumbnail,
-        endereco_tiles: imagemOriginal.endereco_tiles,
+        nomeArquivo: imagemOriginal.nomeArquivo,
+        nomeImagem: nomeController.text,
+        enderecoPastaMrxs: imagemOriginal.enderecoPastaMrxs,
+        enderecoThumbnail: imagemOriginal.enderecoThumbnail,
+        enderecoTiles: imagemOriginal.enderecoTiles,
         topico: topicoSelecionado!,
         subtopico: subtopicoSelecionado!,
         anotacao: anotacaoController.text,
@@ -983,7 +983,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                           ),
                                           child: Image.network(
                                             converterParaUrl(
-                                              imagem.endereco_thumbnail,
+                                              imagem.enderecoThumbnail,
                                             ),
                                             fit: BoxFit.cover,
                                           ),
@@ -998,7 +998,7 @@ class _GaleriaPageState extends State<GaleriaPage> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              imagem.nome_imagem,
+                                              imagem.nomeImagem,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 18,

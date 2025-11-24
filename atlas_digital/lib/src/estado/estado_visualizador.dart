@@ -129,8 +129,6 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
       _layers.sort((a, b) => a.scale.compareTo(b.scale));
       _minZoom = _layers.first.scale;
       _maxZoom = _layers.last.scale;
-
-      print('Fallback carregado - Zoom: ${_minZoom}x a ${_maxZoom}x');
     }
   }
   
@@ -230,7 +228,6 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
     _posicao = Offset(newDx, newDy);
     
     _safeNotifyListeners();
-    print('🎯 Imagem centralizada. Posição FINAL: (${_posicao.dx.toStringAsFixed(1)}, ${_posicao.dy.toStringAsFixed(1)})');
   }
 
   void atualizarViewportSize(Size newSize) {
@@ -263,7 +260,6 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
         finalMaxX = -halfDiffX;
     }
     
-    // --- Lógica para Eixo Y ---
     if (diffHeight > 0) {
         finalMinY = 0.0;
         finalMaxY = diffHeight;
@@ -350,9 +346,6 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
       }
     }
     
-    print('Layer selecionada: ${layerEscolhida.level} (${layerEscolhida.scale}x) '
-          'para zoom ${_zoom}x');
-    
     return layerEscolhida;
   }
   
@@ -373,10 +366,9 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
     _posicao = Offset.zero;
     _primeiroCarregamento = false; 
     _safeNotifyListeners();
-    print('Posição resetada para o primeiro tile (0,0)');
   }
 
-  @override
+@override
   void dispose() {
     _layers.clear();
     super.dispose();
