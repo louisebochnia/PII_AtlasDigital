@@ -28,6 +28,7 @@ class PaginaInicial extends StatefulWidget {
 }
 
 class _PaginaInicialState extends State<PaginaInicial> {
+  late EstadoImagem _estadoImagem;
   final PageController _pageController = PageController();
   int _currentPage = 0;
   late Future<void> _carregamentoFuture;
@@ -35,6 +36,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
   @override
   void initState() {
     super.initState();
+    _estadoImagem = context.read<EstadoImagem>();
     _carregamentoFuture = _carregarImagens();
   }
 
@@ -162,7 +164,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 },
                 itemBuilder: (context, index) {
                   final imagem = imagensCarrossel[index];
-                  final imageUrl = estadoImagem.converterThumbnailParaUrl(
+                  final imageUrl = estadoImagem.converterParaUrl(
                     imagem.enderecoThumbnail,
                   );
 

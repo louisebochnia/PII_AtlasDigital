@@ -36,14 +36,6 @@ class EstadoImagem extends ChangeNotifier {
   }
 
   // Aceita baseUrl como parâmetro
-  String converterThumbnailParaUrl(
-    String enderecoThumbnail, {
-    String? baseUrl,
-  }) {
-    return converterParaUrl(enderecoThumbnail, baseUrl: baseUrl);
-  }
-
-  // Aceita baseUrl como parâmetro
   Future<void> carregarImagens({String? baseUrl}) async {
     _carregando = true;
     _erro = null;
@@ -62,7 +54,7 @@ class EstadoImagem extends ChangeNotifier {
 
         debugPrint('-- Imagens carregadas de $urlBase: ${_imagens.length}');
         debugPrint(
-          '-- Exemplo de thumbnail: ${_imagens.isNotEmpty ? converterThumbnailParaUrl(_imagens.first.enderecoThumbnail, baseUrl: baseUrl) : "Nenhuma"}',
+          '-- Exemplo de thumbnail: ${_imagens.isNotEmpty ? converterParaUrl(_imagens.first.enderecoThumbnail, baseUrl: baseUrl) : "Nenhuma"}',
         );
       } else {
         _erro = 'Erro HTTP ${res.statusCode}';
