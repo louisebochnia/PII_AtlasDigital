@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../modelos/tile.dart';
 
 class EstadoVisualizadorMRXS with ChangeNotifier {
+
   final String imagemId;
   final String tilesBaseUrl;
 
@@ -366,6 +367,49 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
     _posicao = Offset.zero;
     _primeiroCarregamento = false; 
     _safeNotifyListeners();
+  }
+
+  Offset _pointerPosicaoImagem = Offset.zero;
+  bool _pointerVisivel = false;
+  bool _modoColocacaoPointer = false;
+
+  Offset get pointerPosicaoImagem => _pointerPosicaoImagem;
+  bool get pointerVisivel => _pointerVisivel;
+  bool get modoColocacaoPointer => _modoColocacaoPointer;
+
+  // Métodos para o Pointer na Imagem
+  void ativarModoColocacaoPointer() {
+    _modoColocacaoPointer = true;
+    _pointerVisivel = true;
+    notifyListeners();
+  }
+
+  void desativarModoColocacaoPointer() {
+    _modoColocacaoPointer = false;
+    notifyListeners();
+  }
+
+  void colocarPointerNaImagem(Offset posicao) {
+    _pointerPosicaoImagem = posicao;
+    _modoColocacaoPointer = false;
+    notifyListeners();
+  }
+
+  void moverPointerNaImagem(Offset novaPosicao) {
+    _pointerPosicaoImagem = novaPosicao;
+    notifyListeners();
+  }
+
+  void alternarPointerVisibilidade() {
+    _pointerVisivel = !_pointerVisivel;
+    notifyListeners();
+  }
+
+  void resetarPointer() {
+    _pointerPosicaoImagem = Offset.zero;
+    _pointerVisivel = false;
+    _modoColocacaoPointer = false;
+    notifyListeners();
   }
 
 @override

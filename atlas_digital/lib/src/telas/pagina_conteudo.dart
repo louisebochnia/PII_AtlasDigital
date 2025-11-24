@@ -145,7 +145,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
       );
 
       if (imagemSubtopico != null) {
-        final thumbnailUrl = estadoImagem.converterThumbnailParaUrl(
+        final thumbnailUrl = estadoImagem.converterParaUrl(
           imagemSubtopico.enderecoThumbnail,
         );
 
@@ -183,7 +183,7 @@ class _PaginaConteudoState extends State<PaginaConteudo> {
         );
 
         if (imagemSubtopico != null) {
-          final thumbnailUrl = estadoImagem.converterThumbnailParaUrl(
+          final thumbnailUrl = estadoImagem.converterParaUrl(
             imagemSubtopico.enderecoThumbnail,
           );
 
