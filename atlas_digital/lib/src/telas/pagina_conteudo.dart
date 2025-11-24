@@ -4,14 +4,14 @@ import '../componentes/sub_componentes/componenteTopicoshorizontais.dart';
 // O ponto de quebra deve ser definido consistentemente com a TopNavBar
 const double kBreakpoint = 1000;
 
-class telaConteudo extends StatefulWidget {
-  const telaConteudo({super.key});
+class PaginaConteudo extends StatefulWidget {
+  const PaginaConteudo({super.key});
 
   @override
-  State<telaConteudo> createState() => _telaConteudoState();
+  State<PaginaConteudo> createState() => _PaginaConteudoState();
 }
 
-class _telaConteudoState extends State<telaConteudo> {
+class _PaginaConteudoState extends State<PaginaConteudo> {
   // Simula buscar dados de um banco (poderia ser uma API real)
   Future<List<Map<String, dynamic>>> buscarDadosDoBanco() async {
     await Future.delayed(

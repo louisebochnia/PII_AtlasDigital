@@ -35,7 +35,7 @@ class _AppShellState extends State<AppShell> {
 
   final List<Widget> _pages = [
     const PaginaInicial(),
-    const telaConteudo(),
+    const PaginaConteudo(),
     const PaginaGaleria(),
   ];
 
