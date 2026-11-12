@@ -1,8 +1,8 @@
+
 const fs = require('fs-extra');
 const fsSync = require('fs');
 const path = require('path');
 const unzipper = require('unzipper');
-const { exec } = require('child_process');
 const { spawn } = require('child_process');
 
 class Imagem {
@@ -10,9 +10,19 @@ class Imagem {
         this.arquivosDir = arquivosDir;
     }
 
+    // =====================================================
+    // DESCOMPACTAÇÃO DO ZIP
+    // =====================================================
+
     async descompactarZip(zipPath, nomeImagem) {
         const nomeLimpo = this.sanitizeNome(nomeImagem);
-        const pastaBase = path.join('uploads', 'images', nomeLimpo);
+
+        const pastaBase = path.join(
+            'uploads',
+            'images',
+            nomeLimpo
+        );
+
         await fs.ensureDir(pastaBase);
 
         await fsSync.createReadStream(zipPath)
@@ -21,24 +31,53 @@ class Imagem {
 
         await fs.unlink(zipPath);
 
-        return pastaBase
+        return pastaBase;
     }
+
+    // =====================================================
+    // SANITIZAÇÃO DO NOME
+    // =====================================================
 
     sanitizeNome(nome) {
-        return nome.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚãõñç\s_-]/g, '').replace(/\s+/g, '_');
+        return nome
+            .replace(
+                /[^a-zA-Z0-9áéíóúÁÉÍÓÚãõñç\s_-]/g,
+                ''
+            )
+            .replace(/\s+/g, '_');
     }
 
-    async listarArquivosRecursivamente(diretorio, baseDir = diretorio, arquivoList = []) {
+    // =====================================================
+    // LISTAGEM RECURSIVA DOS ARQUIVOS
+    // =====================================================
+
+    async listarArquivosRecursivamente(
+        diretorio,
+        baseDir = diretorio,
+        arquivoList = []
+    ) {
         const itens = await fs.readdir(diretorio);
 
         for (const item of itens) {
-            const caminhoCompleto = path.join(diretorio, item);
+            const caminhoCompleto = path.join(
+                diretorio,
+                item
+            );
+
             const stat = await fs.stat(caminhoCompleto);
 
             if (stat.isDirectory()) {
-                await this.listarArquivosRecursivamente(caminhoCompleto, baseDir, arquivoList);
+                await this.listarArquivosRecursivamente(
+                    caminhoCompleto,
+                    baseDir,
+                    arquivoList
+                );
             } else {
-                const caminhoRelativo = path.relative(baseDir, caminhoCompleto);
+                const caminhoRelativo = path.relative(
+                    baseDir,
+                    caminhoCompleto
+                );
+
                 arquivoList.push(caminhoRelativo);
             }
         }
@@ -46,35 +85,89 @@ class Imagem {
         return arquivoList;
     }
 
+    // =====================================================
+    // PREPARAÇÃO DA ESTRUTURA MRXS
+    // =====================================================
+
     async prepararPastaMrxs(destino, nomeImagem) {
-        const arquivos = await this.listarArquivosRecursivamente(destino, destino);
-        
-        const mrxsFile = arquivos.find(f => f.endsWith('.mrxs'));
+        const arquivos = await this.listarArquivosRecursivamente(
+            destino,
+            destino
+        );
+
+        const mrxsFile = arquivos.find(
+            f => f.toLowerCase().endsWith('.mrxs')
+        );
+
         if (!mrxsFile) {
-            throw new Error('Nenhum arquivo .mrxs encontrado no ZIP');
+            throw new Error(
+                'Nenhum arquivo .mrxs encontrado no ZIP'
+            );
         }
-        
-        const mrxsPath = path.join(destino, mrxsFile);
+
+        const mrxsPath = path.join(
+            destino,
+            mrxsFile
+        );
+
         const mrxsDir = path.dirname(mrxsPath);
-        const mrxsBaseName = path.basename(mrxsFile, '.mrxs');
+
+        const mrxsBaseName = path.basename(
+            mrxsFile,
+            path.extname(mrxsFile)
+        );
 
         let pastaEncontrada = null;
-        if (mrxsDir !== destino) {
-            const subpastas = await fs.readdir(mrxsDir, { withFileTypes: true });
-            for (const ent of subpastas) {
-                if (ent.isDirectory()) {
-                    const conteudo = await fs.readdir(path.join(mrxsDir, ent.name));
-                    const contemArquivosMRXS = conteudo.some(f =>
-                        f.toLowerCase().endsWith('.dat') || f.toLowerCase() === 'slidesdat.ini'
+
+        // Procura a pasta de arquivos complementares.
+        const subpastas = await fs.readdir(
+            mrxsDir,
+            { withFileTypes: true }
+        );
+
+        for (const ent of subpastas) {
+            if (!ent.isDirectory()) {
+                continue;
+            }
+
+            const caminhoPasta = path.join(
+                mrxsDir,
+                ent.name
+            );
+
+            const arquivosPasta =
+                await this.listarArquivosRecursivamente(
+                    caminhoPasta,
+                    caminhoPasta
+                );
+
+            const contemArquivosMRXS = arquivosPasta.some(
+                arquivo => {
+                    const nome = path.basename(
+                        arquivo
+                    ).toLowerCase();
+
+                    return (
+                        nome.endsWith('.dat') ||
+                        nome === 'slidedat.ini' ||
+                        nome === 'index.dat'
                     );
-                    if (contemArquivosMRXS) {
-                        pastaEncontrada = ent.name;
-                        break;
-                    }
                 }
+            );
+
+            if (contemArquivosMRXS) {
+                pastaEncontrada = ent.name;
+                break;
             }
         }
-        const novaEstrutura = await this.organizarEstruturaMrxs(mrxsDir, mrxsBaseName, pastaEncontrada, nomeImagem);
+
+        const novaEstrutura =
+            await this.organizarEstruturaMrxs(
+                mrxsDir,
+                mrxsBaseName,
+                pastaEncontrada,
+                nomeImagem
+            );
 
         return {
             ...novaEstrutura,
@@ -83,135 +176,291 @@ class Imagem {
         };
     }
 
-        async organizarEstruturaMrxs(mrxsDir, mrxsBaseName, pastaEncontrada, nomeImagem) {
-        const nomeLimpo = this.sanitizeNome(nomeImagem)
-        
-        const pastaAtual = path.dirname(mrxsDir);
-        const pastaFinal = path.join('uploads', 'images', nomeLimpo);
+    async organizarEstruturaMrxs(
+        mrxsDir,
+        mrxsBaseName,
+        pastaEncontrada,
+        nomeImagem
+    ) {
+        const nomeLimpo = this.sanitizeNome(nomeImagem);
+
+        const pastaFinal = path.join(
+            'uploads',
+            'images',
+            nomeLimpo
+        );
+
         await fs.ensureDir(pastaFinal);
 
-        const arquivoMrxsOrigem = path.join(mrxsDir, `${mrxsBaseName}.mrxs`);
-        const arquivoMrxsDestino = path.join(pastaFinal, `${mrxsBaseName}.mrxs`);         
-        console.log(`Movendo MRXS: ${arquivoMrxsOrigem} -> ${arquivoMrxsDestino}`);
-        
+        const arquivoMrxsOrigem = path.join(
+            mrxsDir,
+            `${mrxsBaseName}.mrxs`
+        );
+
+        const arquivoMrxsDestino = path.join(
+            pastaFinal,
+            `${mrxsBaseName}.mrxs`
+        );
+
+        console.log(
+            `Movendo MRXS: ${arquivoMrxsOrigem} -> ${arquivoMrxsDestino}`
+        );
+
         if (await fs.pathExists(arquivoMrxsOrigem)) {
-            await fs.move(arquivoMrxsOrigem, arquivoMrxsDestino, { overwrite: true });
+            await fs.move(
+                arquivoMrxsOrigem,
+                arquivoMrxsDestino,
+                { overwrite: true }
+            );
+        } else {
+            throw new Error(
+                `Arquivo MRXS não encontrado: ${arquivoMrxsOrigem}`
+            );
         }
 
+        // Move a pasta complementar sem alterar
+        // sua estrutura interna.
         if (pastaEncontrada) {
-            const pastaFilesOrigem = path.join(mrxsDir, pastaEncontrada);
-            const pastaFilesDestino = path.join(pastaFinal, `${mrxsBaseName}.mrxs.files`); 
-            
-            console.log(`Movendo pasta files: ${pastaFilesOrigem} -> ${pastaFilesDestino}`);
-            
+            const pastaFilesOrigem = path.join(
+                mrxsDir,
+                pastaEncontrada
+            );
+
+            const pastaFilesDestino = path.join(
+                pastaFinal,
+                mrxsBaseName
+            );
+
+            console.log(
+                `Movendo pasta complementar: ${pastaFilesOrigem} -> ${pastaFilesDestino}`
+            );
+
             if (await fs.pathExists(pastaFilesOrigem)) {
-                await fs.move(pastaFilesOrigem, pastaFilesDestino, { overwrite: true });
+                await fs.move(
+                    pastaFilesOrigem,
+                    pastaFilesDestino,
+                    { overwrite: true }
+                );
             }
         }
 
-        if (mrxsDir !== pastaFinal && await fs.pathExists(mrxsDir)) {
-            await fs.remove(mrxsDir);
+        // Remove a pasta temporária somente se ela
+        // estiver vazia, evitando apagar arquivos não movidos.
+        if (
+            path.resolve(mrxsDir) !== path.resolve(pastaFinal) &&
+            await fs.pathExists(mrxsDir)
+        ) {
+            const restantes = await fs.readdir(mrxsDir);
+
+            if (restantes.length === 0) {
+                await fs.remove(mrxsDir);
+            }
         }
 
         return {
-            mrxsPath: arquivoMrxsDestino, // Caminho para o arquivo .mrxs
-            mrxsDir: pastaFinal, // Pasta onde está o arquivo
-            enderecoPastaMrxs: pastaFinal, // Pasta da imagem
-            nomeArquivoMrxs: `${mrxsBaseName}.mrxs` // Nome do arquivo .mrxs
+            mrxsPath: arquivoMrxsDestino,
+            mrxsDir: pastaFinal,
+            enderecoPastaMrxs: pastaFinal,
+            nomeArquivoMrxs: `${mrxsBaseName}.mrxs`
         };
     }
 
-    async preGerarTilesPrincipais(mrxsFile, mrxsPath) {
-        const tilesDir = path.join("uploads", "tiles", path.parse(mrxsFile).name);
-        await fs.mkdir(tilesDir, { recursive: true });
-
-        const python = `python python/gerar_tiles.py pre "${mrxsPath}" "${tilesDir}"`;
-
-        await new Promise((resolve, reject) => {
-            exec(python, (err, stdout, stderr) => {
-                if (err) return reject(stderr);
-                resolve();
-            });
-        });
-
-        return tilesDir;
-    }
-
-   async gerarTile(mrxsPath, tilesDir, level, x, cleanY){
-        console.log('Iniciando geracao de tile:');
-        console.log('   MRXS: ' + mrxsPath);
-        console.log('   Tiles Dir: ' + tilesDir);
-        console.log('   Level: ' + level + ', X: ' + x + ', Y: ' + cleanY);
-        
-        if (!fs.existsSync(mrxsPath)) {
-            console.log('MRXS nao existe: ' + mrxsPath);
-            throw new Error('Arquivo MRXS nao encontrado: ' + mrxsPath);
-        }
-
+    executarPython(argumentos) {
         return new Promise((resolve, reject) => {
-            const pythonProcess = spawn('python', [
-                'python/gerar_tiles.py',
-                'tile',
-                mrxsPath,
-                tilesDir,
-                level.toString(),
-                x.toString(),
-                cleanY.toString()
-            ], {
-                cwd: process.cwd()
-            });
-            
+            const pythonProcess = spawn(
+                'py',
+                [
+                    'python/gerar_tiles.py',
+                    ...argumentos.map(String)
+                ],
+                {
+                    cwd: process.cwd()
+                }
+            );
+
             let stdout = '';
             let stderr = '';
 
-            pythonProcess.stdout.on('data', (data) => {
+            pythonProcess.stdout.on('data', data => {
                 const output = data.toString();
+
                 stdout += output;
-                console.log('Python STDOUT: ' + output.trim());
+
+                console.log(
+                    'Python STDOUT:',
+                    output.trim()
+                );
             });
-            
-            pythonProcess.stderr.on('data', (data) => {
+
+            pythonProcess.stderr.on('data', data => {
                 const error = data.toString();
+
                 stderr += error;
-                console.log('Python STDERR: ' + error.trim());
+
+                console.error(
+                    'Python STDERR:',
+                    error.trim()
+                );
             });
-            
-            pythonProcess.on('close', (code) => {
-                console.log('Processo Python finalizado - Codigo: ' + code);
-                console.log('STDOUT completo: ' + stdout);
-                console.log('STDERR completo: ' + stderr);
-                
-                if (code !== 0) {
-                    reject(new Error('Python falhou com codigo ' + code + '. STDERR: ' + stderr));
+
+            pythonProcess.on('error', error => {
+                reject(
+                    new Error(
+                        `Falha ao executar Python: ${error.message}`
+                    )
+                );
+            });
+
+            pythonProcess.on('close', codigo => {
+                console.log(
+                    `Processo Python finalizado - Código: ${codigo}`
+                );
+
+                if (codigo !== 0) {
+                    reject(
+                        new Error(
+                            `Python falhou com código ${codigo}.\n` +
+                            `STDERR: ${stderr}\n` +
+                            `STDOUT: ${stdout}`
+                        )
+                    );
+
                     return;
                 }
 
-                if (stdout.includes('TILE_PATH:')) {
-                    const generatedPath = stdout.split('TILE_PATH:')[1].trim();
-                    console.log('Tile path extraido: ' + generatedPath);
-                    
-                    const baseDir = process.cwd();
-                    let relativePath = generatedPath;
-                    
-                    if (generatedPath.startsWith(baseDir)) {
-                        relativePath = path.relative(baseDir, generatedPath);
-                        console.log('Caminho convertido para relativo: ' + relativePath);
-                    }
-                    
-                    relativePath = relativePath.replace(/\\/g, '/');
-                    console.log('Caminho final: ' + relativePath);
-                    
-                    resolve(relativePath);
-                } else {
-                    reject(new Error('Saida nao contem TILE_PATH. STDOUT: ' + stdout));
-                }
-            });
-            
-            pythonProcess.on('error', (error) => {
-                console.log('Erro no processo: ' + error);
-                reject(new Error('Falha ao executar Python: ' + error.message));
+                resolve({
+                    stdout,
+                    stderr
+                });
             });
         });
+    }
+
+    async preGerarTilesPrincipais(mrxsFile, mrxsPath) {
+        const tilesDir = path.join(
+            'uploads',
+            'tiles',
+            path.parse(mrxsFile).name
+        );
+
+        await fs.ensureDir(tilesDir);
+
+        const resultado = await this.executarPython([
+            'pre',
+            path.resolve(mrxsPath),
+            path.resolve(tilesDir)
+        ]);
+
+        const linhaMetadados = resultado.stdout
+            .split(/\r?\n/)
+            .find(linha =>
+                linha.startsWith('METADADOS:')
+            );
+
+        if (!linhaMetadados) {
+            throw new Error(
+                'O Python não retornou os metadados da lâmina.'
+            );
+        }
+
+        console.log(
+            'Metadados da lâmina gerados com sucesso.'
+        );
+
+        // Mantém o retorno original: diretório dos tiles.
+        return tilesDir;
+    }
+
+    async gerarTile(
+        mrxsPath,
+        tilesDir,
+        level,
+        x,
+        cleanY
+    ) {
+        console.log('Iniciando geração de tile:');
+
+        console.log('MRXS:', mrxsPath);
+        console.log('Tiles Dir:', tilesDir);
+        console.log(
+            `Level: ${level}, X: ${x}, Y: ${cleanY}`
+        );
+
+        if (!(await fs.pathExists(mrxsPath))) {
+            throw new Error(
+                `Arquivo MRXS não encontrado: ${mrxsPath}`
+            );
+        }
+
+        // Os níveis reais do OpenSlide vão de 0 a 9
+        // para a lâmina que foi testada.
+        if (
+            !Number.isInteger(Number(level)) ||
+            Number(level) < 0 ||
+            Number(level) > 9
+        ) {
+            throw new Error(
+                `Nível inválido: ${level}. Utilize níveis de 0 a 9.`
+            );
+        }
+
+        if (
+            !Number.isInteger(Number(x)) ||
+            !Number.isInteger(Number(cleanY)) ||
+            Number(x) < 0 ||
+            Number(cleanY) < 0
+        ) {
+            throw new Error(
+                'As coordenadas X e Y devem ser inteiros não negativos.'
+            );
+        }
+
+        const resultado = await this.executarPython([
+            'tile',
+            path.resolve(mrxsPath),
+            path.resolve(tilesDir),
+            Number(level),
+            Number(x),
+            Number(cleanY)
+        ]);
+
+        const linhaTile = resultado.stdout
+            .split(/\r?\n/)
+            .find(linha =>
+                linha.startsWith('TILE_PATH:')
+            );
+
+        if (!linhaTile) {
+            throw new Error(
+                'Saída do Python não contém TILE_PATH.\n' +
+                resultado.stdout
+            );
+        }
+
+        const generatedPath = linhaTile
+            .substring('TILE_PATH:'.length)
+            .trim();
+
+        // Converte o caminho absoluto para relativo,
+        // facilitando o envio pela rota Express.
+        const caminhoAbsoluto = path.resolve(
+            generatedPath
+        );
+
+        const relativePath = path.relative(
+            process.cwd(),
+            caminhoAbsoluto
+        );
+
+        const caminhoFinal = relativePath
+            .replace(/\\/g, '/');
+
+        console.log(
+            'Tile gerado:',
+            caminhoFinal
+        );
+
+        return caminhoFinal;
     }
 }
 

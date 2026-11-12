@@ -35,7 +35,7 @@ class PaginaImagem extends StatelessWidget {
             Expanded(
               child: VisualizadorImagem(
                 imagemId: imagemId,
-                tilesBaseUrl: isDesktopOrWeb ? 'http://localhost:3000/tiles' : 'http://10.2.129.68:3000',
+                tilesBaseUrl: isDesktopOrWeb ? 'http://localhost:3000' : 'http://10.2.129.68:3000',
               ),
             ),
           ],

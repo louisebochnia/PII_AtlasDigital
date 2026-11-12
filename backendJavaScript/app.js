@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const multer = require('multer');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -24,10 +24,13 @@ const hyperlink = require('./models/hyperlink');
 const app = express();
 app.use(express.json());
 app.use(cors());
+const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGO_URI;
+
 
 // CONEXÃO COM O BANCO DE DADOS
 async function conectarAoMongo() {
-  await mongoose.connect(`mongodb+srv://atlas_T2Sub2_db_user:KFL0q45l6BmNdBLK@atlasdigital.qrhn0eb.mongodb.net/?retryWrites=true&w=majority&appName=AtlasDigital`)
+  await mongoose.connect(MONGODB_URI);
 }
 
 // SEED HYPERLINKS
@@ -477,18 +480,29 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get('/:imageId/meta.json', async (req, res) => {
     try {
         const { imageId } = req.params;
-        const tilesDir = path.join('uploads', 'tiles', imageId);
-        const metaPath = path.join(tilesDir, 'meta.json');
+        console.log("-> ID recebido na URL do Flutter:", imageId);
+
+        // 1. Busca a imagem no MongoDB usando o ID recebido
+        const imagemDoc = await ImagemModel.findById(imageId);
         
-        console.log(`Buscando metadados: ${metaPath}`);
+        if (!imagemDoc) {
+            console.log("-> ERRO: Imagem não encontrada no banco de dados.");
+            return res.status(404).json({ error: 'Imagem não encontrada no banco' });
+        }
+
+        // 2. Utiliza o caminho real salvo no campo 'enderecoTiles' do banco
+        // (Certifique-se de que imagemDoc.enderecoTiles aponta para a pasta correta dos tiles)
+        const metaPath = path.join(path.resolve(imagemDoc.enderecoTiles), 'meta.json');
         
-        if (await fs.pathExists(metaPath)) {
+        console.log("-> Caminho completo procurado no disco:", metaPath);
+        
+        if (fs.existsSync(metaPath)) {
             const meta = await fs.readJson(metaPath);
-            console.log('Metadados encontrados:', Object.keys(meta.level_metas || {}).length, 'níveis');
-            res.json(meta);
+            console.log('Metadados encontrados com sucesso!');
+            return res.json(meta);
         } else {
-            console.log('Metadados não encontrados');
-            res.status(404).json({ error: 'Metadados não encontrados' });
+            console.log("-> ERRO: O arquivo meta.json não existe no disco neste caminho.");
+            return res.status(404).json({ error: 'Arquivo meta.json não encontrado no disco' });
         }
     } catch (error) {
         console.error('Erro ao carregar metadados:', error);
@@ -497,50 +511,30 @@ app.get('/:imageId/meta.json', async (req, res) => {
 });
 
 // Código para os tiles
-app.get('/tiles/:imageId/:level/:x/:y', async (req, res) => {
+app.get('/tiles/:imageId/:level/:x/:y.jpg', async (req, res) => {
     try {
         const { imageId, level, x, y } = req.params;
-
-        const imagem = new Imagem();
         
-        const imagemMrxs = await ImagemModel.findById(imageId);
-        if (!imagemMrxs) {
-            return res.status(404).json({ error: 'Imagem não encontrada' });
+        // Busque o caminho da imagem no banco de dados com base no imageId
+        const imagemDoc = await ImagemModel.findById(imageId);
+        if (!imagemDoc) {
+            return res.status(404).send('Imagem não encontrada');
         }
 
-        const tilesDir = imagemMrxs.enderecoTiles;
-        const cleanY = y.replace('.jpg', '');
-        const tilePath = path.join(tilesDir, `level_${level}`, `${x}_${cleanY}.jpg`);
-                
-        console.log(`Buscando tile: ${tilePath}`);
-        
-        if (fs.existsSync(tilePath)) {
-            console.log('Tile pré-gerado encontrado');
-            res.setHeader('Content-Type', 'image/jpeg');
-            return res.sendFile(path.resolve(tilePath));
-        }
+        const tilePath = path.join(
+            path.resolve(imagemDoc.enderecoTiles), 
+            `level_${level}`, 
+            `${x}_${y}.jpg`
+        );
 
-        const mrxsPath = path.join(imagemMrxs.enderecoPastaMrxs, imagemMrxs.nomeArquivo);
-        if (!fs.existsSync(mrxsPath)) {
-          return res.status(404).json({ error: 'Imagem MRXS não encontrada' });
-        }
-        
-        console.log(`Chamando Python: level=${level}, x=${x}, y=${cleanY}`);
-        
-        const generatedPath = await imagem.gerarTile(mrxsPath, tilesDir, level, x, cleanY);
-        
-        console.log(`Tile gerado: ${generatedPath}`);
-        
-        if (fs.existsSync(generatedPath)) {
-            res.setHeader('Content-Type', 'image/jpeg');
-            res.sendFile(path.resolve(generatedPath));
+        if (await fs.pathExists(tilePath)) {
+            // DEFINE O CACHE POR 7 DIAS NO CLIENTE (Flutter/Browser)
+            res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+            return res.sendFile(tilePath);
         } else {
-            console.log('Arquivo gerado não encontrado:', generatedPath);
-            res.status(500).json({ error: 'Falha ao gerar tile - arquivo não criado' });
+            return res.status(404).send('Tile não encontrado');
         }
-        
     } catch (error) {
-        console.error('Erro:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -729,7 +723,6 @@ if (process.env.NODE_ENV !== 'test') {
     })
     .catch(err => console.log("Erro conexão Mongo:", err))
 
-  const PORT = 3000
   app.listen(PORT, () => console.log(`server up & running, conexão ok`))
 }
 

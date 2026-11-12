@@ -6,7 +6,6 @@ import '../estado/estado_visualizador.dart';
 import '../estado/estado_imagem.dart';
 import '../modelos/imagem.dart';
 import '../modelos/tile.dart';
-import '../telas/pagina_galeria.dart';
 
 class VisualizadorImagem extends StatefulWidget {
   final String imagemId;
@@ -42,7 +41,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     );
 
     _estadoImagem = context.read<EstadoImagem>();
-
     imagem = _estadoImagem.encontrarPorId(widget.imagemId);
     
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -79,7 +77,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   }
 
   Widget _buildLoadingState() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -97,31 +95,31 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   Widget _buildErrorState(EstadoVisualizadorMRXS estado) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red),
-            SizedBox(height: 16),
-            Text(
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
               'Não foi possível carregar a imagem',
               style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               estado.erro!,
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             ElevatedButton(
               onPressed: estado.carregarMetadados,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
               ),
-              child: Text('Tentar Novamente'),
+              child: const Text('Tentar Novamente'),
             ),
           ],
         ),
@@ -172,7 +170,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
             if (estado.modoColocacaoPointer)
               _buildModoPointerOverlayDesktop(estado),
             _buildZoomControl(estado),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             if (estado.zoom == 1.0) _buildInstrucoes(),
           ],
         ),
@@ -183,8 +181,8 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   Widget _buildModoPointerOverlayDesktop(EstadoVisualizadorMRXS estado) {
     return Container(
       width: 400,
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.orange.withOpacity(0.9),
         borderRadius: BorderRadius.circular(12),
@@ -192,9 +190,9 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.info, color: Colors.white),
-          SizedBox(width: 8),
-          Expanded(
+          const Icon(Icons.info, color: Colors.white),
+          const SizedBox(width: 8),
+          const Expanded(
             child: Text(
               'Modo de Colocação Ativo - Clique na imagem para posicionar o pointer',
               style: TextStyle(color: Colors.white, fontSize: 14),
@@ -202,7 +200,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, color: Colors.white, size: 20),
+            icon: const Icon(Icons.close, color: Colors.white, size: 20),
             onPressed: estado.desativarModoColocacaoPointer,
           ),
         ],
@@ -216,23 +214,23 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       left: 20,
       right: 20,
       child: Container(
-        padding: EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.orange.withOpacity(0.9),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Icon(Icons.add_location_alt, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(
+            const Icon(Icons.add_location_alt, color: Colors.white),
+            const SizedBox(width: 8),
+            const Expanded(
               child: Text(
                 'Toque na imagem para colocar o pointer',
                 style: TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
             IconButton(
-              icon: Icon(Icons.close, color: Colors.white, size: 20),
+              icon: const Icon(Icons.close, color: Colors.white, size: 20),
               onPressed: estado.desativarModoColocacaoPointer,
             ),
           ],
@@ -243,7 +241,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
 
   Widget _buildZoomControlMobile(EstadoVisualizadorMRXS estado) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.brandGray90.withOpacity(0.9),
         borderRadius: BorderRadius.circular(12),
@@ -256,12 +254,12 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
             children: [
               Text(
                 'Zoom: ${(estado.zoom * 100).round()}%',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
               _buildQuickActionsCompact(estado),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Slider(
             value: estado.zoom,
             min: estado.minZoom,
@@ -279,26 +277,24 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Indicador do modo pointer
         if (estado.modoColocacaoPointer)
           Container(
             width: 8,
             height: 8,
-            margin: EdgeInsets.only(right: 4),
-            decoration: BoxDecoration(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: const BoxDecoration(
               color: Colors.orange,
               shape: BoxShape.circle,
             ),
           ),
         
-        // Indicador de pointer visível
         if (estado.pointerVisivel && !estado.modoColocacaoPointer)
           GestureDetector(
             onTap: estado.alternarPointerVisibilidade,
             child: Container(
               width: 12,
               height: 12,
-              margin: EdgeInsets.only(right: 8),
+              margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
@@ -307,9 +303,8 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
             ),
           ),
 
-        // Menu para controles de pointer
         PopupMenuButton<String>(
-          icon: Icon(Icons.mouse, color: Colors.white, size: 20),
+          icon: const Icon(Icons.mouse, color: Colors.white, size: 20),
           itemBuilder: (context) => [
             PopupMenuItem(
               value: 'pointer',
@@ -319,7 +314,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                     estado.modoColocacaoPointer ? Icons.edit_location_alt : Icons.mouse,
                     color: Colors.white,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(estado.modoColocacaoPointer ? 
                       'Cancelar Colocação' : 'Colocar Pointer'),
                 ],
@@ -333,7 +328,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                     estado.pointerVisivel ? Icons.visibility_off : Icons.visibility,
                     color: Colors.white,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(estado.pointerVisivel ? 'Ocultar Pointer' : 'Mostrar Pointer'),
                 ],
               ),
@@ -353,19 +348,19 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         ),
 
         IconButton(
-          icon: Icon(Icons.zoom_out, color: Colors.white, size: 20),
+          icon: const Icon(Icons.zoom_out, color: Colors.white, size: 20),
           onPressed: estado.zoom > estado.minZoom ? estado.aplicarZoomOut : null,
-          padding: EdgeInsets.all(4),
+          padding: const EdgeInsets.all(4),
         ),
         IconButton(
-          icon: Icon(Icons.center_focus_strong, color: Colors.white, size: 20),
+          icon: const Icon(Icons.center_focus_strong, color: Colors.white, size: 20),
           onPressed: estado.resetarVisualizacao,
-          padding: EdgeInsets.all(4),
+          padding: const EdgeInsets.all(4),
         ),
         IconButton(
-          icon: Icon(Icons.zoom_in, color: Colors.white, size: 20),
+          icon: const Icon(Icons.zoom_in, color: Colors.white, size: 20),
           onPressed: estado.zoom < estado.maxZoom ? estado.aplicarZoomIn : null,
-          padding: EdgeInsets.all(4),
+          padding: const EdgeInsets.all(4),
         ),
       ],
     );
@@ -393,7 +388,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
             estado.aplicarZoomIn();
           },
           onTapDown: (details) {
-            // Colocar pointer quando o modo de colocação está ativo
             if (estado.modoColocacaoPointer) {
               estado.colocarPointerNaImagem(details.localPosition);
             }
@@ -403,8 +397,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
             child: Stack(
               children: [
                 _buildTiles(estado),
-                
-                // Overlay de feedback para modo de colocação
                 if (estado.modoColocacaoPointer)
                   Container(
                     color: Colors.black.withOpacity(0.1),
@@ -412,7 +404,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
+                          SizedBox(
                             width: 60,
                             height: 60,
                             child: CustomPaint(
@@ -422,8 +414,8 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 8),
-                          Text(
+                          const SizedBox(height: 8),
+                          const Text(
                             'Clique em qualquer lugar para colocar o pointer',
                             style: TextStyle(
                               color: Colors.black87,
@@ -439,9 +431,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
             ),
           ),
         ),
-        
-        // Pointer na imagem
-        PointerNaImagem(),
+        const PointerNaImagem(),
       ],
     );
   }
@@ -450,11 +440,8 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final viewportSize = Size(constraints.maxWidth, constraints.maxHeight);
-        
         estado.atualizarViewportSize(viewportSize); 
-        
         final tiles = estado.obterTilesVisiveis(viewportSize);
-
         _updateTileCache(tiles, estado);
 
         return Stack(
@@ -466,7 +453,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
 
   void _updateTileCache(List<TileInfo> newTiles, EstadoVisualizadorMRXS estado) {
     final newTileMap = <String, TileInfo>{};
-    
     for (final tile in newTiles) {
       final key = _getTileKey(tile);
       newTileMap[key] = tile;
@@ -481,16 +467,13 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     for (final key in keysToRemove) {
       _currentTiles.remove(key);
     }
-
     _currentTiles.addAll(newTileMap);
   }
 
   List<Widget> _buildCachedTiles(EstadoVisualizadorMRXS estado) {
     final widgets = <Widget>[];
-    
     for (final tile in _currentTiles.values) {
       final key = _getTileKey(tile);
-      
       if (_tileCache.containsKey(key)) {
         widgets.add(_buildCachedTileWidget(tile, estado, _tileCache[key]!));
       } else {
@@ -499,18 +482,11 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         widgets.add(_buildCachedTileWidget(tile, estado, widget));
       }
     }
-    
     return widgets;
   }
 
   Widget _buildCachedTileWidget(TileInfo tile, EstadoVisualizadorMRXS estado, Widget cachedWidget) {
-    final layer = estado.layers.firstWhere(
-      (l) => l.level == tile.level,
-      orElse: () => estado.layers.first,
-    );
-    
     final tileSize = 256.0;
-    
     final left = tile.x * tileSize - estado.posicao.dx;
     final top = tile.y * tileSize - estado.posicao.dy;
 
@@ -531,9 +507,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
 
   Widget _buildTileContent(TileInfo tile) {
     if (tile.url == null) {
-      return Container(
-        color: Colors.white, 
-      );
+      return Container(color: Colors.white);
     }
 
     return Image.network(
@@ -549,7 +523,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
         }
         return Container(
           color: Colors.white,
-          child: Center(
+          child: const Center(
             child: CircularProgressIndicator(
               strokeWidth: 1.5, 
               valueColor: AlwaysStoppedAnimation(Colors.black26),
@@ -560,7 +534,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
       errorBuilder: (context, error, stackTrace) {
         return Container(
           color: Colors.white,
-          child: Center(
+          child: const Center(
             child: Icon(
               Icons.broken_image,
               color: Colors.black26,
@@ -575,7 +549,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   Widget _buildZoomControl(EstadoVisualizadorMRXS estado) {
     return Container(
       width: 400,
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.brandGray90.withOpacity(0.8),
         borderRadius: BorderRadius.circular(12),
@@ -590,22 +564,22 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                   children: [
                     Text(
                       'Zoom: ${(estado.zoom * 100).round()}%',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     LinearProgressIndicator(
                       value: (estado.zoom - estado.minZoom) / (estado.maxZoom - estado.minZoom),
                       backgroundColor: Colors.white24,
-                      valueColor: AlwaysStoppedAnimation(Colors.blue),
+                      valueColor: const AlwaysStoppedAnimation(Colors.blue),
                     ),
                   ],
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               _buildQuickActions(estado),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Slider(
             value: estado.zoom,
             min: estado.minZoom,
@@ -623,7 +597,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Botão para ativar modo de colocação do pointer
         IconButton(
           icon: Icon(
             estado.modoColocacaoPointer ? Icons.edit_location_alt : Icons.arrow_drop_up_outlined,
@@ -641,8 +614,6 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                   'Clique na imagem para colocar o pointer' : 
                   'Colocar pointer na imagem',
         ),
-
-        // Botão para mostrar/ocultar pointer
         IconButton(
           icon: Icon(
             estado.pointerVisivel ? Icons.visibility : Icons.visibility_off,
@@ -651,17 +622,16 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
           onPressed: estado.alternarPointerVisibilidade,
           tooltip: estado.pointerVisivel ? 'Ocultar pointer' : 'Mostrar pointer',
         ),
-
         IconButton(
-          icon: Icon(Icons.zoom_out, color: Colors.white),
+          icon: const Icon(Icons.zoom_out, color: Colors.white),
           onPressed: estado.zoom > estado.minZoom ? estado.aplicarZoomOut : null,
         ),
         IconButton(
-          icon: Icon(Icons.zoom_in, color: Colors.white),
+          icon: const Icon(Icons.zoom_in, color: Colors.white),
           onPressed: estado.zoom < estado.maxZoom ? estado.aplicarZoomIn : null,
         ),
         IconButton(
-          icon: Icon(Icons.center_focus_strong, color: Colors.white),
+          icon: const Icon(Icons.center_focus_strong, color: Colors.white),
           onPressed: estado.resetarVisualizacao,
         ),
       ],
@@ -698,11 +668,11 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
 
   Widget _buildConteudoAnotacoes(EstadoVisualizadorMRXS estado) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F1F1),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 8,
@@ -734,7 +704,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                   ),
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -761,13 +731,13 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
               ),
             ],
           ),
-          SizedBox(height: 12),
-          Divider(
+          const SizedBox(height: 12),
+          const Divider(
             color: AppColors.brandGray90,
             height: 12,
             thickness: 0.5,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Expanded(
             child: Scrollbar(
               thumbVisibility: true,
@@ -776,15 +746,15 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Anotações",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: "Arial",
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       imagem!.anotacao,
                       style: const TextStyle(
@@ -792,13 +762,13 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                         fontSize: 16,
                       )
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                   ],
                 )
               ),
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           TextButton(
             onPressed: () {
               Navigator.pushReplacement(
@@ -839,17 +809,17 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
   Widget _buildInstrucoes() {
     return AnimatedOpacity(
       opacity: 1.0,
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
       child: Container(
         width: 400,
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.brandGray90.withOpacity(0.8),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            Text(
+            const Text(
               'Como navegar:',
               style: TextStyle(
                 color: Colors.white,
@@ -857,7 +827,7 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -876,32 +846,21 @@ class _VisualidorImagemState extends State<VisualizadorImagem> {
     return Column(
       children: [
         Icon(icon, color: Colors.white, size: 24),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           titulo,
-          style: TextStyle(color: Colors.white, fontSize: 12),
+          style: const TextStyle(color: Colors.white, fontSize: 12),
         ),
         Text(
           descricao,
-          style: TextStyle(color: Colors.white70, fontSize: 10),
+          style: const TextStyle(color: Colors.white70, fontSize: 10),
         ),
       ],
     );
   }
 
-  FilterQuality _getFilterQualityForLevel(int level) {
-    if (level <= -4) { 
-      return FilterQuality.high;
-    } else if (level <= -2) { 
-      return FilterQuality.medium;
-    } else {
-      return FilterQuality.low;
-    }
-  }
-
   String converterParaUrl(String caminhoRelativo) {
     if (caminhoRelativo.isEmpty) return '';
-
     final caminhoNormalizado = caminhoRelativo.replaceAll('\\', '/');
     return '$protocolo$baseURL/$caminhoNormalizado';
   }
@@ -946,11 +905,10 @@ class _ContainerRedimensionavelState extends State<_ContainerRedimensionavel> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Container(
+        SizedBox(
           width: _largura,
           child: widget.child,
         ),
-        
         Positioned(
           left: 0,
           top: 0,
@@ -1008,68 +966,37 @@ class _CursorMousePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Sombra suave
     final paintSombra = Paint()
       ..color = Colors.black.withOpacity(0.6)
       ..style = PaintingStyle.fill;
 
-    // Borda preta
     final paintBorda = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke
       ..strokeWidth = tamanho * 0.04;
 
-    // Preenchimento branco
     final paintPreenchimento = Paint()
       ..color = cor
       ..style = PaintingStyle.fill;
 
-    // Desenha o cursor de mouse (seta inclinada realista)
     final path = Path();
-    
-    // Ponta do cursor (parte mais importante - posição exata do clique)
     final pontaX = tamanho * 0.1;
     final pontaY = tamanho * 0.1;
     path.moveTo(pontaX, pontaY);
-    
-    // Lado esquerdo do cursor
     path.lineTo(pontaX, tamanho * 0.35);
     path.lineTo(tamanho * 0.25, tamanho * 0.35);
     path.lineTo(tamanho * 0.15, tamanho * 0.5);
     path.lineTo(tamanho * 0.35, tamanho * 0.7);
-    
-    // Lado direito do cursor
     path.lineTo(tamanho * 0.55, tamanho * 0.45);
     path.lineTo(tamanho * 0.45, tamanho * 0.45);
     path.lineTo(tamanho * 0.45, pontaY);
-    
     path.close();
 
-    // Desenha sombra primeiro (ligeiramente deslocada)
     final pathSombra = Path()
       ..addPath(path, Offset(tamanho * 0.02, tamanho * 0.02));
     canvas.drawPath(pathSombra, paintSombra);
-
-    // Desenha o preenchimento branco
     canvas.drawPath(path, paintPreenchimento);
-
-    // Desenha a borda preta
     canvas.drawPath(path, paintBorda);
-
-    // Adiciona um pequeno brilho para efeito 3D
-    final paintBrilho = Paint()
-      ..color = Colors.white.withOpacity(0.3)
-      ..style = PaintingStyle.fill;
-
-    final pathBrilho = Path()
-      ..moveTo(pontaX + tamanho * 0.02, pontaY + tamanho * 0.02)
-      ..lineTo(pontaX + tamanho * 0.02, tamanho * 0.2)
-      ..lineTo(tamanho * 0.2, tamanho * 0.2)
-      ..lineTo(tamanho * 0.12, tamanho * 0.32)
-      ..lineTo(tamanho * 0.25, tamanho * 0.45)
-      ..close();
-
-    canvas.drawPath(pathBrilho, paintBrilho);
   }
 
   @override
@@ -1084,11 +1011,11 @@ class PointerNaImagem extends StatelessWidget {
       return Consumer<EstadoVisualizadorMRXS>(
         builder: (context, estado, child) {
           if (!estado.pointerVisivel || estado.pointerPosicaoImagem == Offset.zero) {
-            return SizedBox.shrink();
+            return const SizedBox.shrink();
           }
 
-          final tamanho = 60.0; // Tamanho fixo grande
-          final offsetX = tamanho * 0.1; // Ponta do cursor fica na posição
+          final tamanho = 60.0;
+          final offsetX = tamanho * 0.1;
           final offsetY = tamanho * 0.1;
 
           return Positioned(
@@ -1102,7 +1029,7 @@ class PointerNaImagem extends StatelessWidget {
               },
               child: MouseRegion(
                 cursor: SystemMouseCursors.none,
-                child: Container(
+                child: SizedBox(
                   width: tamanho,
                   height: tamanho,
                   child: CustomPaint(
@@ -1118,4 +1045,4 @@ class PointerNaImagem extends StatelessWidget {
         },
       );
     }
-  }
+}

@@ -39,7 +39,7 @@ class ImagemThumbnail {
 
       try {
           const { stdout, stderr } = await execFileAsync(
-            'python',
+            'py',
             [pythonScriptPath, path.resolve(mrxsPath), path.resolve(outputPath)],
             {
               timeout: 30000,

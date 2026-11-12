@@ -92,45 +92,47 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
   }
 
   Future<void> _carregarMetadadosDaAPI() async {
-    try {
-      final response = await http.get(Uri.parse('$tilesBaseUrl/$imagemId/metadata'));
-      final data = json.decode(response.body);
-      
-      _layers = [];
-      for (final levelData in data['level_metas'].entries) {
-        final level = int.parse(levelData.key);
-        final meta = levelData.value;
-        
-        _layers.add(TileLayer(
-          level: level,
-          width: meta['width'],
-          height: meta['height'],
-          tileSize: 256,
-          scale: meta['scale'],
-        ));
-      }
-      
-      _layers.sort((a, b) => a.scale.compareTo(b.scale));
-      _minZoom = _layers.first.scale;
-      _maxZoom = _layers.last.scale;
-      
-    } catch (e) {
-      _layers = [
-        TileLayer(level: -8, width: 5120, height: 11944, tileSize: 256, scale: 8.0),
-        TileLayer(level: -7, width: 4480, height: 10451, tileSize: 256, scale: 7.0),
-        TileLayer(level: -6, width: 3840, height: 8958, tileSize: 256, scale: 6.0), 
-        TileLayer(level: -5, width: 3200, height: 7465, tileSize: 256, scale: 5.0), 
-        TileLayer(level: -4, width: 2560, height: 5972, tileSize: 256, scale: 4.0), 
-        TileLayer(level: -3, width: 1920, height: 4479, tileSize: 256, scale: 3.0), 
-        TileLayer(level: -2, width: 1280, height: 2986, tileSize: 256, scale: 2.0), 
-        TileLayer(level: -1, width: 960, height: 2239, tileSize: 256, scale: 1.5),  
-        TileLayer(level: 0, width: 640, height: 1493, tileSize: 256, scale: 1.0),   
-        TileLayer(level: 1, width: 512, height: 1194, tileSize: 256, scale: 0.8),   
-      ];
-      _layers.sort((a, b) => a.scale.compareTo(b.scale));
-      _minZoom = _layers.first.scale;
-      _maxZoom = _layers.last.scale;
+    final urlCompleta = '$tilesBaseUrl/$imagemId/meta.json';
+    print('--- FLUTTER: Tentando buscar metadados em: $urlCompleta');
+
+    final response = await http.get(Uri.parse(urlCompleta));
+    
+    if (response.statusCode != 200) {
+      throw Exception('Falha ao carregar metadados (Código ${response.statusCode})');
     }
+
+    final data = json.decode(response.body);
+    
+    _layers = [];
+    for (final levelData in data['level_metas'].entries) {
+      final level = int.parse(levelData.key);
+      final meta = levelData.value;
+      
+      final double downsample = (meta['downsample'] as num).toDouble();
+      
+      _layers.add(TileLayer(
+        level: level,
+        width: meta['width'],
+        height: meta['height'],
+        tileSize: 256,
+        scale: downsample,
+      ));
+    }
+    
+    // Ordena do nível 0 (mais detalhado) para o mais afastado
+    _layers.sort((a, b) => a.scale.compareTo(b.scale));
+
+    // O nível mais afastado (maior downsample, ex: 512) define o menor zoom possível
+    final double maiorDownsample = _layers.last.scale;
+
+    // Definimos os limites:
+    // minZoom: visão geral da lâmina inteira (ex: 1 / 512)
+    // maxZoom: 1.0 (exatamente 100% do pixel real da imagem, que corresponde ao nível 0)
+    _minZoom = 1.0 / maiorDownsample;
+    _maxZoom = 1.0; 
+    
+    // Começa na visão geral
+    _zoom = _minZoom;
   }
   
   void iniciarZoom(Offset pontoFocal) {
@@ -178,7 +180,8 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
   }
 
   void definirZoom(double novoZoom) {
-    _definirZoomDiscreto(novoZoom, Offset(_viewportSize.width / 2, _viewportSize.height / 2));
+    final pontoCentral = Offset(_viewportSize.width / 2, _viewportSize.height / 2);
+    _definirZoomDiscreto(novoZoom, pontoCentral);
   }
 
   void _definirZoomDiscreto(double novoZoom, Offset pontoFocal) {
@@ -302,16 +305,10 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
         
         final String? tileUrl;
         if (isTileValid) {
-          tileUrl = '$tilesBaseUrl/$imagemId/${layer.level}/$col/$row.jpg';
-          
-          if (tiles.isEmpty) {
-            print('Primeiro tile válido: $col,$row - URL: $tileUrl');
-          }
+          // Alinhado com a rota do Node.js: app.get('/tiles/:imageId/:level/:x/:y')
+          tileUrl = '$tilesBaseUrl/tiles/$imagemId/${layer.level}/$col/$row.jpg';
         } else {
           tileUrl = null;
-          if (tiles.isEmpty) {
-            print('Primeiro tile inválido: $col,$row (fora de $maxCols x $maxRows)');
-          }
         }
         
         tiles.add(TileInfo(
@@ -325,30 +322,35 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
     return tiles;
   }
 
-  TileLayer _obterLayerAtual() {
+TileLayer _obterLayerAtual() {
     if (_layers.isEmpty) {
-      return TileLayer(
-        level: 0,
-        width: 256,
-        height: 256,
-        tileSize: 256,
-        scale: 1.0,
-      );
+      return TileLayer(level: 0, width: 256, height: 256, tileSize: 256, scale: 1.0);
+    }
+    
+    if (_layerAtualCache != null) {
+      final fatorAtual = 1.0 / _layerAtualCache!.scale;
+      if ((_zoom - fatorAtual).abs() < fatorAtual * 0.4) {
+        return _layerAtualCache!;
+      }
     }
 
     TileLayer layerEscolhida = _layers.first;
-    double diferencaMinima = double.infinity;
-    
+    double menorDiferenca = double.infinity;
+
     for (final layer in _layers) {
-      final diferenca = (_zoom - layer.scale).abs();
-      if (diferenca < diferencaMinima) {
-        diferencaMinima = diferenca;
+      final fatorZoomLayer = 1.0 / layer.scale;
+      final diferenca = (_zoom - fatorZoomLayer).abs();
+      if (diferenca < menorDiferenca) {
+        menorDiferenca = diferenca;
         layerEscolhida = layer;
       }
     }
     
+    _layerAtualCache = layerEscolhida;
     return layerEscolhida;
   }
+  
+  TileLayer? _layerAtualCache;
   
   double obterEscalaPython(int level) {
     try {
@@ -377,7 +379,6 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
   bool get pointerVisivel => _pointerVisivel;
   bool get modoColocacaoPointer => _modoColocacaoPointer;
 
-  // Métodos para o Pointer na Imagem
   void ativarModoColocacaoPointer() {
     _modoColocacaoPointer = true;
     _pointerVisivel = true;
@@ -412,7 +413,7 @@ class EstadoVisualizadorMRXS with ChangeNotifier {
     notifyListeners();
   }
 
-@override
+  @override
   void dispose() {
     _layers.clear();
     super.dispose();

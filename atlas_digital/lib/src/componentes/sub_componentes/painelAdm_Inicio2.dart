@@ -14,7 +14,7 @@ class InicioPage extends StatefulWidget {
 String linkQuiz = "Coloque o link do quiz aqui";
 
 class OpcaoItem {
-  IconData icone;
+  FaIconData icone;
   String texto;
   String link;
   String? id;
@@ -96,7 +96,7 @@ class _InicioPageState extends State<InicioPage> {
     }
   }
 
-  IconData _iconePorNome(String nome) {
+  FaIconData _iconePorNome(String nome) {
     switch (nome.toLowerCase()) {
       case 'facebook':
         return FontAwesomeIcons.facebook;
@@ -119,7 +119,7 @@ class _InicioPageState extends State<InicioPage> {
   }
 
   // Função para definir cor do ícone conforme a rede social
-  Color corRedeSocial(IconData icone) {
+  Color corRedeSocial(FaIconData icone) {
     if (icone == FontAwesomeIcons.facebook)
       return const Color.fromARGB(255, 3, 74, 133);
     if (icone == FontAwesomeIcons.instagram) return Colors.pink;
