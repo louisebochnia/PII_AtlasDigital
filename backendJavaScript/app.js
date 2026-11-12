@@ -510,31 +510,49 @@ app.get('/:imageId/meta.json', async (req, res) => {
     }
 });
 
-// Código para os tiles
+
 app.get('/tiles/:imageId/:level/:x/:y.jpg', async (req, res) => {
+  const imagem = new Imagem();
     try {
         const { imageId, level, x, y } = req.params;
         
-        // Busque o caminho da imagem no banco de dados com base no imageId
+        // 1. Busca os dados da imagem no MongoDB
         const imagemDoc = await ImagemModel.findById(imageId);
         if (!imagemDoc) {
             return res.status(404).send('Imagem não encontrada');
         }
 
+        // Monta o caminho esperado do tile no disco
         const tilePath = path.join(
             path.resolve(imagemDoc.enderecoTiles), 
             `level_${level}`, 
             `${x}_${y}.jpg`
         );
 
+        // 2. Se o tile já existe, serve imediatamente com cache
         if (await fs.pathExists(tilePath)) {
-            // DEFINE O CACHE POR 7 DIAS NO CLIENTE (Flutter/Browser)
+            res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+            return res.sendFile(tilePath);
+        }
+
+        await imagem.gerarTile(
+            `${imagemDoc.enderecoPastaMrxs}/${imagemDoc.nomeArquivo}`,
+            imagemDoc.enderecoTiles,
+            level,
+            x,
+            y
+        );
+
+        // 4. Após a geração, verifica se o arquivo agora existe e o envia
+        if (await fs.pathExists(tilePath)) {
             res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
             return res.sendFile(tilePath);
         } else {
-            return res.status(404).send('Tile não encontrado');
+            return res.status(404).send('Tile não pôde ser gerado.');
         }
+
     } catch (error) {
+        console.error('[ERRO NA ROTA DE TILES]:', error);
         res.status(500).json({ error: error.message });
     }
 });
